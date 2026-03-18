@@ -77,7 +77,9 @@ export async function convertImage(
   quality: number
 ): Promise<Blob> {
   if (!SUPPORTED_OUTPUT_FORMATS.includes(targetFormat)) {
-    throw new Error(`${FORMAT_LABELS[targetFormat]} export is not available in this build yet.`);
+    throw new Error(
+      `${FORMAT_LABELS[targetFormat]} export is not available in this build yet.`,
+    );
   }
 
   const magickModule = await getMagickModule();
@@ -93,7 +95,7 @@ export async function convertImage(
         const resized = fitWithinLimit(
           image.width,
           image.height,
-          ICO_MAX_DIMENSION
+          ICO_MAX_DIMENSION,
         );
 
         if (resized) {
@@ -113,11 +115,14 @@ export async function convertImage(
         (data) =>
           new Blob([Uint8Array.from(data)], {
             type: FORMAT_MIME_MAP[targetFormat],
-          })
+          }),
       );
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown conversion error";
-    throw new Error(`Conversion to ${FORMAT_LABELS[targetFormat]} failed. ${message}`);
+    const message =
+      error instanceof Error ? error.message : "Unknown conversion error";
+    throw new Error(
+      `Conversion to ${FORMAT_LABELS[targetFormat]} failed. ${message}`,
+    );
   }
 }

@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# open-tools
 
-## Getting Started
+<p align="center">
+  Open-source browser tools for image, text, and design workflows.
+</p>
 
-First, run the development server:
+<p align="center">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black" />
+  <img alt="React" src="https://img.shields.io/badge/React-19-149eca" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6" />
+  <img alt="Local-first" src="https://img.shields.io/badge/Platform-Local--first-22c55e" />
+</p>
+
+## Hero
+
+`open-tools` turns the project into a small multi-tool platform instead of a single utility.
+Each tool gets its own route under `app/(tools)/`, while shared UI, config, and conversion logic stay in `src/`.
+
+Current tools:
+
+- `Image Converter`
+- `JSON Formatter`
+- `Base64`
+- `Color Picker`
+
+## Introduction
+
+The platform is built for small, focused tasks that should feel fast in the browser and easy to extend in the codebase.
+The homepage is driven by a central tool registry, so new tools can be added without scattering route metadata across the app.
+
+The original image-converter logic has been migrated into the new structure rather than rewritten. Its existing format support, upload limits, ICO resizing behavior, and HEIF output limitation are preserved.
+
+## Usage
+
+### Web
+
+1. Open the deployed app or a local running instance.
+2. Pick a tool from the homepage directory.
+3. Use the tool directly in the browser.
+
+Available flows right now:
+
+- `Image Converter`: convert supported image formats locally
+- `JSON Formatter`: pretty-print or minify JSON safely
+- `Base64`: encode and decode text in the browser
+- `Color Picker`: inspect and copy hex, RGB, and HSL values
+
+### Local
+
+Install dependencies and start the app:
+
+```bash
+npm install
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+For a production build:
+
+```bash
+npm run build
+npm start
+```
+
+## Image Converter Notes
+
+- Inputs: `png`, `jpg`, `jpeg`, `webp`, `avif`, `tiff`, `heif`, `ico`
+- Outputs: `png`, `jpg`, `jpeg`, `webp`, `avif`, `tiff`, `ico`
+- `HEIF` / `HEIC` input is supported, but `HEIF` output is disabled in this build
+- `ICO` output is automatically resized to fit the encoder limit above `512px`
+- Upload guardrails: `10MB`, `4096px` max side, `20MP` max total
+
+## Project Structure
+
+```text
+src/
+  app/
+    (tools)/
+      image-converter/
+      json-formatter/
+      base64/
+      color-picker/
+    api/magick-wasm/
+    layout.tsx
+    page.tsx
+  components/
+    ui/
+    repository-corner.tsx
+    site-footer.tsx
+    tool-page-shell.tsx
+  config/
+    site.ts
+    tools.ts
+  lib/
+    converters/
+      image-converter/
+```
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Repository
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Repo: `https://github.com/akshit-bansal11/image-converter`
+- GitHub: `https://github.com/akshit-bansal11`
+- LinkedIn: `https://www.linkedin.com/in/akshit-bansal11/`

@@ -1,19 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import React, { useCallback, useRef, useState } from "react";
 import {
   AlertCircle,
   ArchiveIcon,
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Download,
   FileImage,
-  Github,
   ImageIcon,
   Info,
-  Linkedin,
   Loader2,
-  Mail,
   RotateCcw,
   Sparkles,
   Trash2,
@@ -28,6 +27,8 @@ import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Select } from "@/components/ui/select";
 import { Tooltip } from "@/components/ui/tooltip";
+import { RepositoryCorner } from "@/components/repository-corner";
+import { SiteFooter } from "@/components/site-footer";
 import {
   areFormatsEquivalent,
   type ConversionStatus,
@@ -45,18 +46,17 @@ import {
   MAX_IMAGE_PIXELS,
   SUPPORTED_OUTPUT_FORMATS,
   type ImageFormat,
-} from "@/lib/converter";
-import { convertImage, getImageMetadata } from "@/lib/convert-engine";
+} from "@/lib/converters/image-converter/converter";
+import {
+  convertImage,
+  getImageMetadata,
+} from "@/lib/converters/image-converter/engine";
 
 const ACCEPTED_INPUT =
   ".png,.jpg,.jpeg,.webp,.avif,.tiff,.tif,.heif,.heic,.ico";
 
 const UNSUPPORTED_OUTPUT_FORMATS: ImageFormat[] = ["heif"];
 const UNSUPPORTED_OUTPUT_SET = new Set<ImageFormat>(UNSUPPORTED_OUTPUT_FORMATS);
-const GITHUB_PROFILE_URL = "https://github.com/akshit-bansal11";
-const GITHUB_REPO_URL = "https://github.com/akshit-bansal11/image-converter";
-const LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/akshit-bansal11/";
-const EMAIL_ADDRESS = "artistbansal2004@gmail.com";
 
 function formatMegapixels(pixels: number) {
   return `${(pixels / 1_000_000).toFixed(1)}MP`;
@@ -364,24 +364,27 @@ export default function ImageConverter() {
     <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-background to-accent/30">
       <div className="fixed inset-0 bg-[linear-gradient(rgba(0,0,0,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none dark:bg-[linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)]" />
 
-      <div className="fixed right-0 top-0 z-20 p-2 sm:p-3">
-        <Button
-          asChild
-          variant="outline"
-          size="icon"
-          className="size-11 rounded-full hover:scale-110 active:scale-95 bg-card/85 shadow-sm backdrop-blur-sm sm:size-12"
-        >
-          <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer">
-            <Github className="size-5" />
-          </a>
-        </Button>
-      </div>
+      <RepositoryCorner className="fixed right-0 top-0 z-20 p-2 sm:p-3" />
 
       <div className="relative z-10 mx-auto h-full max-w-5xl overflow-y-auto px-4 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6 sm:py-8 lg:px-8">
+        <div className="mb-4 flex justify-start">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="bg-card/70 backdrop-blur-sm"
+          >
+            <Link href="/">
+              <ArrowLeft className="size-4" />
+              All tools
+            </Link>
+          </Button>
+        </div>
+
         <header className="mb-6 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card/80 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
             <Sparkles className="size-3.5 text-amber-500" />
-            100% client-side - No uploads
+            open-tools - 100% client-side
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             <span className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">
@@ -614,46 +617,7 @@ export default function ImageConverter() {
           </div>
         )}
 
-        <footer className="mt-12 flex flex-col items-center gap-6 border-t pt-6">
-          <div>
-            <p>Made by: Er. Akshit Bansal (Next.js Developer)</p>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="bg-card/70 backdrop-blur-sm"
-            >
-              <a href={GITHUB_PROFILE_URL} target="_blank" rel="noreferrer">
-                <Github className="size-4" />
-                GitHub
-              </a>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="bg-card/70 backdrop-blur-sm"
-            >
-              <a href={LINKEDIN_PROFILE_URL} target="_blank" rel="noreferrer">
-                <Linkedin className="size-4" />
-                LinkedIn
-              </a>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="bg-card/70 backdrop-blur-sm"
-            >
-              <a href={`mailto:${EMAIL_ADDRESS}`}>
-                <Mail className="size-4" />
-                Mail
-              </a>
-            </Button>
-          </div>
-        </footer>
+        <SiteFooter className="mt-12 border-t pt-6" />
       </div>
     </div>
   );
@@ -708,6 +672,7 @@ function FileCard({
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/50">
               {showPreview ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- blob URLs from createObjectURL don't work with next/image */
                 <img
                   src={item.preview}
                   alt={item.name}

@@ -13,23 +13,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Image Converter - Convert PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF & ICO",
+  title: {
+    default: "open-tools",
+    template: "%s | open-tools",
+  },
   description:
-    "Free, client-side image converter. Convert between PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, and ICO instantly in your browser. No uploads, no server, 100% private.",
+    "Open-source browser utilities for image conversion, JSON formatting, base64 encoding, and color workflows.",
   icons: {
-    icon: "/ab11-logo-dark.svg",
+    icon: "/favicon.ico",
   },
   keywords: [
+    "open tools",
+    "browser tools",
     "image converter",
-    "png to jpg",
-    "jpeg converter",
-    "webp converter",
-    "avif converter",
-    "heif converter",
-    "ico converter",
-    "client-side",
-    "browser",
-    "free",
+    "json formatter",
+    "base64 encoder",
+    "color picker",
+    "nextjs tools",
+    "client-side utilities",
   ],
 };
 
