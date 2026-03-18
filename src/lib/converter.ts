@@ -1,6 +1,25 @@
-export type ImageFormat = "png" | "jpg" | "webp" | "avif" | "tiff" | "pdf";
+export type ImageFormat =
+  | "png"
+  | "jpg"
+  | "jpeg"
+  | "webp"
+  | "avif"
+  | "tiff"
+  | "heif"
+  | "ico";
 
-export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+export type CanonicalImageFormat =
+  | "png"
+  | "jpeg"
+  | "webp"
+  | "avif"
+  | "tiff"
+  | "heif"
+  | "ico";
+
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_IMAGE_DIMENSION = 4096;
+export const MAX_IMAGE_PIXELS = 20_000_000; // 20MP
 
 export type ConversionStatus = "idle" | "converting" | "done" | "error";
 
@@ -19,19 +38,33 @@ export interface FileItem {
   preview?: string;
   convertedBlob?: Blob;
   convertedUrl?: string;
-  convertedPages?: { blob: Blob; url: string }[];
 }
 
 export const SUPPORTED_FORMATS: ImageFormat[] = [
   "png",
   "jpg",
+  "jpeg",
   "webp",
   "avif",
   "tiff",
-  "pdf",
+  "heif",
+  "ico",
 ];
 
-export const LOSSY_FORMATS: ImageFormat[] = ["jpg", "webp", "avif"];
+export const SUPPORTED_INPUT_FORMATS: ImageFormat[] = [...SUPPORTED_FORMATS];
+
+// The bundled magick-wasm build can read HEIF but does not ship a HEIF encoder.
+export const SUPPORTED_OUTPUT_FORMATS: ImageFormat[] = SUPPORTED_FORMATS.filter(
+  (format) => format !== "heif"
+);
+
+export const LOSSY_FORMATS: ImageFormat[] = [
+  "jpg",
+  "jpeg",
+  "webp",
+  "avif",
+  "heif",
+];
 
 export const ACCEPTED_MIME_TYPES: Record<string, ImageFormat> = {
   "image/png": "png",
@@ -40,38 +73,72 @@ export const ACCEPTED_MIME_TYPES: Record<string, ImageFormat> = {
   "image/webp": "webp",
   "image/avif": "avif",
   "image/tiff": "tiff",
-  "application/pdf": "pdf",
+  "image/x-tiff": "tiff",
+  "image/heif": "heif",
+  "image/heic": "heif",
+  "image/heif-sequence": "heif",
+  "image/heic-sequence": "heif",
+  "image/x-icon": "ico",
+  "image/vnd.microsoft.icon": "ico",
 };
 
 export const FORMAT_MIME_MAP: Record<ImageFormat, string> = {
   png: "image/png",
   jpg: "image/jpeg",
+  jpeg: "image/jpeg",
   webp: "image/webp",
   avif: "image/avif",
   tiff: "image/tiff",
-  pdf: "application/pdf",
+  heif: "image/heif",
+  ico: "image/x-icon",
 };
 
 export const FORMAT_LABELS: Record<ImageFormat, string> = {
   png: "PNG",
   jpg: "JPG",
+  jpeg: "JPEG",
   webp: "WebP",
   avif: "AVIF",
   tiff: "TIFF",
-  pdf: "PDF",
+  heif: "HEIF",
+  ico: "ICO",
 };
 
-export function detectFormat(file: File): ImageFormat | "unknown" {
-  const mimeFormat = ACCEPTED_MIME_TYPES[file.type];
-  if (mimeFormat) return mimeFormat;
+export function getCanonicalFormat(
+  format: ImageFormat | "unknown"
+): CanonicalImageFormat | "unknown" {
+  switch (format) {
+    case "jpg":
+    case "jpeg":
+      return "jpeg";
+    case "png":
+    case "webp":
+    case "avif":
+    case "tiff":
+    case "heif":
+    case "ico":
+      return format;
+    default:
+      return "unknown";
+  }
+}
 
+export function areFormatsEquivalent(
+  source: ImageFormat | "unknown",
+  target: ImageFormat
+): boolean {
+  return getCanonicalFormat(source) === getCanonicalFormat(target);
+}
+
+export function detectFormat(file: File): ImageFormat | "unknown" {
   const ext = file.name.split(".").pop()?.toLowerCase();
   switch (ext) {
     case "png":
       return "png";
     case "jpg":
-    case "jpeg":
       return "jpg";
+    case "jpeg":
+      return "jpeg";
     case "webp":
       return "webp";
     case "avif":
@@ -79,10 +146,13 @@ export function detectFormat(file: File): ImageFormat | "unknown" {
     case "tiff":
     case "tif":
       return "tiff";
-    case "pdf":
-      return "pdf";
+    case "heif":
+    case "heic":
+      return "heif";
+    case "ico":
+      return "ico";
     default:
-      return "unknown";
+      return ACCEPTED_MIME_TYPES[file.type] ?? "unknown";
   }
 }
 
@@ -91,14 +161,13 @@ export function getDefaultTarget(source: ImageFormat | "unknown"): ImageFormat {
     case "png":
       return "jpg";
     case "jpg":
+    case "jpeg":
       return "png";
     case "webp":
-      return "png";
     case "avif":
-      return "png";
     case "tiff":
-      return "png";
-    case "pdf":
+    case "heif":
+    case "ico":
       return "png";
     default:
       return "png";
@@ -106,12 +175,7 @@ export function getDefaultTarget(source: ImageFormat | "unknown"): ImageFormat {
 }
 
 export function getAvailableTargets(source: ImageFormat | "unknown"): ImageFormat[] {
-  // PDF can only be converted to image formats
-  if (source === "pdf") {
-    return ["png", "jpg", "webp", "avif"];
-  }
-  // Images cannot be converted to PDF
-  return SUPPORTED_FORMATS.filter((f) => f !== "pdf" && f !== source);
+  return SUPPORTED_FORMATS.filter((format) => format !== source);
 }
 
 export function formatFileSize(bytes: number): string {

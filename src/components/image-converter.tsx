@@ -1,30 +1,24 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
-  Upload,
+  AlertCircle,
+  ArchiveIcon,
+  ArrowRight,
+  CheckCircle2,
   Download,
   FileImage,
-  Trash2,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ArchiveIcon,
-  Sparkles,
-  RotateCcw,
-  X,
-  ArrowRight,
   ImageIcon,
   Info,
+  Loader2,
+  RotateCcw,
+  Sparkles,
+  Trash2,
+  Upload,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -32,68 +26,93 @@ import { Slider } from "@/components/ui/slider";
 import { Select } from "@/components/ui/select";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
-  type FileItem,
-  type ImageFormat,
+  areFormatsEquivalent,
   type ConversionStatus,
-  LOSSY_FORMATS,
+  type FileItem,
   detectFormat,
-  getDefaultTarget,
-  getAvailableTargets,
+  FORMAT_LABELS,
+  FORMAT_MIME_MAP,
   formatFileSize,
   generateId,
-  FORMAT_LABELS,
+  getAvailableTargets,
+  getDefaultTarget,
+  LOSSY_FORMATS,
+  MAX_FILE_SIZE,
+  MAX_IMAGE_DIMENSION,
+  MAX_IMAGE_PIXELS,
+  SUPPORTED_OUTPUT_FORMATS,
+  type ImageFormat,
 } from "@/lib/converter";
-import { convertImage, convertPdfToImages, checkFormatSupport } from "@/lib/convert-engine";
+import { convertImage, getImageMetadata } from "@/lib/convert-engine";
 
-const ACCEPTED_INPUT = ".png,.jpg,.jpeg,.webp,.avif,.tiff,.tif,.pdf";
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+const ACCEPTED_INPUT =
+  ".png,.jpg,.jpeg,.webp,.avif,.tiff,.tif,.heif,.heic,.ico";
+
+const UNSUPPORTED_OUTPUT_FORMATS: ImageFormat[] = ["heif"];
+const UNSUPPORTED_OUTPUT_SET = new Set<ImageFormat>(UNSUPPORTED_OUTPUT_FORMATS);
+
+function formatMegapixels(pixels: number) {
+  return `${(pixels / 1_000_000).toFixed(1)}MP`;
+}
+
+function summarizeUploadIssues(issues: string[]) {
+  if (issues.length <= 3) {
+    return issues.join("; ");
+  }
+
+  return `${issues.slice(0, 3).join("; ")}; and ${issues.length - 3} more.`;
+}
 
 export default function ImageConverter() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [formatWarnings, setFormatWarnings] = useState<Record<string, boolean>>({});
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
-  const [sizeWarning, setSizeWarning] = useState<string | null>(null);
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
 
-  // Check browser format support on mount
-  useEffect(() => {
-    async function check() {
-      const formats: ImageFormat[] = ["avif", "tiff", "webp"];
-      const warnings: Record<string, boolean> = {};
-      for (const fmt of formats) {
-        const supported = await checkFormatSupport(fmt);
-        if (!supported) {
-          warnings[fmt] = true;
-        }
-      }
-      setFormatWarnings(warnings);
-    }
-    check();
-  }, []);
-
-  const addFiles = useCallback((newFiles: File[]) => {
-    // Filter out files that exceed the size limit
+  const addFiles = useCallback(async (newFiles: File[]) => {
     const validFiles: File[] = [];
-    const oversizedFiles: string[] = [];
+    const rejectedFiles: string[] = [];
 
     for (const file of newFiles) {
       if (file.size > MAX_FILE_SIZE) {
-        oversizedFiles.push(file.name);
-      } else {
+        rejectedFiles.push(`${file.name} exceeds the 10MB upload limit`);
+        continue;
+      }
+
+      try {
+        const metadata = await getImageMetadata(file);
+        const pixelCount = metadata.width * metadata.height;
+
+        if (
+          metadata.width > MAX_IMAGE_DIMENSION ||
+          metadata.height > MAX_IMAGE_DIMENSION
+        ) {
+          rejectedFiles.push(
+            `${file.name} is ${metadata.width}x${metadata.height}; max is ${MAX_IMAGE_DIMENSION}px per side`
+          );
+          continue;
+        }
+
+        if (pixelCount > MAX_IMAGE_PIXELS) {
+          rejectedFiles.push(
+            `${file.name} is ${formatMegapixels(pixelCount)}; max is ${formatMegapixels(
+              MAX_IMAGE_PIXELS
+            )}`
+          );
+          continue;
+        }
+
         validFiles.push(file);
+      } catch {
+        rejectedFiles.push(`Couldn't read dimensions for ${file.name}`);
       }
     }
 
-    // Show warning for oversized files
-    if (oversizedFiles.length > 0) {
-      const fileList = oversizedFiles.length <= 3
-        ? oversizedFiles.join(", ")
-        : `${oversizedFiles.slice(0, 3).join(", ")} and ${oversizedFiles.length - 3} more`;
-      setSizeWarning(`File${oversizedFiles.length > 1 ? "s" : ""} exceeding 50MB limit: ${fileList}`);
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => setSizeWarning(null), 5000);
+    if (rejectedFiles.length > 0) {
+      setUploadWarning(summarizeUploadIssues(rejectedFiles));
+      setTimeout(() => setUploadWarning(null), 7000);
     }
 
     if (validFiles.length === 0) return;
@@ -101,6 +120,7 @@ export default function ImageConverter() {
     const items: FileItem[] = validFiles.map((file) => {
       const sourceFormat = detectFormat(file);
       const targetFormat = getDefaultTarget(sourceFormat);
+
       return {
         id: generateId(),
         file,
@@ -112,9 +132,10 @@ export default function ImageConverter() {
         quality: 85,
         status: "idle" as ConversionStatus,
         progress: 0,
-        preview: sourceFormat !== "pdf" ? URL.createObjectURL(file) : undefined,
+        preview: URL.createObjectURL(file),
       };
     });
+
     setFiles((prev) => [...prev, ...items]);
   }, []);
 
@@ -145,9 +166,10 @@ export default function ImageConverter() {
       e.stopPropagation();
       setIsDragging(false);
       dragCounter.current = 0;
+
       const droppedFiles = Array.from(e.dataTransfer.files);
       if (droppedFiles.length > 0) {
-        addFiles(droppedFiles);
+        void addFiles(droppedFiles);
       }
     },
     [addFiles]
@@ -157,120 +179,98 @@ export default function ImageConverter() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const selected = e.target.files ? Array.from(e.target.files) : [];
       if (selected.length > 0) {
-        addFiles(selected);
+        void addFiles(selected);
       }
-      // Reset input so same file can be selected again
       e.target.value = "";
     },
     [addFiles]
   );
 
   const updateFile = useCallback((id: string, updates: Partial<FileItem>) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
-    );
+    setFiles((prev) => prev.map((file) => (file.id === id ? { ...file, ...updates } : file)));
   }, []);
 
-  const removeFile = useCallback((id: string) => {
-    setFiles((prev) => {
-      const file = prev.find((f) => f.id === id);
-      if (file) {
-        if (file.preview) URL.revokeObjectURL(file.preview);
-        if (file.convertedUrl) URL.revokeObjectURL(file.convertedUrl);
-        if (file.convertedPages) {
-          file.convertedPages.forEach((p) => URL.revokeObjectURL(p.url));
-        }
-      }
-      return prev.filter((f) => f.id !== id);
-    });
+  const revokeFileUrls = useCallback((file: FileItem) => {
+    if (file.preview) URL.revokeObjectURL(file.preview);
+    if (file.convertedUrl) URL.revokeObjectURL(file.convertedUrl);
   }, []);
+
+  const removeFile = useCallback(
+    (id: string) => {
+      setFiles((prev) => {
+        const file = prev.find((item) => item.id === id);
+        if (file) {
+          revokeFileUrls(file);
+        }
+        return prev.filter((item) => item.id !== id);
+      });
+    },
+    [revokeFileUrls]
+  );
 
   const clearAll = useCallback(() => {
-    files.forEach((f) => {
-      if (f.preview) URL.revokeObjectURL(f.preview);
-      if (f.convertedUrl) URL.revokeObjectURL(f.convertedUrl);
-      if (f.convertedPages) {
-        f.convertedPages.forEach((p) => URL.revokeObjectURL(p.url));
-      }
-    });
+    files.forEach(revokeFileUrls);
     setFiles([]);
-  }, [files]);
+  }, [files, revokeFileUrls]);
 
   const convertFile = useCallback(
     async (id: string) => {
-      const file = files.find((f) => f.id === id);
+      const file = files.find((item) => item.id === id);
       if (!file || file.status === "converting") return;
 
       updateFile(id, { status: "converting", progress: 0, error: undefined });
 
-      // Helper to animate progress smoothly
-      const animateProgress = (from: number, to: number, duration: number): Promise<void> => {
-        return new Promise((resolve) => {
+      const animateProgress = (from: number, to: number, duration: number): Promise<void> =>
+        new Promise((resolve) => {
           const startTime = Date.now();
+
           const tick = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
             const current = Math.round(from + (to - from) * progress);
             updateFile(id, { progress: current });
+
             if (progress < 1) {
               requestAnimationFrame(tick);
             } else {
               resolve();
             }
           };
+
           requestAnimationFrame(tick);
         });
-      };
 
       try {
-        if (file.sourceFormat === "pdf") {
-          const pages = await convertPdfToImages(
-            file.file,
-            file.targetFormat,
-            file.quality,
-            (current, total) => {
-              updateFile(id, {
-                progress: Math.round((current / total) * 95) + 5,
-              });
-            }
-          );
-          updateFile(id, {
-            status: "done",
-            progress: 100,
-            convertedPages: pages,
-          });
-        } else if (file.sourceFormat === "unknown") {
+        if (file.sourceFormat === "unknown") {
           throw new Error("Unsupported source format");
-        } else {
-          // Start progress animation (0 -> 85% over 800ms)
-          const progressPromise = animateProgress(0, 85, 800);
-
-          // Start actual conversion in parallel
-          const blob = await convertImage(
-            file.file,
-            file.targetFormat,
-            file.quality
-          );
-
-          // Wait for progress animation to catch up if needed
-          await progressPromise;
-
-          // Quick finish animation
-          await animateProgress(85, 100, 150);
-
-          const url = URL.createObjectURL(blob);
-          updateFile(id, {
-            status: "done",
-            progress: 100,
-            convertedBlob: blob,
-            convertedUrl: url,
-          });
         }
-      } catch (err) {
+
+        if (!SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat)) {
+          throw new Error(`${FORMAT_LABELS[file.targetFormat]} export is not available yet.`);
+        }
+
+        const progressPromise = animateProgress(0, 85, 800);
+
+        const blob = areFormatsEquivalent(file.sourceFormat, file.targetFormat)
+          ? file.file.slice(0, file.file.size, FORMAT_MIME_MAP[file.targetFormat])
+          : await convertImage(file.file, file.targetFormat, file.quality);
+
+        await progressPromise;
+        await animateProgress(85, 100, 150);
+
+        const url = URL.createObjectURL(blob);
+
+        updateFile(id, {
+          status: "done",
+          progress: 100,
+          convertedBlob: blob,
+          convertedUrl: url,
+        });
+      } catch (error) {
         updateFile(id, {
           status: "error",
           progress: 0,
-          error: err instanceof Error ? err.message : "Conversion failed",
+          error: error instanceof Error ? error.message : "Conversion failed",
         });
       }
     },
@@ -279,138 +279,131 @@ export default function ImageConverter() {
 
   const convertAll = useCallback(async () => {
     const toConvert = files.filter(
-      (f) => f.status === "idle" || f.status === "error"
+      (file) =>
+        (file.status === "idle" || file.status === "error") &&
+        SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat)
     );
-    // Convert sequentially to avoid memory issues
+
     for (const file of toConvert) {
       await convertFile(file.id);
     }
   }, [files, convertFile]);
 
   const downloadFile = useCallback((item: FileItem) => {
-    if (item.convertedPages && item.convertedPages.length > 0) {
-      // PDF pages — download each
-      item.convertedPages.forEach((page, i) => {
-        const a = document.createElement("a");
-        a.href = page.url;
-        const baseName = item.name.replace(/\.[^/.]+$/, "");
-        a.download = `${baseName}_page${i + 1}.${item.targetFormat}`;
-        a.click();
-      });
-    } else if (item.convertedUrl) {
-      const a = document.createElement("a");
-      a.href = item.convertedUrl;
-      const baseName = item.name.replace(/\.[^/.]+$/, "");
-      a.download = `${baseName}.${item.targetFormat}`;
-      a.click();
-    }
+    if (!item.convertedUrl) return;
+
+    const anchor = document.createElement("a");
+    anchor.href = item.convertedUrl;
+    const baseName = item.name.replace(/\.[^/.]+$/, "");
+    anchor.download = `${baseName}.${item.targetFormat}`;
+    anchor.click();
   }, []);
 
   const downloadAll = useCallback(async () => {
-    const doneFiles = files.filter((f) => f.status === "done");
+    const doneFiles = files.filter((file) => file.status === "done" && file.convertedBlob);
     if (doneFiles.length === 0) return;
 
     setIsDownloadingAll(true);
+
     try {
       const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
 
       for (const item of doneFiles) {
         const baseName = item.name.replace(/\.[^/.]+$/, "");
-        if (item.convertedPages && item.convertedPages.length > 0) {
-          for (let i = 0; i < item.convertedPages.length; i++) {
-            zip.file(
-              `${baseName}_page${i + 1}.${item.targetFormat}`,
-              item.convertedPages[i].blob
-            );
-          }
-        } else if (item.convertedBlob) {
+        if (item.convertedBlob) {
           zip.file(`${baseName}.${item.targetFormat}`, item.convertedBlob);
         }
       }
 
       const content = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(content);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "converted-images.zip";
-      a.click();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "converted-images.zip";
+      anchor.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Failed to create ZIP:", err);
+    } catch (error) {
+      console.error("Failed to create ZIP:", error);
     }
+
     setIsDownloadingAll(false);
   }, [files]);
 
   const hasFiles = files.length > 0;
-  const doneCount = files.filter((f) => f.status === "done").length;
-  const idleOrErrorCount = files.filter(
-    (f) => f.status === "idle" || f.status === "error"
+  const doneCount = files.filter((file) => file.status === "done").length;
+  const convertibleCount = files.filter(
+    (file) =>
+      (file.status === "idle" || file.status === "error") &&
+      SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat)
   ).length;
-  const isConverting = files.some((f) => f.status === "converting");
+  const isConverting = files.some((file) => file.status === "converting");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
-      {/* Subtle grid pattern overlay */}
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(0,0,0,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.02)_1px,transparent_1px)] bg-[size:64px_64px] dark:bg-[linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] pointer-events-none" />
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(0,0,0,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none dark:bg-[linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)]" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
         <header className="mb-8 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card/80 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
             <Sparkles className="size-3.5 text-amber-500" />
-            100% client-side • No uploads
+            100% client-side - No uploads
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             <span className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">
               Image Converter
             </span>
           </h1>
-          <p className="mt-3 text-muted-foreground text-lg">
-            Convert images between PNG, JPG, WebP, AVIF, TIFF, and PDF —
-            instantly in your browser.
+          <p className="mt-3 text-lg text-muted-foreground">
+            Convert images between PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, and ICO instantly in your browser.
           </p>
         </header>
 
-        {/* Format warnings */}
-        {Object.keys(formatWarnings).length > 0 && (
+        {UNSUPPORTED_OUTPUT_FORMATS.length > 0 && (
           <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 size-5 shrink-0 text-amber-500" />
               <div>
                 <p className="font-medium text-amber-600 dark:text-amber-400">
-                  Limited Format Support
+                  HEIF Export Limitation
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Your browser doesn&apos;t support encoding to{" "}
-                  <strong>
-                    {Object.keys(formatWarnings)
-                      .map((f) => f.toUpperCase())
-                      .join(", ")}
-                  </strong>
-                  . Conversions to these formats may fail. Try using Chrome or
-                  Edge for full support.
+                  HEIF and HEIC files can be uploaded as sources, but the bundled codec does not yet export
+                  <strong> HEIF </strong>
+                  output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are available as targets.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* File size warning */}
-        {sizeWarning && (
+        <div className="mb-6 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+          <div className="flex items-start gap-3">
+            <Info className="mt-0.5 size-5 shrink-0 text-blue-500" />
+            <div>
+              <p className="font-medium text-blue-600 dark:text-blue-400">
+                Upload Limits
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Uploads are limited to 10MB, 4096px on either side, and 20MP total. ICO exports above 512px are
+                automatically resized to fit the encoder limit instead of failing.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {uploadWarning && (
           <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
               <div className="flex-1">
                 <p className="font-medium text-red-600 dark:text-red-400">
-                  File Size Limit Exceeded
+                  Upload Rejected
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {sizeWarning}
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{uploadWarning}</p>
               </div>
               <button
-                onClick={() => setSizeWarning(null)}
+                onClick={() => setUploadWarning(null)}
                 className="text-red-500 hover:text-red-600 dark:hover:text-red-400"
               >
                 <X className="size-4" />
@@ -419,11 +412,10 @@ export default function ImageConverter() {
           </div>
         )}
 
-        {/* Drop zone */}
         <Card
           className={`relative overflow-hidden transition-all duration-300 ${
             isDragging
-              ? "border-primary/50 bg-primary/5 shadow-lg shadow-primary/10 scale-[1.01]"
+              ? "scale-[1.01] border-primary/50 bg-primary/5 shadow-lg shadow-primary/10"
               : "border-dashed hover:border-muted-foreground/30 hover:shadow-md"
           }`}
         >
@@ -443,15 +435,10 @@ export default function ImageConverter() {
               onChange={handleFileSelect}
               id="file-upload"
             />
-            <label
-              htmlFor="file-upload"
-              className="flex cursor-pointer flex-col items-center gap-4"
-            >
+            <label htmlFor="file-upload" className="flex cursor-pointer flex-col items-center gap-4">
               <div
                 className={`rounded-2xl p-5 transition-all duration-300 ${
-                  isDragging
-                    ? "bg-primary/10 scale-110"
-                    : "bg-muted/50 hover:bg-muted"
+                  isDragging ? "scale-110 bg-primary/10" : "bg-muted/50 hover:bg-muted"
                 }`}
               >
                 <Upload
@@ -467,54 +454,44 @@ export default function ImageConverter() {
                   ) : (
                     <>
                       Drag & drop files or{" "}
-                      <span className="text-primary underline underline-offset-4">
-                        browse
-                      </span>
+                      <span className="text-primary underline underline-offset-4">browse</span>
                     </>
                   )}
                 </p>
                 <p className="mt-1.5 text-sm text-muted-foreground">
-                  PNG, JPG, WebP, AVIF, TIFF, PDF — max 50MB per file
+                  PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, ICO - max 10MB, 4096px per side, 20MP
                 </p>
               </div>
             </label>
           </div>
 
-          {/* Animated border glow on drag */}
           {isDragging && (
-            <div className="pointer-events-none absolute inset-0 rounded-xl border-2 border-primary/40 animate-pulse" />
+            <div className="pointer-events-none absolute inset-0 animate-pulse rounded-xl border-2 border-primary/40" />
           )}
         </Card>
 
-        {/* File list */}
         {hasFiles && (
           <div className="mt-8 space-y-4">
-            {/* Batch actions bar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="text-sm px-3 py-1">
-                  <FileImage className="size-3.5 mr-1" />
+                <Badge variant="secondary" className="px-3 py-1 text-sm">
+                  <FileImage className="mr-1 size-3.5" />
                   {files.length} file{files.length !== 1 ? "s" : ""}
                 </Badge>
                 {doneCount > 0 && (
                   <Badge
                     variant="outline"
-                    className="text-sm px-3 py-1 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                    className="border-emerald-500/30 px-3 py-1 text-sm text-emerald-600 dark:text-emerald-400"
                   >
-                    <CheckCircle2 className="size-3.5 mr-1" />
+                    <CheckCircle2 className="mr-1 size-3.5" />
                     {doneCount} converted
                   </Badge>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                {idleOrErrorCount > 0 && (
-                  <Button
-                    onClick={convertAll}
-                    disabled={isConverting}
-                    size="sm"
-                    className="gap-2"
-                  >
+                {convertibleCount > 0 && (
+                  <Button onClick={convertAll} disabled={isConverting} size="sm" className="gap-2">
                     {isConverting ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
@@ -553,13 +530,11 @@ export default function ImageConverter() {
               </div>
             </div>
 
-            {/* File cards */}
             <div className="space-y-3">
               {files.map((item) => (
                 <FileCard
                   key={item.id}
                   item={item}
-                  formatWarnings={formatWarnings}
                   onUpdateTarget={(target) =>
                     updateFile(item.id, {
                       targetFormat: target,
@@ -567,13 +542,10 @@ export default function ImageConverter() {
                       progress: 0,
                       convertedBlob: undefined,
                       convertedUrl: undefined,
-                      convertedPages: undefined,
                       error: undefined,
                     })
                   }
-                  onUpdateQuality={(quality) =>
-                    updateFile(item.id, { quality })
-                  }
+                  onUpdateQuality={(quality) => updateFile(item.id, { quality })}
                   onConvert={() => convertFile(item.id)}
                   onDownload={() => downloadFile(item)}
                   onRemove={() => removeFile(item.id)}
@@ -591,23 +563,16 @@ export default function ImageConverter() {
           </div>
         )}
 
-        {/* Footer */}
         <footer className="mt-12 text-center text-sm text-muted-foreground">
-          <p>
-            All conversions happen locally in your browser. No files are
-            uploaded anywhere.
-          </p>
+          <p>All conversions happen locally in your browser. No files are uploaded anywhere.</p>
         </footer>
       </div>
     </div>
   );
 }
 
-/* ───────────── File Card Component ───────────── */
-
 interface FileCardProps {
   item: FileItem;
-  formatWarnings: Record<string, boolean>;
   onUpdateTarget: (target: ImageFormat) => void;
   onUpdateQuality: (quality: number) => void;
   onConvert: () => void;
@@ -618,7 +583,6 @@ interface FileCardProps {
 
 function FileCard({
   item,
-  formatWarnings,
   onUpdateTarget,
   onUpdateQuality,
   onConvert,
@@ -626,13 +590,16 @@ function FileCard({
   onRemove,
   onRetry,
 }: FileCardProps) {
+  const [failedPreview, setFailedPreview] = useState<string | null>(null);
+
   const availableTargets = getAvailableTargets(item.sourceFormat);
   const isLossyTarget = LOSSY_FORMATS.includes(item.targetFormat);
-  const showWarning = formatWarnings[item.targetFormat];
+  const isTargetSupported = !UNSUPPORTED_OUTPUT_SET.has(item.targetFormat);
+  const convertDisabled = item.status === "converting" || !isTargetSupported || item.sourceFormat === "unknown";
+  const showPreview = Boolean(item.preview) && failedPreview !== item.preview;
 
   return (
-    <Card className="group relative transition-all duration-200 hover:shadow-md py-0">
-      {/* Status indicator line */}
+    <Card className="group relative py-0 transition-all duration-200 hover:shadow-md">
       <div
         className={`absolute left-0 top-0 h-full w-1 rounded-l-xl transition-colors ${
           item.status === "done"
@@ -640,79 +607,69 @@ function FileCard({
             : item.status === "error"
             ? "bg-red-500"
             : item.status === "converting"
-            ? "bg-blue-500 animate-pulse"
+            ? "animate-pulse bg-blue-500"
             : "bg-transparent"
         }`}
       />
 
       <CardContent className="p-4 pl-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          {/* Thumbnail + Info */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* Thumbnail */}
-            <div className="relative size-14 shrink-0 rounded-lg overflow-hidden bg-muted/50 border flex items-center justify-center">
-              {item.preview ? (
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/50">
+              {showPreview ? (
                 <img
                   src={item.preview}
                   alt={item.name}
                   className="size-full object-cover"
+                  onError={() => setFailedPreview(item.preview ?? null)}
                 />
               ) : (
                 <ImageIcon className="size-6 text-muted-foreground" />
               )}
             </div>
 
-            {/* File info */}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium" title={item.name}>
                 {item.name}
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {formatFileSize(item.size)}
-                </span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 uppercase">
-                  {item.sourceFormat === "unknown"
-                    ? "?"
-                    : FORMAT_LABELS[item.sourceFormat]}
+                <span className="text-xs text-muted-foreground">{formatFileSize(item.size)}</span>
+                <Badge variant="outline" className="px-1.5 py-0 text-[10px] uppercase">
+                  {item.sourceFormat === "unknown" ? "?" : FORMAT_LABELS[item.sourceFormat]}
                 </Badge>
                 <ArrowRight className="size-3 text-muted-foreground" />
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] px-1.5 py-0 uppercase font-bold"
-                >
+                <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-bold uppercase">
                   {FORMAT_LABELS[item.targetFormat]}
                 </Badge>
               </div>
             </div>
           </div>
 
-          {/* Controls */}
           <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
-            {/* Format selector */}
             <div className="flex flex-col gap-1">
               <Select
                 value={item.targetFormat}
-                onChange={(e) =>
-                  onUpdateTarget(e.target.value as ImageFormat)
-                }
+                onChange={(e) => onUpdateTarget(e.target.value as ImageFormat)}
                 disabled={item.status === "converting"}
-                className="w-24 h-8 text-xs"
+                className="h-8 w-28 text-xs"
               >
-                {availableTargets.map((fmt) => (
-                  <option key={fmt} value={fmt}>
-                    {FORMAT_LABELS[fmt]}
-                    {formatWarnings[fmt] ? " ⚠️" : ""}
+                {availableTargets.map((format) => (
+                  <option
+                    key={format}
+                    value={format}
+                    disabled={UNSUPPORTED_OUTPUT_SET.has(format)}
+                  >
+                    {FORMAT_LABELS[format]}
+                    {UNSUPPORTED_OUTPUT_SET.has(format) ? " (Unavailable)" : ""}
                   </option>
                 ))}
               </Select>
             </div>
 
-            {/* Quality slider */}
             {isLossyTarget && (
-              <div className="flex items-center gap-2 min-w-[120px]">
+              <div className="flex min-w-[120px] items-center gap-2">
                 <Tooltip content={`Quality: ${item.quality}%`}>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap w-8 text-right">
+                  <span className="w-8 whitespace-nowrap text-right text-xs text-muted-foreground">
                     {item.quality}%
                   </span>
                 </Tooltip>
@@ -721,26 +678,32 @@ function FileCard({
                   max={100}
                   step={5}
                   value={item.quality}
-                  onChange={(e) =>
-                    onUpdateQuality(parseInt(e.target.value))
-                  }
+                  onChange={(e) => onUpdateQuality(parseInt(e.target.value, 10))}
                   disabled={item.status === "converting"}
                   className="w-20"
                 />
               </div>
             )}
 
-            {/* Status badge + Actions */}
             <div className="flex items-center gap-2">
               <StatusBadge status={item.status} />
 
               {item.status === "idle" && (
-                <Tooltip content={showWarning ? "May not work in this browser" : "Convert this file"}>
+                <Tooltip
+                  content={
+                    !isTargetSupported
+                      ? "This output format is unavailable"
+                      : item.sourceFormat === "unknown"
+                      ? "Unsupported source format"
+                      : "Convert this file"
+                  }
+                >
                   <Button
                     onClick={onConvert}
                     size="sm"
-                    variant={showWarning ? "outline" : "default"}
-                    className="gap-1.5 h-8 text-xs"
+                    variant={isTargetSupported ? "default" : "outline"}
+                    className="h-8 gap-1.5 text-xs"
+                    disabled={convertDisabled}
                   >
                     <Sparkles className="size-3" />
                     Convert
@@ -760,15 +723,11 @@ function FileCard({
                   onClick={onDownload}
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 h-8 text-xs border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+                  className="h-8 gap-1.5 border-emerald-500/30 text-xs text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
                 >
                   <Download className="size-3" />
                   Download
-                  {item.convertedPages && item.convertedPages.length > 1
-                    ? ` (${item.convertedPages.length})`
-                    : item.convertedBlob
-                    ? ` (${formatFileSize(item.convertedBlob.size)})`
-                    : ""}
+                  {item.convertedBlob ? ` (${formatFileSize(item.convertedBlob.size)})` : ""}
                 </Button>
               )}
 
@@ -790,7 +749,7 @@ function FileCard({
                   onClick={onRemove}
                   variant="ghost"
                   size="icon"
-                  className="size-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="size-8 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                 >
                   <X className="size-3.5" />
                 </Button>
@@ -799,53 +758,25 @@ function FileCard({
           </div>
         </div>
 
-        {/* Progress bar */}
         {item.status === "converting" && (
           <div className="mt-3">
             <Progress value={item.progress} className="h-1.5" />
           </div>
         )}
 
-        {/* Error message */}
         {item.status === "error" && item.error && (
-          <div className="mt-3 flex items-start gap-2 rounded-md bg-red-500/5 border border-red-500/20 p-2.5">
+          <div className="mt-3 flex items-start gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2.5">
             <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-red-500" />
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {item.error}
-            </p>
+            <p className="text-xs text-red-600 dark:text-red-400">{item.error}</p>
           </div>
         )}
 
-        {/* Format warning */}
-        {showWarning && item.status === "idle" && (
-          <div className="mt-3 flex items-start gap-2 rounded-md bg-amber-500/5 border border-amber-500/20 p-2.5">
+        {!isTargetSupported && item.status === "idle" && (
+          <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 p-2.5">
             <Info className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              Your browser may not support encoding to{" "}
-              {item.targetFormat.toUpperCase()}. Try Chrome or Edge for best
-              results.
+              HEIF files can be used as input, but HEIF output is not available in the bundled codec yet.
             </p>
-          </div>
-        )}
-
-        {/* Converted pages preview (PDF) */}
-        {item.convertedPages && item.convertedPages.length > 0 && (
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            {item.convertedPages.map((page, i) => (
-              <div
-                key={i}
-                className="relative size-16 shrink-0 rounded-md overflow-hidden border bg-muted/30"
-              >
-                <img
-                  src={page.url}
-                  alt={`Page ${i + 1}`}
-                  className="size-full object-cover"
-                />
-                <span className="absolute bottom-0 right-0 bg-black/60 px-1 text-[9px] text-white rounded-tl-sm">
-                  p{i + 1}
-                </span>
-              </div>
-            ))}
           </div>
         )}
       </CardContent>
@@ -857,7 +788,7 @@ function StatusBadge({ status }: { status: ConversionStatus }) {
   switch (status) {
     case "idle":
       return (
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+        <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
           Ready
         </Badge>
       );
@@ -865,23 +796,20 @@ function StatusBadge({ status }: { status: ConversionStatus }) {
       return (
         <Badge
           variant="secondary"
-          className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+          className="border-blue-500/20 bg-blue-500/10 px-1.5 py-0 text-[10px] text-blue-600 dark:text-blue-400"
         >
           Converting
         </Badge>
       );
     case "done":
       return (
-        <Badge className="text-[10px] px-1.5 py-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+        <Badge className="border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0 text-[10px] text-emerald-600 dark:text-emerald-400">
           Done
         </Badge>
       );
     case "error":
       return (
-        <Badge
-          variant="destructive"
-          className="text-[10px] px-1.5 py-0"
-        >
+        <Badge variant="destructive" className="px-1.5 py-0 text-[10px]">
           Error
         </Badge>
       );
