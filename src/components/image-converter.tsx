@@ -8,9 +8,12 @@ import {
   CheckCircle2,
   Download,
   FileImage,
+  Github,
   ImageIcon,
   Info,
+  Linkedin,
   Loader2,
+  Mail,
   RotateCcw,
   Sparkles,
   Trash2,
@@ -50,6 +53,10 @@ const ACCEPTED_INPUT =
 
 const UNSUPPORTED_OUTPUT_FORMATS: ImageFormat[] = ["heif"];
 const UNSUPPORTED_OUTPUT_SET = new Set<ImageFormat>(UNSUPPORTED_OUTPUT_FORMATS);
+const GITHUB_PROFILE_URL = "https://github.com/akshit-bansal11";
+const GITHUB_REPO_URL = "https://github.com/akshit-bansal11/image-converter";
+const LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/akshit-bansal11/";
+const EMAIL_ADDRESS = "artistbansal2004@gmail.com";
 
 function formatMegapixels(pixels: number) {
   return `${(pixels / 1_000_000).toFixed(1)}MP`;
@@ -90,7 +97,7 @@ export default function ImageConverter() {
           metadata.height > MAX_IMAGE_DIMENSION
         ) {
           rejectedFiles.push(
-            `${file.name} is ${metadata.width}x${metadata.height}; max is ${MAX_IMAGE_DIMENSION}px per side`
+            `${file.name} is ${metadata.width}x${metadata.height}; max is ${MAX_IMAGE_DIMENSION}px per side`,
           );
           continue;
         }
@@ -98,8 +105,8 @@ export default function ImageConverter() {
         if (pixelCount > MAX_IMAGE_PIXELS) {
           rejectedFiles.push(
             `${file.name} is ${formatMegapixels(pixelCount)}; max is ${formatMegapixels(
-              MAX_IMAGE_PIXELS
-            )}`
+              MAX_IMAGE_PIXELS,
+            )}`,
           );
           continue;
         }
@@ -172,7 +179,7 @@ export default function ImageConverter() {
         void addFiles(droppedFiles);
       }
     },
-    [addFiles]
+    [addFiles],
   );
 
   const handleFileSelect = useCallback(
@@ -183,11 +190,13 @@ export default function ImageConverter() {
       }
       e.target.value = "";
     },
-    [addFiles]
+    [addFiles],
   );
 
   const updateFile = useCallback((id: string, updates: Partial<FileItem>) => {
-    setFiles((prev) => prev.map((file) => (file.id === id ? { ...file, ...updates } : file)));
+    setFiles((prev) =>
+      prev.map((file) => (file.id === id ? { ...file, ...updates } : file)),
+    );
   }, []);
 
   const revokeFileUrls = useCallback((file: FileItem) => {
@@ -205,7 +214,7 @@ export default function ImageConverter() {
         return prev.filter((item) => item.id !== id);
       });
     },
-    [revokeFileUrls]
+    [revokeFileUrls],
   );
 
   const clearAll = useCallback(() => {
@@ -220,7 +229,11 @@ export default function ImageConverter() {
 
       updateFile(id, { status: "converting", progress: 0, error: undefined });
 
-      const animateProgress = (from: number, to: number, duration: number): Promise<void> =>
+      const animateProgress = (
+        from: number,
+        to: number,
+        duration: number,
+      ): Promise<void> =>
         new Promise((resolve) => {
           const startTime = Date.now();
 
@@ -246,13 +259,19 @@ export default function ImageConverter() {
         }
 
         if (!SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat)) {
-          throw new Error(`${FORMAT_LABELS[file.targetFormat]} export is not available yet.`);
+          throw new Error(
+            `${FORMAT_LABELS[file.targetFormat]} export is not available yet.`,
+          );
         }
 
         const progressPromise = animateProgress(0, 85, 800);
 
         const blob = areFormatsEquivalent(file.sourceFormat, file.targetFormat)
-          ? file.file.slice(0, file.file.size, FORMAT_MIME_MAP[file.targetFormat])
+          ? file.file.slice(
+              0,
+              file.file.size,
+              FORMAT_MIME_MAP[file.targetFormat],
+            )
           : await convertImage(file.file, file.targetFormat, file.quality);
 
         await progressPromise;
@@ -274,14 +293,14 @@ export default function ImageConverter() {
         });
       }
     },
-    [files, updateFile]
+    [files, updateFile],
   );
 
   const convertAll = useCallback(async () => {
     const toConvert = files.filter(
       (file) =>
         (file.status === "idle" || file.status === "error") &&
-        SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat)
+        SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat),
     );
 
     for (const file of toConvert) {
@@ -300,7 +319,9 @@ export default function ImageConverter() {
   }, []);
 
   const downloadAll = useCallback(async () => {
-    const doneFiles = files.filter((file) => file.status === "done" && file.convertedBlob);
+    const doneFiles = files.filter(
+      (file) => file.status === "done" && file.convertedBlob,
+    );
     if (doneFiles.length === 0) return;
 
     setIsDownloadingAll(true);
@@ -335,16 +356,29 @@ export default function ImageConverter() {
   const convertibleCount = files.filter(
     (file) =>
       (file.status === "idle" || file.status === "error") &&
-      SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat)
+      SUPPORTED_OUTPUT_FORMATS.includes(file.targetFormat),
   ).length;
   const isConverting = files.some((file) => file.status === "converting");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-background to-accent/30">
       <div className="fixed inset-0 bg-[linear-gradient(rgba(0,0,0,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none dark:bg-[linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)]" />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="mb-8 text-center">
+      <div className="fixed right-0 top-0 z-20 p-2 sm:p-3">
+        <Button
+          asChild
+          variant="outline"
+          size="icon"
+          className="size-11 rounded-full hover:scale-110 active:scale-95 bg-card/85 shadow-sm backdrop-blur-sm sm:size-12"
+        >
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer">
+            <Github className="size-5" />
+          </a>
+        </Button>
+      </div>
+
+      <div className="relative z-10 mx-auto h-full max-w-5xl overflow-y-auto px-4 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6 sm:py-8 lg:px-8">
+        <header className="mb-6 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card/80 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
             <Sparkles className="size-3.5 text-amber-500" />
             100% client-side - No uploads
@@ -354,39 +388,39 @@ export default function ImageConverter() {
               Image Converter
             </span>
           </h1>
-          <p className="mt-3 text-lg text-muted-foreground">
-            Convert images between PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, and ICO instantly in your browser.
-          </p>
         </header>
 
         {UNSUPPORTED_OUTPUT_FORMATS.length > 0 && (
-          <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 size-5 shrink-0 text-amber-500" />
+          <div className="mx-auto mb-4 max-w-4xl rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-500" />
               <div>
-                <p className="font-medium text-amber-600 dark:text-amber-400">
+                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
                   HEIF Export Limitation
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  HEIF and HEIC files can be uploaded as sources, but the bundled codec does not yet export
+                <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
+                  HEIF and HEIC files can be uploaded as sources, but the
+                  bundled codec does not yet export
                   <strong> HEIF </strong>
-                  output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are available as targets.
+                  output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are
+                  available as targets.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        <div className="mb-6 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
-          <div className="flex items-start gap-3">
-            <Info className="mt-0.5 size-5 shrink-0 text-blue-500" />
+        <div className="mx-auto mb-4 max-w-4xl rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+          <div className="flex items-start gap-2.5">
+            <Info className="mt-0.5 size-4 shrink-0 text-blue-500" />
             <div>
-              <p className="font-medium text-blue-600 dark:text-blue-400">
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
                 Upload Limits
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Uploads are limited to 10MB, 4096px on either side, and 20MP total. ICO exports above 512px are
-                automatically resized to fit the encoder limit instead of failing.
+              <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
+                Uploads are limited to 10MB, 4096px on either side, and 20MP
+                total. ICO exports above 512px are automatically resized to fit
+                the encoder limit instead of failing.
               </p>
             </div>
           </div>
@@ -400,7 +434,9 @@ export default function ImageConverter() {
                 <p className="font-medium text-red-600 dark:text-red-400">
                   Upload Rejected
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">{uploadWarning}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {uploadWarning}
+                </p>
               </div>
               <button
                 onClick={() => setUploadWarning(null)}
@@ -435,10 +471,15 @@ export default function ImageConverter() {
               onChange={handleFileSelect}
               id="file-upload"
             />
-            <label htmlFor="file-upload" className="flex cursor-pointer flex-col items-center gap-4">
+            <label
+              htmlFor="file-upload"
+              className="flex cursor-pointer flex-col items-center gap-4"
+            >
               <div
                 className={`rounded-2xl p-5 transition-all duration-300 ${
-                  isDragging ? "scale-110 bg-primary/10" : "bg-muted/50 hover:bg-muted"
+                  isDragging
+                    ? "scale-110 bg-primary/10"
+                    : "bg-muted/50 hover:bg-muted"
                 }`}
               >
                 <Upload
@@ -454,12 +495,15 @@ export default function ImageConverter() {
                   ) : (
                     <>
                       Drag & drop files or{" "}
-                      <span className="text-primary underline underline-offset-4">browse</span>
+                      <span className="text-primary underline underline-offset-4">
+                        browse
+                      </span>
                     </>
                   )}
                 </p>
                 <p className="mt-1.5 text-sm text-muted-foreground">
-                  PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, ICO - max 10MB, 4096px per side, 20MP
+                  PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, ICO - max 10MB, 4096px
+                  per side, 20MP
                 </p>
               </div>
             </label>
@@ -491,7 +535,12 @@ export default function ImageConverter() {
 
               <div className="flex items-center gap-2">
                 {convertibleCount > 0 && (
-                  <Button onClick={convertAll} disabled={isConverting} size="sm" className="gap-2">
+                  <Button
+                    onClick={convertAll}
+                    disabled={isConverting}
+                    size="sm"
+                    className="gap-2"
+                  >
                     {isConverting ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
@@ -545,7 +594,9 @@ export default function ImageConverter() {
                       error: undefined,
                     })
                   }
-                  onUpdateQuality={(quality) => updateFile(item.id, { quality })}
+                  onUpdateQuality={(quality) =>
+                    updateFile(item.id, { quality })
+                  }
                   onConvert={() => convertFile(item.id)}
                   onDownload={() => downloadFile(item)}
                   onRemove={() => removeFile(item.id)}
@@ -563,8 +614,45 @@ export default function ImageConverter() {
           </div>
         )}
 
-        <footer className="mt-12 text-center text-sm text-muted-foreground">
-          <p>All conversions happen locally in your browser. No files are uploaded anywhere.</p>
+        <footer className="mt-12 flex flex-col items-center gap-6 border-t pt-6">
+          <div>
+            <p>Made by: Er. Akshit Bansal (Next.js Developer)</p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="bg-card/70 backdrop-blur-sm"
+            >
+              <a href={GITHUB_PROFILE_URL} target="_blank" rel="noreferrer">
+                <Github className="size-4" />
+                GitHub
+              </a>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="bg-card/70 backdrop-blur-sm"
+            >
+              <a href={LINKEDIN_PROFILE_URL} target="_blank" rel="noreferrer">
+                <Linkedin className="size-4" />
+                LinkedIn
+              </a>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="bg-card/70 backdrop-blur-sm"
+            >
+              <a href={`mailto:${EMAIL_ADDRESS}`}>
+                <Mail className="size-4" />
+                Mail
+              </a>
+            </Button>
+          </div>
         </footer>
       </div>
     </div>
@@ -595,7 +683,10 @@ function FileCard({
   const availableTargets = getAvailableTargets(item.sourceFormat);
   const isLossyTarget = LOSSY_FORMATS.includes(item.targetFormat);
   const isTargetSupported = !UNSUPPORTED_OUTPUT_SET.has(item.targetFormat);
-  const convertDisabled = item.status === "converting" || !isTargetSupported || item.sourceFormat === "unknown";
+  const convertDisabled =
+    item.status === "converting" ||
+    !isTargetSupported ||
+    item.sourceFormat === "unknown";
   const showPreview = Boolean(item.preview) && failedPreview !== item.preview;
 
   return (
@@ -605,10 +696,10 @@ function FileCard({
           item.status === "done"
             ? "bg-emerald-500"
             : item.status === "error"
-            ? "bg-red-500"
-            : item.status === "converting"
-            ? "animate-pulse bg-blue-500"
-            : "bg-transparent"
+              ? "bg-red-500"
+              : item.status === "converting"
+                ? "animate-pulse bg-blue-500"
+                : "bg-transparent"
         }`}
       />
 
@@ -633,12 +724,22 @@ function FileCard({
                 {item.name}
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground">{formatFileSize(item.size)}</span>
-                <Badge variant="outline" className="px-1.5 py-0 text-[10px] uppercase">
-                  {item.sourceFormat === "unknown" ? "?" : FORMAT_LABELS[item.sourceFormat]}
+                <span className="text-xs text-muted-foreground">
+                  {formatFileSize(item.size)}
+                </span>
+                <Badge
+                  variant="outline"
+                  className="px-1.5 py-0 text-[10px] uppercase"
+                >
+                  {item.sourceFormat === "unknown"
+                    ? "?"
+                    : FORMAT_LABELS[item.sourceFormat]}
                 </Badge>
                 <ArrowRight className="size-3 text-muted-foreground" />
-                <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-bold uppercase">
+                <Badge
+                  variant="secondary"
+                  className="px-1.5 py-0 text-[10px] font-bold uppercase"
+                >
                   {FORMAT_LABELS[item.targetFormat]}
                 </Badge>
               </div>
@@ -678,7 +779,9 @@ function FileCard({
                   max={100}
                   step={5}
                   value={item.quality}
-                  onChange={(e) => onUpdateQuality(parseInt(e.target.value, 10))}
+                  onChange={(e) =>
+                    onUpdateQuality(parseInt(e.target.value, 10))
+                  }
                   disabled={item.status === "converting"}
                   className="w-20"
                 />
@@ -694,8 +797,8 @@ function FileCard({
                     !isTargetSupported
                       ? "This output format is unavailable"
                       : item.sourceFormat === "unknown"
-                      ? "Unsupported source format"
-                      : "Convert this file"
+                        ? "Unsupported source format"
+                        : "Convert this file"
                   }
                 >
                   <Button
@@ -727,7 +830,9 @@ function FileCard({
                 >
                   <Download className="size-3" />
                   Download
-                  {item.convertedBlob ? ` (${formatFileSize(item.convertedBlob.size)})` : ""}
+                  {item.convertedBlob
+                    ? ` (${formatFileSize(item.convertedBlob.size)})`
+                    : ""}
                 </Button>
               )}
 
@@ -767,7 +872,9 @@ function FileCard({
         {item.status === "error" && item.error && (
           <div className="mt-3 flex items-start gap-2 rounded-md border border-red-500/20 bg-red-500/5 p-2.5">
             <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-red-500" />
-            <p className="text-xs text-red-600 dark:text-red-400">{item.error}</p>
+            <p className="text-xs text-red-600 dark:text-red-400">
+              {item.error}
+            </p>
           </div>
         )}
 
@@ -775,7 +882,8 @@ function FileCard({
           <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 p-2.5">
             <Info className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              HEIF files can be used as input, but HEIF output is not available in the bundled codec yet.
+              HEIF files can be used as input, but HEIF output is not available
+              in the bundled codec yet.
             </p>
           </div>
         )}
