@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s | open-tools",
   },
   description:
-    "Open-source browser utilities for image conversion, JSON formatting, base64 encoding, and color workflows.",
+    "Open-source browser utilities for image conversion, JSON formatting, and base64 encoding.",
   icons: {
     icon: "/favicon.ico",
   },
@@ -28,7 +28,6 @@ export const metadata: Metadata = {
     "image converter",
     "json formatter",
     "base64 encoder",
-    "color picker",
     "nextjs tools",
     "client-side utilities",
   ],

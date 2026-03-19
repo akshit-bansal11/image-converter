@@ -19,7 +19,6 @@ export default function Base64Page() {
     <ToolPageShell
       title={tool.name}
       description={tool.description}
-      icon={tool.icon}
     >
       <Base64Tool />
     </ToolPageShell>

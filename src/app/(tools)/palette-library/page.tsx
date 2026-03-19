@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
 import { ToolPageShell } from "@/components/tool-page-shell";
-import JsonFormatter from "./_components/JsonFormatter";
+import PaletteLibraryTool from "./_components/PaletteLibraryTool";
 
-const tool = getToolBySlug("json-formatter");
+const tool = getToolBySlug("palette-library");
 
 export const metadata: Metadata = {
-  title: tool?.name ?? "JSON Formatter",
+  title: tool?.name ?? "Palette Library",
   description: tool?.description,
 };
 
-export default function JsonFormatterPage() {
+export default function PaletteLibraryPage() {
   if (!tool) {
     return null;
   }
@@ -19,8 +19,9 @@ export default function JsonFormatterPage() {
     <ToolPageShell
       title={tool.name}
       description={tool.description}
+      fullWidth
     >
-      <JsonFormatter />
+      <PaletteLibraryTool />
     </ToolPageShell>
   );
 }

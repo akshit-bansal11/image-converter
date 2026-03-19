@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
 import { ToolPageShell } from "@/components/tool-page-shell";
-import JsonFormatter from "./_components/JsonFormatter";
+import GradientMakerTool from "./_components/GradientMakerTool";
 
-const tool = getToolBySlug("json-formatter");
+const tool = getToolBySlug("gradient-maker");
 
 export const metadata: Metadata = {
-  title: tool?.name ?? "JSON Formatter",
+  title: tool?.name ?? "Gradient Maker",
   description: tool?.description,
 };
 
-export default function JsonFormatterPage() {
+export default function GradientMakerPage() {
   if (!tool) {
     return null;
   }
@@ -20,7 +20,7 @@ export default function JsonFormatterPage() {
       title={tool.name}
       description={tool.description}
     >
-      <JsonFormatter />
+      <GradientMakerTool />
     </ToolPageShell>
   );
 }

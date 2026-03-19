@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import React, { useCallback, useRef, useState } from "react";
 import {
   AlertCircle,
   ArchiveIcon,
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Download,
@@ -27,8 +25,6 @@ import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Select } from "@/components/ui/select";
 import { Tooltip } from "@/components/ui/tooltip";
-import { RepositoryCorner } from "@/components/repository-corner";
-import { SiteFooter } from "@/components/site-footer";
 import {
   areFormatsEquivalent,
   type ConversionStatus,
@@ -361,73 +357,42 @@ export default function ImageConverter() {
   const isConverting = files.some((file) => file.status === "converting");
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-background to-accent/30">
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(0,0,0,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none dark:bg-[linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)]" />
-
-      <RepositoryCorner className="fixed right-0 top-0 z-20 p-2 sm:p-3" />
-
-      <div className="relative z-10 mx-auto h-full max-w-5xl overflow-y-auto px-4 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6 sm:py-8 lg:px-8">
-        <div className="mb-4 flex justify-start">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="bg-card/70 backdrop-blur-sm"
-          >
-            <Link href="/">
-              <ArrowLeft className="size-4" />
-              All tools
-            </Link>
-          </Button>
-        </div>
-
-        <header className="mb-6 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card/80 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
-            <Sparkles className="size-3.5 text-amber-500" />
-            open-tools - 100% client-side
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">
-              Image Converter
-            </span>
-          </h1>
-        </header>
-
-        {UNSUPPORTED_OUTPUT_FORMATS.length > 0 && (
-          <div className="mx-auto mb-4 max-w-4xl rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-            <div className="flex items-start gap-2.5">
-              <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-500" />
-              <div>
-                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  HEIF Export Limitation
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
-                  HEIF and HEIC files can be uploaded as sources, but the
-                  bundled codec does not yet export
-                  <strong> HEIF </strong>
-                  output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are
-                  available as targets.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="mx-auto mb-4 max-w-4xl rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+    <div className="space-y-6">
+      {UNSUPPORTED_OUTPUT_FORMATS.length > 0 && (
+        <div className="mx-auto mb-4 max-w-4xl rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
           <div className="flex items-start gap-2.5">
-            <Info className="mt-0.5 size-4 shrink-0 text-blue-500" />
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-500" />
             <div>
-              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                Upload Limits
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                HEIF Export Limitation
               </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
-                Uploads are limited to 10MB, 4096px on either side, and 20MP
-                total. ICO exports above 512px are automatically resized to fit
-                the encoder limit instead of failing.
+                HEIF and HEIC files can be uploaded as sources, but the
+                bundled codec does not yet export
+                <strong> HEIF </strong>
+                output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are
+                available as targets.
               </p>
             </div>
           </div>
         </div>
+      )}
+
+      <div className="mx-auto mb-4 max-w-4xl rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+        <div className="flex items-start gap-2.5">
+          <Info className="mt-0.5 size-4 shrink-0 text-blue-500" />
+          <div>
+            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              Upload Limits
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
+              Uploads are limited to 10MB, 4096px on either side, and 20MP
+              total. ICO exports above 512px are automatically resized to fit
+              the encoder limit instead of failing.
+            </p>
+          </div>
+        </div>
+      </div>
 
         {uploadWarning && (
           <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
@@ -617,8 +582,7 @@ export default function ImageConverter() {
           </div>
         )}
 
-        <SiteFooter className="mt-12 border-t pt-6" />
-      </div>
+
     </div>
   );
 }

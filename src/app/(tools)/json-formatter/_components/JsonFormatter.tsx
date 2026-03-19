@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+
 const SAMPLE_JSON = `{
   "name": "open-tools",
   "tool": "json-formatter",
@@ -59,28 +60,25 @@ export default function JsonFormatter() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <Card className="border-white/10 bg-card/70">
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card className="flex h-full flex-col border-white/10 bg-card/70">
         <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileJson2 className="size-5" />
               Input
             </CardTitle>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Paste JSON, validate it, then pretty print or minify it.
-            </p>
           </div>
           <Badge variant="secondary">
             {inputStats.characters} chars · {inputStats.lines} lines
           </Badge>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-1 flex-col">
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
             spellCheck={false}
-            className="min-h-[360px] w-full rounded-2xl border bg-background/70 p-4 font-mono text-sm outline-none transition focus:border-primary"
+            className="flex-1 resize-none overflow-auto rounded-2xl border bg-background/70 p-4 font-mono text-sm outline-none transition focus:border-primary min-h-[400px] w-full"
             placeholder='{"hello":"world"}'
           />
 
@@ -129,13 +127,10 @@ export default function JsonFormatter() {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-card/70">
+      <Card className="flex h-full flex-col border-white/10 bg-card/70">
         <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
           <div>
             <CardTitle>Output</CardTitle>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Copy the formatted result when it looks right.
-            </p>
           </div>
           <Button
             onClick={copyOutput}
@@ -152,14 +147,14 @@ export default function JsonFormatter() {
             {copied ? "Copied" : "Copy"}
           </Button>
         </CardHeader>
-        <CardContent>
-          <textarea
-            value={output}
-            readOnly
-            spellCheck={false}
-            className="min-h-[360px] w-full rounded-2xl border bg-background/70 p-4 font-mono text-sm text-emerald-200 outline-none"
-            placeholder="Formatted JSON will appear here."
-          />
+        <CardContent className="flex flex-1 flex-col">
+          <pre className="flex-1 overflow-auto rounded-2xl border bg-background/70 p-4 font-mono text-sm leading-relaxed text-emerald-200 min-h-[400px] w-full">
+            {output || (
+              <span className="text-muted-foreground">
+                Formatted JSON will appear here.
+              </span>
+            )}
+          </pre>
         </CardContent>
       </Card>
     </div>

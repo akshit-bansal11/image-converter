@@ -21,7 +21,6 @@ Current tools:
 - `Image Converter`
 - `JSON Formatter`
 - `Base64`
-- `Color Picker`
 
 ## Introduction
 
@@ -43,7 +42,6 @@ Available flows right now:
 - `Image Converter`: convert supported image formats locally
 - `JSON Formatter`: pretty-print or minify JSON safely
 - `Base64`: encode and decode text in the browser
-- `Color Picker`: inspect and copy hex, RGB, and HSL values
 
 ### Local
 
@@ -84,7 +82,6 @@ src/
       image-converter/
       json-formatter/
       base64/
-      color-picker/
     api/magick-wasm/
     layout.tsx
     page.tsx

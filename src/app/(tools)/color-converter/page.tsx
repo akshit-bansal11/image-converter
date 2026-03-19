@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
 import { ToolPageShell } from "@/components/tool-page-shell";
-import ColorPickerTool from "./_components/ColorPickerTool";
+import ColorConverterTool from "./_components/ColorConverterTool";
 
-const tool = getToolBySlug("color-picker");
+const tool = getToolBySlug("color-converter");
 
 export const metadata: Metadata = {
-  title: tool?.name ?? "Color Picker",
+  title: tool?.name ?? "Color Converter",
   description: tool?.description,
 };
 
-export default function ColorPickerPage() {
+export default function ColorConverterPage() {
   if (!tool) {
     return null;
   }
@@ -19,9 +19,8 @@ export default function ColorPickerPage() {
     <ToolPageShell
       title={tool.name}
       description={tool.description}
-      icon={tool.icon}
     >
-      <ColorPickerTool />
+      <ColorConverterTool />
     </ToolPageShell>
   );
 }

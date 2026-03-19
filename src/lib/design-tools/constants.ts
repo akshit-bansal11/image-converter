@@ -1,0 +1,4 @@
+export const GEMINI_API_KEY_STORAGE_KEY = "geminiApiKey";
+
+export const DEFAULT_GRADIENT_IMAGE_WIDTH = 1600;
+export const DEFAULT_GRADIENT_IMAGE_HEIGHT = 900;
