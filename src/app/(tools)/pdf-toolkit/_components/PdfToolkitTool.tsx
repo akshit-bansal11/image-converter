@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { PDFDocument } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
 
 if (typeof window !== "undefined") {
@@ -217,7 +217,8 @@ export default function PdfToolkitTool() {
         setProgress(Math.round(((i + 1) / mergeFiles.length) * 100));
       }
       const bytes = await mergedPdf.save();
-      downloadBlob(new Blob([bytes], { type: "application/pdf" }), "Merged_Document.pdf");
+      const buffer = Uint8Array.from(bytes).buffer;
+      downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Merged_Document.pdf");
     } catch (e) {
       console.error(e);
       alert("Error merging documents.");
@@ -253,7 +254,9 @@ export default function PdfToolkitTool() {
         const newPdf = await PDFDocument.create();
         const pages = await newPdf.copyPages(pdf, indices);
         pages.forEach(p => newPdf.addPage(p));
-        downloadBlob(new Blob([await newPdf.save()], { type: "application/pdf" }), "Extracted_Pages.pdf");
+        const bytes = await newPdf.save();
+        const buffer = Uint8Array.from(bytes).buffer;
+        downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Extracted_Pages.pdf");
       }
     } catch (e) {
       console.error(e); alert("Failed to split document.");
@@ -278,8 +281,7 @@ export default function PdfToolkitTool() {
         const ctx = canvas.getContext("2d");
         canvas.width = viewport.width; canvas.height = viewport.height;
         if (ctx) {
-          // @ts-expect-error - The pdfjs-dist TS typings strictly require canvas sometimes improperly despite canvasContext being the actual parameter
-          await page.render({ canvasContext: ctx, viewport }).promise;
+          await page.render({ canvas, canvasContext: ctx, viewport }).promise;
           const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/jpeg", compressQuality / 100));
           if (blob) {
             const imgBytes = await blob.arrayBuffer();
@@ -290,7 +292,9 @@ export default function PdfToolkitTool() {
         }
         setProgress(Math.round((i / total) * 100));
       }
-      downloadBlob(new Blob([await newPdf.save()], { type: "application/pdf" }), "Compressed_Document.pdf");
+      const bytes = await newPdf.save();
+      const buffer = Uint8Array.from(bytes).buffer;
+      downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Compressed_Document.pdf");
     } catch (e) {
       console.error(e); alert("Failed to compress document.");
     }
@@ -309,7 +313,9 @@ export default function PdfToolkitTool() {
       const copied = await newPdf.copyPages(pdf, orderedIndices);
       copied.forEach(p => newPdf.addPage(p));
       
-      downloadBlob(new Blob([await newPdf.save()], { type: "application/pdf" }), "Reordered_Document.pdf");
+      const bytes = await newPdf.save();
+      const buffer = Uint8Array.from(bytes).buffer;
+      downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Reordered_Document.pdf");
     } catch (e) {
       console.error(e); alert("Failed to reorder document.");
     }

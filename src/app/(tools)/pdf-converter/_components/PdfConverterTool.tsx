@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select } from "@/components/ui/select";
 import { PDFDocument } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
 
 // Set worker source for PDF.js safely in Next.js client
@@ -246,7 +246,8 @@ export default function PdfConverterTool() {
         }
 
         const pdfBytes = await pdfDoc.save();
-        downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), "Combined_Images.pdf");
+        const pdfBuffer = Uint8Array.from(pdfBytes).buffer;
+        downloadBlob(new Blob([pdfBuffer], { type: "application/pdf" }), "Combined_Images.pdf");
 
       } else { // Batch mode
         const zip = new JSZip();
@@ -313,7 +314,7 @@ export default function PdfConverterTool() {
         canvas.width = viewport.width;
 
         if (context) {
-          await page.render({ canvasContext: context, viewport }).promise;
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
           
           const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, outputImgFormat, 0.9));
           if (blob) {
