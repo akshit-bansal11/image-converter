@@ -18,6 +18,7 @@ import {
   ImageUp,
   LibraryBig,
   Music,
+  PenTool,
   Pipette,
   Shapes,
   SwatchBook,
@@ -95,6 +96,19 @@ export const tools: ToolDefinition[] = [
       "Canvas drag-resize crop handles",
     ],
     icon: Crop,
+  },
+  {
+    slug: "svg-animator",
+    href: "/tools/svg-animator",
+    name: "SVG Border Animator",
+    description:
+      "Upload any SVG and animate each path border locally with stroke-dashoffset controls and export-ready output.",
+    category: "Design",
+    highlights: [
+      "Sequential or simultaneous path animation",
+      "Downloadable SVG with embedded keyframes",
+    ],
+    icon: PenTool,
   },
   {
     slug: "svg-pattern",
