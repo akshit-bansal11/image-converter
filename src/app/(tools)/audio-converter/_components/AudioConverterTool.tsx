@@ -262,7 +262,7 @@ export default function AudioConverterTool() {
         progressState.target = 99;
 
         const output = await ffmpeg.readFile(outputName);
-        const outBlob = new Blob([output], {
+        const outBlob = new Blob([(output as Uint8Array).slice()], {
           type: `audio/${item.targetFormat}`,
         });
 

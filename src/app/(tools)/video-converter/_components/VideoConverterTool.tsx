@@ -213,7 +213,7 @@ export default function VideoConverterTool() {
         ]);
 
         const output = await ffmpeg.readFile(outputName);
-        const blob = new Blob([output], { type: `video/${item.targetFormat}` });
+        const blob = new Blob([(output as Uint8Array).slice()], { type: `video/${item.targetFormat}` });
         const url = URL.createObjectURL(blob);
 
         if (item.outputUrl) {

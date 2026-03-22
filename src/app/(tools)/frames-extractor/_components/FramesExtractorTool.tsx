@@ -190,7 +190,7 @@ export default function FramesExtractorTool() {
             break;
           }
 
-          const blob = new Blob([output], { type: "image/png" });
+          const blob = new Blob([(output as Uint8Array).slice()], { type: "image/png" });
           const url = URL.createObjectURL(blob);
           extracted.push({
             name: `frame_${String(index).padStart(4, "0")}.png`,

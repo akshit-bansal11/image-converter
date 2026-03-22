@@ -159,7 +159,7 @@ export default function AudioExtractorTool() {
       await ffmpeg.exec(["-i", inputName, "-vn", "-c:a", codec, outputName]);
 
       const output = await ffmpeg.readFile(outputName);
-      const blob = new Blob([output], { type: `audio/${targetFormat}` });
+      const blob = new Blob([(output as Uint8Array).slice()], { type: `audio/${targetFormat}` });
       const url = URL.createObjectURL(blob);
 
       revokeResult(result);

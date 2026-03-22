@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
+import NextImage from "next/image";
 import JSZip from "jszip";
 import {
   Crop,
@@ -224,7 +224,7 @@ function resizeRect(
     next.h = bottom - next.y;
   }
 
-  if (ratio && handle !== "move") {
+  if (ratio) {
     const horizontal = handle.includes("e") || handle.includes("w");
     const vertical = handle.includes("n") || handle.includes("s");
 
@@ -919,7 +919,7 @@ export default function ImageCropperTool() {
                       />
                     ) : (
                       <div className="grid gap-3 sm:grid-cols-[220px_1fr] sm:items-center">
-                        <Image
+                        <NextImage
                           src={image.srcUrl}
                           alt={image.name}
                           width={220}
@@ -955,7 +955,7 @@ export default function ImageCropperTool() {
 
                     {image.outputUrl ? (
                       <div className="rounded-lg border border-white/10 bg-black/35 p-2">
-                        <Image
+                        <NextImage
                           src={image.outputUrl}
                           alt={`${image.name} cropped preview`}
                           width={320}
