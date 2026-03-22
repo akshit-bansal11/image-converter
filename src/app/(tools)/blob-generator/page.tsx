@@ -3,7 +3,8 @@ import BlobGeneratorTool from "./_components/BlobGeneratorTool";
 
 export const metadata = {
   title: "CSS Blob Generator",
-  description: "Create intricate, organic shapes using 8-point CSS border-radius.",
+  description:
+    "Create intricate, organic shapes using 8-point CSS border-radius.",
 };
 
 export default function BlobGeneratorPage() {

@@ -77,7 +77,10 @@ export function buildGradientCss({
   conicFrom,
 }: GradientBuilderConfig) {
   const stopList = stops
-    .map((stop) => `${normalizeColor(stop.color)} ${clamp(stop.position, 0, 100)}%`)
+    .map(
+      (stop) =>
+        `${normalizeColor(stop.color)} ${clamp(stop.position, 0, 100)}%`,
+    )
     .join(", ");
 
   if (type === "radial") {
@@ -142,7 +145,9 @@ export function parseGradientString(input: string): ParsedGradient | null {
     return null;
   }
 
-  const match = normalizedInput.match(/^(linear|radial|conic)-gradient\(([\s\S]+)\)$/i);
+  const match = normalizedInput.match(
+    /^(linear|radial|conic)-gradient\(([\s\S]+)\)$/i,
+  );
 
   if (!match) {
     return null;
@@ -207,7 +212,11 @@ export function convertGradientSyntax(
     );
   }
 
-  return createGradientFromParts("conic", inferConicOrientation(parsed), parsed.stops);
+  return createGradientFromParts(
+    "conic",
+    inferConicOrientation(parsed),
+    parsed.stops,
+  );
 }
 
 export async function downloadGradientPng(
@@ -233,7 +242,10 @@ export async function downloadGradientPng(
     try {
       await renderWithForeignObject(context, cssGradient, width, height);
     } catch (error) {
-      console.error("Native SVG rendering failed, falling back to simple canvas gradient.", error);
+      console.error(
+        "Native SVG rendering failed, falling back to simple canvas gradient.",
+        error,
+      );
       // Last resort: simple linear fill if everything fails
       const grad = context.createLinearGradient(0, 0, width, height);
       grad.addColorStop(0, "#2563EB");
@@ -255,7 +267,10 @@ export async function downloadGradientPng(
     throw new Error("PNG generation failed.");
   }
 
-  downloadBlob(pngBlob, filename.endsWith(".png") ? filename : `${filename}.png`);
+  downloadBlob(
+    pngBlob,
+    filename.endsWith(".png") ? filename : `${filename}.png`,
+  );
 }
 
 async function renderWithForeignObject(
@@ -332,10 +347,7 @@ function renderRadialGradient(
   ctx.fillRect(0, 0, width, height);
 }
 
-function addStopsToGradient(
-  gradient: CanvasGradient,
-  stops: string[],
-) {
+function addStopsToGradient(gradient: CanvasGradient, stops: string[]) {
   stops.forEach((stop, index) => {
     // Split by whitespace NOT inside parentheses (e.g. rgba(0, 0, 0) skip)
     const parts = stop.trim().split(/\s+(?![^(]*\))/);
@@ -356,7 +368,6 @@ function addStopsToGradient(
     }
   });
 }
-
 
 export function normalizeGradientInput(value: string) {
   return stripTrailingSemicolon(value.trim());
@@ -405,7 +416,8 @@ function linearOrientationToAngle(orientation: string) {
     return orientation.trim();
   }
 
-  const mappedAngle = LINEAR_DIRECTION_TO_ANGLE[orientation.trim().toLowerCase()];
+  const mappedAngle =
+    LINEAR_DIRECTION_TO_ANGLE[orientation.trim().toLowerCase()];
 
   if (mappedAngle !== undefined) {
     return `${mappedAngle}deg`;

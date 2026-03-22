@@ -25,16 +25,31 @@ function formatFileSize(bytes: number) {
 }
 
 const KEBAB_TO_CAMEL = [
-  "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit",
-  "fill-rule", "clip-rule", "fill-opacity", "stroke-opacity", "stroke-dasharray",
-  "stroke-dashoffset", "font-family", "font-size", "font-weight", "text-anchor",
-  "alignment-baseline", "clip-path", "stop-color", "stop-opacity", "vector-effect"
+  "stroke-width",
+  "stroke-linecap",
+  "stroke-linejoin",
+  "stroke-miterlimit",
+  "fill-rule",
+  "clip-rule",
+  "fill-opacity",
+  "stroke-opacity",
+  "stroke-dasharray",
+  "stroke-dashoffset",
+  "font-family",
+  "font-size",
+  "font-weight",
+  "text-anchor",
+  "alignment-baseline",
+  "clip-path",
+  "stop-color",
+  "stop-opacity",
+  "vector-effect",
 ];
 
 function convertToJSX(svgString: string) {
   let jsx = svgString.replace(/class=/g, "className=");
   jsx = jsx.replace(/for=/g, "htmlFor=");
-  
+
   // Replace kebab-case SVG attributes with camelCase
   KEBAB_TO_CAMEL.forEach((kebab) => {
     const camel = kebab.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
@@ -65,7 +80,7 @@ export default function SvgOptimizerTool() {
   const [collapseGroups, setCollapseGroups] = useState(true);
   const [stripNamespaces, setStripNamespaces] = useState(true);
   const [convertStyles, setConvertStyles] = useState(true); // convertStyleToAttrs
-  
+
   const [enableJsx, setEnableJsx] = useState(false);
 
   // Process File wrapper
@@ -106,33 +121,55 @@ export default function SvgOptimizerTool() {
     dragCounter.current = 0;
 
     const droppedFiles = Array.from(e.dataTransfer.files);
-    const validSvg = droppedFiles.find((f) => f.name.toLowerCase().endsWith(".svg") || f.type === "image/svg+xml");
+    const validSvg = droppedFiles.find(
+      (f) =>
+        f.name.toLowerCase().endsWith(".svg") || f.type === "image/svg+xml",
+    );
     if (validSvg) handleFileLoad(validSvg);
   }, []);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files ? Array.from(e.target.files) : [];
-    const validSvg = selected.find((f) => f.name.toLowerCase().endsWith(".svg") || f.type === "image/svg+xml");
-    if (validSvg) handleFileLoad(validSvg);
-    e.target.value = "";
-  }, []);
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selected = e.target.files ? Array.from(e.target.files) : [];
+      const validSvg = selected.find(
+        (f) =>
+          f.name.toLowerCase().endsWith(".svg") || f.type === "image/svg+xml",
+      );
+      if (validSvg) handleFileLoad(validSvg);
+      e.target.value = "";
+    },
+    [],
+  );
 
   // Compute Optimizations live
   const optimizedData = useMemo(() => {
     if (!inputSvg.trim()) {
-      return { output: "", jsxOutput: "", preview: null, origSize: 0, optiSize: 0 };
+      return {
+        output: "",
+        jsxOutput: "",
+        preview: null,
+        origSize: 0,
+        optiSize: 0,
+      };
     }
 
     try {
       const plugins: unknown[] = [];
-      
+
       if (removeComments) plugins.push("removeComments");
-      if (removeMetadata) plugins.push("removeMetadata", "removeTitle", "removeDesc", "removeXMLProcInst");
-      if (removeEmptyAttrs) plugins.push("removeEmptyAttrs", "removeEmptyContainers");
+      if (removeMetadata)
+        plugins.push(
+          "removeMetadata",
+          "removeTitle",
+          "removeDesc",
+          "removeXMLProcInst",
+        );
+      if (removeEmptyAttrs)
+        plugins.push("removeEmptyAttrs", "removeEmptyContainers");
       if (collapseGroups) plugins.push("collapseGroups");
       if (stripNamespaces) plugins.push("removeEditorsNSData");
       if (convertStyles) plugins.push("convertStyleToAttrs");
-      
+
       plugins.push("cleanupIds", "minifyStyles", "removeUnknownsAndDefaults");
 
       const result = optimize(inputSvg, {
@@ -148,10 +185,10 @@ export default function SvgOptimizerTool() {
                 cleanupNumericValues: { floatPrecision: precision },
                 convertPathData: { floatPrecision: precision },
                 transformGroupAnimations: false, // Safer defaults
-              }
-            }
-          }
-        ]
+              },
+            },
+          },
+        ],
       });
 
       const optiSvg = result.data;
@@ -165,17 +202,38 @@ export default function SvgOptimizerTool() {
         jsxOutput: computedJsx,
         preview: optiSvg,
         origSize: origBlobSize,
-        optiSize: optiBlobSize
+        optiSize: optiBlobSize,
       };
     } catch (e) {
       console.error("SVGO optimization failed:", e);
-      return { output: "Error parsing/optimizing SVG. Ensure valid syntax.", jsxOutput: "", preview: null, origSize: 0, optiSize: 0 };
+      return {
+        output: "Error parsing/optimizing SVG. Ensure valid syntax.",
+        jsxOutput: "",
+        preview: null,
+        origSize: 0,
+        optiSize: 0,
+      };
     }
-  }, [inputSvg, precision, removeComments, removeMetadata, removeEmptyAttrs, collapseGroups, stripNamespaces, convertStyles, enableJsx]);
+  }, [
+    inputSvg,
+    precision,
+    removeComments,
+    removeMetadata,
+    removeEmptyAttrs,
+    collapseGroups,
+    stripNamespaces,
+    convertStyles,
+    enableJsx,
+  ]);
 
-  const savingsPct = optimizedData.origSize > 0 
-    ? Math.round(((optimizedData.origSize - optimizedData.optiSize) / optimizedData.origSize) * 100) 
-    : 0;
+  const savingsPct =
+    optimizedData.origSize > 0
+      ? Math.round(
+          ((optimizedData.origSize - optimizedData.optiSize) /
+            optimizedData.origSize) *
+            100,
+        )
+      : 0;
 
   const handleCopy = (text: string, id: "optimized" | "jsx") => {
     navigator.clipboard.writeText(text);
@@ -197,14 +255,12 @@ export default function SvgOptimizerTool() {
   // Convert encoded data URL for visual background preview safely
   const previewDataUrl = useMemo(() => {
     if (!optimizedData.preview) return null;
-    return `data:image/svg+xml;base64,${btoa(encodeURIComponent(optimizedData.preview).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(Number('0x' + p1))))}`;
+    return `data:image/svg+xml;base64,${btoa(encodeURIComponent(optimizedData.preview).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(Number("0x" + p1))))}`;
   }, [optimizedData.preview]);
-
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-screen-2xl">
       <div className="grid gap-6 xl:grid-cols-[300px_1fr]">
-        
         {/* Settings Sidebar */}
         <div className="space-y-6">
           <Card className="border-white/10 bg-card/70 sticky top-6 lg:top-8">
@@ -215,65 +271,99 @@ export default function SvgOptimizerTool() {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
-              
               <div className="space-y-4">
                 <label className="text-sm font-medium leading-none flex items-center justify-between">
                   Decimal Precision
-                  <Badge variant="outline" className="font-mono">{precision}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {precision}
+                  </Badge>
                 </label>
                 <Slider
                   min={0}
                   max={5}
                   step={1}
                   value={precision}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrecision(Number(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPrecision(Number(e.target.value))
+                  }
                 />
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Lower numbers heavily compress paths but can distort curves. Recommended: 2-3.
+                  Lower numbers heavily compress paths but can distort curves.
+                  Recommended: 2-3.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-medium leading-none">Strip Toggles</label>
-                
+                <label className="text-sm font-medium leading-none">
+                  Strip Toggles
+                </label>
+
                 <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input type="checkbox" checked={removeComments} onChange={(e) => setRemoveComments(e.target.checked)} className="h-4 w-4 rounded border-gray-300 bg-background" />
+                  <input
+                    type="checkbox"
+                    checked={removeComments}
+                    onChange={(e) => setRemoveComments(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                  />
                   Remove Comments
                 </label>
 
                 <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input type="checkbox" checked={removeMetadata} onChange={(e) => setRemoveMetadata(e.target.checked)} className="h-4 w-4 rounded border-gray-300 bg-background" />
+                  <input
+                    type="checkbox"
+                    checked={removeMetadata}
+                    onChange={(e) => setRemoveMetadata(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                  />
                   Remove Metadata & Title
                 </label>
 
                 <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input type="checkbox" checked={removeEmptyAttrs} onChange={(e) => setRemoveEmptyAttrs(e.target.checked)} className="h-4 w-4 rounded border-gray-300 bg-background" />
+                  <input
+                    type="checkbox"
+                    checked={removeEmptyAttrs}
+                    onChange={(e) => setRemoveEmptyAttrs(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                  />
                   Remove Empty Groups & Attrs
                 </label>
 
                 <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input type="checkbox" checked={collapseGroups} onChange={(e) => setCollapseGroups(e.target.checked)} className="h-4 w-4 rounded border-gray-300 bg-background" />
+                  <input
+                    type="checkbox"
+                    checked={collapseGroups}
+                    onChange={(e) => setCollapseGroups(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                  />
                   Collapse Useless Groups
                 </label>
 
                 <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input type="checkbox" checked={stripNamespaces} onChange={(e) => setStripNamespaces(e.target.checked)} className="h-4 w-4 rounded border-gray-300 bg-background" />
+                  <input
+                    type="checkbox"
+                    checked={stripNamespaces}
+                    onChange={(e) => setStripNamespaces(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                  />
                   Strip Editor Namespaces
                 </label>
 
                 <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input type="checkbox" checked={convertStyles} onChange={(e) => setConvertStyles(e.target.checked)} className="h-4 w-4 rounded border-gray-300 bg-background" />
+                  <input
+                    type="checkbox"
+                    checked={convertStyles}
+                    onChange={(e) => setConvertStyles(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                  />
                   Convert Inline Styles to Attrs
                 </label>
               </div>
-
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content Area */}
         <div className="space-y-6">
-          
           <div className="grid gap-6 lg:grid-cols-[1fr_200px] xl:grid-cols-[1fr_300px]">
             {/* Input Header & Dragzone */}
             <div className="space-y-4">
@@ -290,7 +380,12 @@ export default function SvgOptimizerTool() {
                 onDrop={handleDrop}
               >
                 <div className="absolute top-4 right-4 z-10">
-                  <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="text-xs backdrop-blur-md">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs backdrop-blur-md"
+                  >
                     <Upload className="size-3.5 mr-2" /> Upload .svg
                   </Button>
                   <input
@@ -311,7 +406,7 @@ export default function SvgOptimizerTool() {
                     Clear
                   </Button>
                 )}
-                
+
                 <Textarea
                   value={inputSvg}
                   onChange={(e) => setInputSvg(e.target.value)}
@@ -328,7 +423,11 @@ export default function SvgOptimizerTool() {
               <div className="flex h-[260px] items-center justify-center overflow-hidden rounded-[1.5rem] bg-black/10 border border-white/5 shadow-inner">
                 {previewDataUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={previewDataUrl} alt="Optimized Preview" className="h-[200px] w-[200px] object-contain drop-shadow-2xl" />
+                  <img
+                    src={previewDataUrl}
+                    alt="Optimized Preview"
+                    className="h-[200px] w-[200px] object-contain drop-shadow-2xl"
+                  />
                 ) : (
                   <div className="text-muted-foreground/30 flex flex-col items-center">
                     <FileCode2 className="size-16 mb-4 opacity-30" />
@@ -343,18 +442,33 @@ export default function SvgOptimizerTool() {
           <div className="flex flex-wrap items-center justify-between rounded-xl bg-card border border-white/5 p-4 shadow-sm">
             <div className="flex items-center gap-6">
               <div>
-                <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">Original Size</p>
-                <p className="font-mono text-sm mt-0.5">{formatFileSize(optimizedData.origSize)}</p>
+                <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
+                  Original Size
+                </p>
+                <p className="font-mono text-sm mt-0.5">
+                  {formatFileSize(optimizedData.origSize)}
+                </p>
               </div>
               <ArrowRight className="size-4 text-muted-foreground/30" />
               <div>
-                <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">Optimized Size</p>
-                <p className="font-mono text-sm mt-0.5 text-emerald-400">{formatFileSize(optimizedData.optiSize)}</p>
+                <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
+                  Optimized Size
+                </p>
+                <p className="font-mono text-sm mt-0.5 text-emerald-400">
+                  {formatFileSize(optimizedData.optiSize)}
+                </p>
               </div>
             </div>
             {optimizedData.origSize > 0 && (
-              <Badge variant="outline" className={`font-mono text-sm border-emerald-500/30 bg-emerald-500/10 text-emerald-300 px-3 py-1 ${savingsPct < 0 ? 'border-red-500/30 bg-red-500/10 text-red-300' : ''}`}>
-                {savingsPct > 0 ? `-${savingsPct}% Saved` : savingsPct === 0 ? "No Change" : `+${Math.abs(savingsPct)}% Larger`}
+              <Badge
+                variant="outline"
+                className={`font-mono text-sm border-emerald-500/30 bg-emerald-500/10 text-emerald-300 px-3 py-1 ${savingsPct < 0 ? "border-red-500/30 bg-red-500/10 text-red-300" : ""}`}
+              >
+                {savingsPct > 0
+                  ? `-${savingsPct}% Saved`
+                  : savingsPct === 0
+                    ? "No Change"
+                    : `+${Math.abs(savingsPct)}% Larger`}
               </Badge>
             )}
           </div>
@@ -365,11 +479,26 @@ export default function SvgOptimizerTool() {
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">Optimized Markup</label>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleCopy(optimizedData.output, "optimized")}>
-                    {copiedId === "optimized" ? <CheckCircle2 className="size-3.5 mr-2 text-primary" /> : <Copy className="size-3.5 mr-2" />}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleCopy(optimizedData.output, "optimized")
+                    }
+                  >
+                    {copiedId === "optimized" ? (
+                      <CheckCircle2 className="size-3.5 mr-2 text-primary" />
+                    ) : (
+                      <Copy className="size-3.5 mr-2" />
+                    )}
                     Copy
                   </Button>
-                  <Button size="sm" variant="default" onClick={handleDownload} className="bg-blue-600 hover:bg-blue-500">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={handleDownload}
+                    className="bg-blue-600 hover:bg-blue-500"
+                  >
                     <Download className="size-3.5 mr-2" />
                     Download SVG
                   </Button>
@@ -388,25 +517,40 @@ export default function SvgOptimizerTool() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <label className="text-sm font-medium">Convert to JSX</label>
-                  <div 
+                  <div
                     className={`h-5 w-9 cursor-pointer rounded-full border border-white/20 transition-colors flex items-center p-0.5 ${enableJsx ? "bg-primary" : "bg-black/30"}`}
                     onClick={() => setEnableJsx(!enableJsx)}
                   >
-                    <div className={`h-3.5 w-3.5 rounded-full bg-white transition-transform ${enableJsx ? "translate-x-4" : "translate-x-0"}`} />
+                    <div
+                      className={`h-3.5 w-3.5 rounded-full bg-white transition-transform ${enableJsx ? "translate-x-4" : "translate-x-0"}`}
+                    />
                   </div>
                 </div>
                 {enableJsx && (
-                  <Button size="sm" variant="outline" onClick={() => handleCopy(optimizedData.jsxOutput, "jsx")}>
-                    {copiedId === "jsx" ? <CheckCircle2 className="size-3.5 mr-2 text-primary" /> : <Copy className="size-3.5 mr-2" />}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleCopy(optimizedData.jsxOutput, "jsx")}
+                  >
+                    {copiedId === "jsx" ? (
+                      <CheckCircle2 className="size-3.5 mr-2 text-primary" />
+                    ) : (
+                      <Copy className="size-3.5 mr-2" />
+                    )}
                     Copy JSX
                   </Button>
                 )}
               </div>
-              
+
               <div className="relative">
                 {!enableJsx && (
                   <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-[1rem] border border-white/5">
-                    <Button variant="secondary" onClick={() => setEnableJsx(true)}>Enable JSX Conversion</Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setEnableJsx(true)}
+                    >
+                      Enable JSX Conversion
+                    </Button>
                   </div>
                 )}
                 <Textarea
@@ -418,9 +562,7 @@ export default function SvgOptimizerTool() {
                 />
               </div>
             </div>
-
           </div>
-
         </div>
       </div>
     </div>

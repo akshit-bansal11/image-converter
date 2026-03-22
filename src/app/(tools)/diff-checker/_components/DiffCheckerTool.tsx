@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { 
-  ArrowRightLeft, 
-  Copy, 
-  FileDiff, 
-  CheckCircle2, 
-  Settings, 
-  AlignLeft, 
-  AlignJustify 
+import {
+  ArrowRightLeft,
+  Copy,
+  FileDiff,
+  CheckCircle2,
+  Settings,
+  AlignLeft,
+  AlignJustify,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,11 +41,13 @@ export default function DiffCheckerTool() {
   }, [original, modified, ignoreWhitespace, ignoreCase, diffMode]);
 
   const unifiedPatch = useMemo(() => {
-    return diff.createPatch("document", original, modified, "Original", "Modified", {
-      // @ts-expect-error - The diff package lacks type definitions for patch string configurations natively
-      ignoreCase,
-      ignoreWhitespace
-    }) || "";
+    return (
+      diff.createPatch("document", original, modified, "Original", "Modified", {
+        // @ts-expect-error - The diff package lacks type definitions for patch string configurations natively
+        ignoreCase,
+        ignoreWhitespace,
+      }) || ""
+    );
   }, [original, modified, ignoreWhitespace, ignoreCase]);
 
   const plainTextDiff = useMemo(() => {
@@ -62,7 +64,6 @@ export default function DiffCheckerTool() {
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
       {/* Top Configuration & Inputs Array */}
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        
         {/* Left Side: Original Input & Settings */}
         <div className="space-y-4">
           <Card className="border-white/10 bg-card/70 overflow-hidden">
@@ -73,10 +74,22 @@ export default function DiffCheckerTool() {
                   Original Text
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => setOriginal("")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setOriginal("")}
+                  >
                     Clear
                   </Button>
-                  <Button variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={async () => setOriginal(await navigator.clipboard.readText())}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={async () =>
+                      setOriginal(await navigator.clipboard.readText())
+                    }
+                  >
                     Paste
                   </Button>
                 </div>
@@ -124,7 +137,9 @@ export default function DiffCheckerTool() {
                 <button
                   onClick={() => setDiffMode("chars")}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    diffMode === "chars" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    diffMode === "chars"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   Character Level
@@ -132,7 +147,9 @@ export default function DiffCheckerTool() {
                 <button
                   onClick={() => setDiffMode("words")}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    diffMode === "words" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    diffMode === "words"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   Word Level
@@ -152,10 +169,22 @@ export default function DiffCheckerTool() {
                   Modified Text
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => setModified("")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setModified("")}
+                  >
                     Clear
                   </Button>
-                  <Button variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={async () => setModified(await navigator.clipboard.readText())}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={async () =>
+                      setModified(await navigator.clipboard.readText())
+                    }
+                  >
                     Paste
                   </Button>
                 </div>
@@ -180,26 +209,56 @@ export default function DiffCheckerTool() {
             Inline Visual Diff
           </CardTitle>
           <div className="flex gap-2">
-            <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20 px-2 py-0.5">Removed</Badge>
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5">Added</Badge>
+            <Badge
+              variant="outline"
+              className="bg-red-500/10 text-red-400 border-red-500/20 px-2 py-0.5"
+            >
+              Removed
+            </Badge>
+            <Badge
+              variant="outline"
+              className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5"
+            >
+              Added
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          {(!original && !modified) ? (
+          {!original && !modified ? (
             <div className="flex h-[150px] items-center justify-center text-muted-foreground flex-col gap-3 opacity-50">
               <ArrowRightLeft className="size-8" />
-              <p className="text-sm">Enter original and modified text to see differences.</p>
+              <p className="text-sm">
+                Enter original and modified text to see differences.
+              </p>
             </div>
           ) : (
             <div className="whitespace-pre-wrap font-mono text-sm leading-[1.8] tracking-wide break-words rounded-xl border border-white/5 bg-background/50 p-6 min-h-[150px] shadow-inner">
               {diffResult.map((part, index) => {
                 if (part.added) {
-                  return <span key={index} className="bg-emerald-500/20 text-emerald-300 font-semibold px-0.5 rounded-sm">{part.value}</span>;
+                  return (
+                    <span
+                      key={index}
+                      className="bg-emerald-500/20 text-emerald-300 font-semibold px-0.5 rounded-sm"
+                    >
+                      {part.value}
+                    </span>
+                  );
                 }
                 if (part.removed) {
-                  return <span key={index} className="bg-red-500/20 text-red-300 line-through opacity-70 px-0.5 rounded-sm">{part.value}</span>;
+                  return (
+                    <span
+                      key={index}
+                      className="bg-red-500/20 text-red-300 line-through opacity-70 px-0.5 rounded-sm"
+                    >
+                      {part.value}
+                    </span>
+                  );
                 }
-                return <span key={index} className="text-muted-foreground/80">{part.value}</span>;
+                return (
+                  <span key={index} className="text-muted-foreground/80">
+                    {part.value}
+                  </span>
+                );
               })}
             </div>
           )}
@@ -211,8 +270,16 @@ export default function DiffCheckerTool() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Unified Patch Format</label>
-            <Button size="sm" variant="outline" onClick={() => handleCopy(unifiedPatch, "patch")}>
-              {copiedId === "patch" ? <CheckCircle2 className="size-3.5 mr-2 text-primary" /> : <Copy className="size-3.5 mr-2" />}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleCopy(unifiedPatch, "patch")}
+            >
+              {copiedId === "patch" ? (
+                <CheckCircle2 className="size-3.5 mr-2 text-primary" />
+              ) : (
+                <Copy className="size-3.5 mr-2" />
+              )}
               Copy Patch
             </Button>
           </div>
@@ -227,8 +294,16 @@ export default function DiffCheckerTool() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Plain Text (Markup)</label>
-            <Button size="sm" variant="outline" onClick={() => handleCopy(plainTextDiff, "plain")}>
-              {copiedId === "plain" ? <CheckCircle2 className="size-3.5 mr-2 text-primary" /> : <Copy className="size-3.5 mr-2" />}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleCopy(plainTextDiff, "plain")}
+            >
+              {copiedId === "plain" ? (
+                <CheckCircle2 className="size-3.5 mr-2 text-primary" />
+              ) : (
+                <Copy className="size-3.5 mr-2" />
+              )}
               Copy Markup
             </Button>
           </div>

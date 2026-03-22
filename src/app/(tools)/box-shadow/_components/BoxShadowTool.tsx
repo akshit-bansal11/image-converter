@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Plus, Trash2, Copy, CheckCircle2, Layers, Settings2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Copy,
+  CheckCircle2,
+  Layers,
+  Settings2,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +43,10 @@ function generateId() {
 function hexToRgba(hex: string, opacity: number) {
   hex = hex.replace("#", "");
   if (hex.length === 3) {
-    hex = hex.split("").map(c => c + c).join("");
+    hex = hex
+      .split("")
+      .map((c) => c + c)
+      .join("");
   }
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
@@ -47,7 +57,16 @@ function hexToRgba(hex: string, opacity: number) {
 export default function BoxShadowTool() {
   const [layers, setLayers] = useState<ShadowLayer[]>([
     { id: generateId(), ...defaultLayer },
-    { id: generateId(), xOffset: 0, yOffset: 4, blur: 8, spread: -2, opacity: 10, color: "#000000", inset: false },
+    {
+      id: generateId(),
+      xOffset: 0,
+      yOffset: 4,
+      blur: 8,
+      spread: -2,
+      opacity: 10,
+      color: "#000000",
+      inset: false,
+    },
   ]);
   const [activeLayerId, setActiveLayerId] = useState<string>(layers[0].id);
   const [boxColor, setBoxColor] = useState("#3b82f6");
@@ -55,13 +74,13 @@ export default function BoxShadowTool() {
   const [copied, setCopied] = useState(false);
 
   const activeLayerIndex = useMemo(() => {
-    return layers.findIndex(l => l.id === activeLayerId);
+    return layers.findIndex((l) => l.id === activeLayerId);
   }, [layers, activeLayerId]);
 
   const activeLayer = layers[activeLayerIndex];
 
   const updateActiveLayer = (updates: Partial<ShadowLayer>) => {
-    setLayers(prev => {
+    setLayers((prev) => {
       const arr = [...prev];
       arr[activeLayerIndex] = { ...arr[activeLayerIndex], ...updates };
       return arr;
@@ -70,25 +89,27 @@ export default function BoxShadowTool() {
 
   const addLayer = () => {
     const newId = generateId();
-    setLayers(prev => [{ id: newId, ...defaultLayer }, ...prev]);
+    setLayers((prev) => [{ id: newId, ...defaultLayer }, ...prev]);
     setActiveLayerId(newId);
   };
 
   const removeLayer = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (layers.length <= 1) return;
-    setLayers(prev => prev.filter(l => l.id !== id));
+    setLayers((prev) => prev.filter((l) => l.id !== id));
     if (activeLayerId === id) {
-      setActiveLayerId(layers.find(l => l.id !== id)?.id || layers[0].id);
+      setActiveLayerId(layers.find((l) => l.id !== id)?.id || layers[0].id);
     }
   };
 
   const cssString = useMemo(() => {
-    const shadowString = layers.map(layer => {
-      const inset = layer.inset ? "inset " : "";
-      const color = hexToRgba(layer.color, layer.opacity);
-      return `${inset}${layer.xOffset}px ${layer.yOffset}px ${layer.blur}px ${layer.spread}px ${color}`;
-    }).join(",\n  ");
+    const shadowString = layers
+      .map((layer) => {
+        const inset = layer.inset ? "inset " : "";
+        const color = hexToRgba(layer.color, layer.opacity);
+        return `${inset}${layer.xOffset}px ${layer.yOffset}px ${layer.blur}px ${layer.spread}px ${color}`;
+      })
+      .join(",\n  ");
     return `box-shadow: ${shadowString};`;
   }, [layers]);
 
@@ -101,7 +122,6 @@ export default function BoxShadowTool() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-        
         {/* Preview Area (Left Side) */}
         <div className="space-y-6 flex flex-col">
           <Card className="border-white/10 bg-card/70 overflow-hidden flex-1 shadow-sm flex flex-col">
@@ -112,20 +132,20 @@ export default function BoxShadowTool() {
                   <div className="h-4 w-px bg-white/10 mx-2" />
                   <label className="text-xs group flex items-center gap-1.5 cursor-pointer">
                     <span className="text-muted-foreground">Box:</span>
-                    <input 
-                      type="color" 
-                      value={boxColor} 
-                      onChange={e => setBoxColor(e.target.value)}
-                      className="w-5 h-5 rounded-md cursor-pointer border-none p-0 bg-transparent block" 
+                    <input
+                      type="color"
+                      value={boxColor}
+                      onChange={(e) => setBoxColor(e.target.value)}
+                      className="w-5 h-5 rounded-md cursor-pointer border-none p-0 bg-transparent block"
                     />
                   </label>
                   <label className="text-xs group flex items-center gap-1.5 cursor-pointer ml-3">
                     <span className="text-muted-foreground">Bg:</span>
-                    <input 
-                      type="color" 
-                      value={bgColor} 
-                      onChange={e => setBgColor(e.target.value)}
-                      className="w-5 h-5 rounded-md cursor-pointer border-none p-0 bg-transparent block" 
+                    <input
+                      type="color"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-5 h-5 rounded-md cursor-pointer border-none p-0 bg-transparent block"
                     />
                   </label>
                 </div>
@@ -136,13 +156,25 @@ export default function BoxShadowTool() {
               style={{ backgroundColor: bgColor }}
             >
               {/* Optional dot overlay for depth estimation */}
-              <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-              
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)",
+                  backgroundSize: "24px 24px",
+                }}
+              ></div>
+
               <div
                 className="w-48 h-48 sm:w-64 sm:h-64 rounded-3xl transition-transform hover:scale-105 duration-300 relative z-10 border border-white/10"
                 style={{
                   backgroundColor: boxColor,
-                  boxShadow: layers.map(layer => `${layer.inset ? "inset " : ""}${layer.xOffset}px ${layer.yOffset}px ${layer.blur}px ${layer.spread}px ${hexToRgba(layer.color, layer.opacity)}`).join(", "),
+                  boxShadow: layers
+                    .map(
+                      (layer) =>
+                        `${layer.inset ? "inset " : ""}${layer.xOffset}px ${layer.yOffset}px ${layer.blur}px ${layer.spread}px ${hexToRgba(layer.color, layer.opacity)}`,
+                    )
+                    .join(", "),
                 }}
               />
             </CardContent>
@@ -150,24 +182,34 @@ export default function BoxShadowTool() {
 
           {/* CSS Output Panel */}
           <Card className="border-white/10 bg-card/70 shadow-sm shrink-0">
-             <CardHeader className="bg-background/20 border-b border-white/5 py-3 px-4 flex flex-row items-center justify-between">
-               <CardTitle className="text-sm font-medium text-muted-foreground">CSS Output</CardTitle>
-               <Button
+            <CardHeader className="bg-background/20 border-b border-white/5 py-3 px-4 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                CSS Output
+              </CardTitle>
+              <Button
                 variant={copied ? "default" : "secondary"}
                 size="sm"
                 onClick={handleCopy}
                 className={`h-7 text-xs px-3 transition-colors ${copied ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
               >
-                {copied ? <><CheckCircle2 className="size-3.5 mr-2" /> Copied</> : <><Copy className="size-3.5 mr-2" /> Copy CSS</>}
+                {copied ? (
+                  <>
+                    <CheckCircle2 className="size-3.5 mr-2" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3.5 mr-2" /> Copy CSS
+                  </>
+                )}
               </Button>
-             </CardHeader>
-             <div className="p-0">
-               <Textarea
-                 readOnly
-                 value={cssString}
-                 className="min-h-[100px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none"
-               />
-             </div>
+            </CardHeader>
+            <div className="p-0">
+              <Textarea
+                readOnly
+                value={cssString}
+                className="min-h-[100px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none"
+              />
+            </div>
           </Card>
         </div>
 
@@ -179,12 +221,16 @@ export default function BoxShadowTool() {
                 <Layers className="size-4 text-primary" />
                 Shadow Layers
               </CardTitle>
-              <Button size="sm" variant="outline" onClick={addLayer} className="h-8 gap-1.5 text-xs bg-background/50">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={addLayer}
+                className="h-8 gap-1.5 text-xs bg-background/50"
+              >
                 <Plus className="size-3.5" /> Add Shadow
               </Button>
             </CardHeader>
             <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
-              
               {/* Layer Selection List */}
               <div className="space-y-2">
                 {layers.map((layer, index) => (
@@ -199,12 +245,27 @@ export default function BoxShadowTool() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 rounded-md border flex items-center justify-center shrink-0 bg-background overflow-hidden relative">
-                         {/* Swatch mini preview */}
-                         <div className="absolute inset-0" style={{ backgroundColor: layer.color, opacity: layer.opacity / 100 }} />
+                        {/* Swatch mini preview */}
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundColor: layer.color,
+                            opacity: layer.opacity / 100,
+                          }}
+                        />
                       </div>
-                      <span className={`text-sm font-medium ${activeLayerId === layer.id ? "text-primary" : "text-muted-foreground"}`}>
+                      <span
+                        className={`text-sm font-medium ${activeLayerId === layer.id ? "text-primary" : "text-muted-foreground"}`}
+                      >
                         Layer {layers.length - index}
-                        {layer.inset && <Badge variant="secondary" className="ml-2 text-[10px] h-4 leading-none px-1 py-0 select-none">Inset</Badge>}
+                        {layer.inset && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-2 text-[10px] h-4 leading-none px-1 py-0 select-none"
+                          >
+                            Inset
+                          </Badge>
+                        )}
                       </span>
                     </div>
                     {layers.length > 1 && (
@@ -230,57 +291,122 @@ export default function BoxShadowTool() {
 
                   <div className="space-y-4">
                     <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      X Offset <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{activeLayer.xOffset}px</span>
+                      X Offset{" "}
+                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                        {activeLayer.xOffset}px
+                      </span>
                     </label>
-                    <Slider min={-100} max={100} step={1} value={activeLayer.xOffset} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateActiveLayer({ xOffset: Number(e.target.value) })} />
+                    <Slider
+                      min={-100}
+                      max={100}
+                      step={1}
+                      value={activeLayer.xOffset}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        updateActiveLayer({ xOffset: Number(e.target.value) })
+                      }
+                    />
                   </div>
 
                   <div className="space-y-4">
                     <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Y Offset <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{activeLayer.yOffset}px</span>
+                      Y Offset{" "}
+                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                        {activeLayer.yOffset}px
+                      </span>
                     </label>
-                    <Slider min={-100} max={100} step={1} value={activeLayer.yOffset} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateActiveLayer({ yOffset: Number(e.target.value) })} />
+                    <Slider
+                      min={-100}
+                      max={100}
+                      step={1}
+                      value={activeLayer.yOffset}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        updateActiveLayer({ yOffset: Number(e.target.value) })
+                      }
+                    />
                   </div>
 
                   <div className="space-y-4">
                     <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Blur Content <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{activeLayer.blur}px</span>
+                      Blur Content{" "}
+                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                        {activeLayer.blur}px
+                      </span>
                     </label>
-                    <Slider min={0} max={150} step={1} value={activeLayer.blur} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateActiveLayer({ blur: Number(e.target.value) })} />
+                    <Slider
+                      min={0}
+                      max={150}
+                      step={1}
+                      value={activeLayer.blur}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        updateActiveLayer({ blur: Number(e.target.value) })
+                      }
+                    />
                   </div>
 
                   <div className="space-y-4">
                     <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Spread Radius <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{activeLayer.spread}px</span>
+                      Spread Radius{" "}
+                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                        {activeLayer.spread}px
+                      </span>
                     </label>
-                    <Slider min={-50} max={100} step={1} value={activeLayer.spread} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateActiveLayer({ spread: Number(e.target.value) })} />
+                    <Slider
+                      min={-50}
+                      max={100}
+                      step={1}
+                      value={activeLayer.spread}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        updateActiveLayer({ spread: Number(e.target.value) })
+                      }
+                    />
                   </div>
 
                   <div className="space-y-4 pt-2">
                     <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Opacity <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{activeLayer.opacity}%</span>
+                      Opacity{" "}
+                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                        {activeLayer.opacity}%
+                      </span>
                     </label>
-                    <Slider min={0} max={100} step={1} value={activeLayer.opacity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateActiveLayer({ opacity: Number(e.target.value) })} />
+                    <Slider
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={activeLayer.opacity}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        updateActiveLayer({ opacity: Number(e.target.value) })
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/5">
                     <div className="space-y-1">
-                      <label className="text-sm font-medium text-foreground block">Shadow Color</label>
+                      <label className="text-sm font-medium text-foreground block">
+                        Shadow Color
+                      </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
                           value={activeLayer.color}
-                          onChange={(e) => updateActiveLayer({ color: e.target.value })}
+                          onChange={(e) =>
+                            updateActiveLayer({ color: e.target.value })
+                          }
                           className="w-8 h-8 rounded-lg cursor-pointer border-none p-0 bg-transparent block"
                         />
-                        <span className="font-mono text-xs text-muted-foreground uppercase">{activeLayer.color}</span>
+                        <span className="font-mono text-xs text-muted-foreground uppercase">
+                          {activeLayer.color}
+                        </span>
                       </div>
                     </div>
 
                     <div className="space-y-1 text-right">
-                      <label className="text-sm font-medium text-foreground block">Position</label>
+                      <label className="text-sm font-medium text-foreground block">
+                        Position
+                      </label>
                       <button
-                        onClick={() => updateActiveLayer({ inset: !activeLayer.inset })}
+                        onClick={() =>
+                          updateActiveLayer({ inset: !activeLayer.inset })
+                        }
                         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors border ${
                           activeLayer.inset
                             ? "bg-primary text-primary-foreground border-primary"
@@ -291,14 +417,11 @@ export default function BoxShadowTool() {
                       </button>
                     </div>
                   </div>
-
                 </div>
               )}
-
             </div>
           </Card>
         </div>
-
       </div>
     </div>
   );

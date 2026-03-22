@@ -14,7 +14,10 @@ import {
   gradientToTailwindArbitrary,
 } from "@/lib/design-tools/gradients";
 
-const FEELS = ["All", ...new Set(gradientPresets.map((gradient) => gradient.feel))];
+const FEELS = [
+  "All",
+  ...new Set(gradientPresets.map((gradient) => gradient.feel)),
+];
 
 export default function GradientLibraryTool() {
   const [search, setSearch] = useState("");

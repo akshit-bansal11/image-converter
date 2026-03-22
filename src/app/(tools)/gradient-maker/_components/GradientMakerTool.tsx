@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Download,
-  GripVertical,
-  Layers3,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Download, GripVertical, Layers3, Plus, Trash2 } from "lucide-react";
 import { CopyButton } from "@/components/design-tools/copy-button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -98,7 +92,9 @@ export default function GradientMakerTool() {
                 <Select
                   id="linear-angle"
                   value={String(linearAngle)}
-                  onChange={(event) => setLinearAngle(Number(event.target.value))}
+                  onChange={(event) =>
+                    setLinearAngle(Number(event.target.value))
+                  }
                 >
                   {LINEAR_DIRECTION_PRESETS.map((preset) => (
                     <option key={preset.value} value={preset.value}>
@@ -140,9 +136,7 @@ export default function GradientMakerTool() {
                   max={360}
                   step={1}
                   value={conicFrom}
-                  onChange={(event) =>
-                    setConicFrom(Number(event.target.value))
-                  }
+                  onChange={(event) => setConicFrom(Number(event.target.value))}
                 />
               </div>
             ) : null}
@@ -161,7 +155,9 @@ export default function GradientMakerTool() {
                   return;
                 }
 
-                setStops((currentStops) => moveStop(currentStops, dragIndex, index));
+                setStops((currentStops) =>
+                  moveStop(currentStops, dragIndex, index),
+                );
                 setDragIndex(null);
               }}
               onDragEnd={() => setDragIndex(null)}
@@ -186,7 +182,9 @@ export default function GradientMakerTool() {
                   size="icon"
                   onClick={() =>
                     setStops((currentStops) =>
-                      currentStops.filter((currentStop) => currentStop.id !== stop.id),
+                      currentStops.filter(
+                        (currentStop) => currentStop.id !== stop.id,
+                      ),
                     )
                   }
                   disabled={stops.length <= 2}
@@ -195,7 +193,7 @@ export default function GradientMakerTool() {
                 </Button>
               </div>
 
-              <div 
+              <div
                 className="mt-4 grid gap-4 md:grid-cols-[auto_1fr]"
                 draggable
                 onDragStart={(e) => {
@@ -211,7 +209,10 @@ export default function GradientMakerTool() {
                     setStops((currentStops) =>
                       currentStops.map((currentStop) =>
                         currentStop.id === stop.id
-                          ? { ...currentStop, color: event.target.value.toUpperCase() }
+                          ? {
+                              ...currentStop,
+                              color: event.target.value.toUpperCase(),
+                            }
                           : currentStop,
                       ),
                     )
@@ -221,9 +222,7 @@ export default function GradientMakerTool() {
 
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor={`stop-color-${stop.id}`}>
-                      Color Value
-                    </Label>
+                    <Label htmlFor={`stop-color-${stop.id}`}>Color Value</Label>
                     <Input
                       id={`stop-color-${stop.id}`}
                       value={stop.color}

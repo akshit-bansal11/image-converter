@@ -16,11 +16,7 @@ export default function PaletteLibraryPage() {
   }
 
   return (
-    <ToolPageShell
-      title={tool.name}
-      description={tool.description}
-      fullWidth
-    >
+    <ToolPageShell title={tool.name} description={tool.description} fullWidth>
       <PaletteLibraryTool />
     </ToolPageShell>
   );

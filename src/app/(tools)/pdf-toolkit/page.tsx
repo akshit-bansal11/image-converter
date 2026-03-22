@@ -3,7 +3,8 @@ import PdfToolkitTool from "./_components/PdfToolkitTool";
 
 export const metadata = {
   title: "PDF Toolkit",
-  description: "Merge, split, compress, or reorder your PDF documents securely in your browser without any server uploads.",
+  description:
+    "Merge, split, compress, or reorder your PDF documents securely in your browser without any server uploads.",
 };
 
 export default function PdfToolkitPage() {

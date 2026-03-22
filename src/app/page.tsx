@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { Sparkles, TriangleAlert } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RepositoryCorner } from "@/components/repository-corner";
 import { SiteFooter } from "@/components/site-footer";
 
 import { tools } from "@/config/tools";
+import { cn } from "@/lib/utils";
+
+const inDevelopmentSlugs = new Set([
+  "video-converter",
+  "frames-extractor",
+  "image-cropper",
+]);
 
 export default function Home() {
   return (
@@ -36,30 +43,58 @@ export default function Home() {
         </section>
 
         <section className="mt-8">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {tools.map((tool) => {
               const Icon = tool.icon;
+              const isInDevelopment = inDevelopmentSlugs.has(tool.slug);
+
+              const card = (
+                <Card
+                  className={cn(
+                    "relative h-full border-white/10 bg-card/70 transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10",
+                    isInDevelopment &&
+                      "overflow-hidden hover:translate-y-0 hover:border-white/10 hover:shadow-none",
+                  )}
+                >
+                  <CardHeader className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="rounded-2xl border bg-background/70 p-3">
+                        <Icon className="size-5" />
+                      </div>
+                      <Badge variant="outline" className="uppercase">
+                        {tool.category}
+                      </Badge>
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">{tool.name}</CardTitle>
+                      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                        {tool.description}
+                      </p>
+                    </div>
+                  </CardHeader>
+
+                  {isInDevelopment && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-red-600/35 backdrop-blur-[1px]">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-red-300/60 bg-red-700/85 px-4 py-2 text-sm font-semibold text-white shadow-sm">
+                        <TriangleAlert className="size-4 text-yellow-300" />
+                        In Development
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              );
+
+              if (isInDevelopment) {
+                return (
+                  <div key={tool.slug} className="cursor-not-allowed">
+                    {card}
+                  </div>
+                );
+              }
 
               return (
                 <Link key={tool.slug} href={tool.href} className="group">
-                  <Card className="h-full border-white/10 bg-card/70 transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10">
-                    <CardHeader className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="rounded-2xl border bg-background/70 p-3">
-                          <Icon className="size-5" />
-                        </div>
-                        <Badge variant="outline" className="uppercase">
-                          {tool.category}
-                        </Badge>
-                      </div>
-                      <div>
-                        <CardTitle className="text-xl">{tool.name}</CardTitle>
-                        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-                          {tool.description}
-                        </p>
-                      </div>
-                    </CardHeader>
-                  </Card>
+                  {card}
                 </Link>
               );
             })}

@@ -16,10 +16,7 @@ export default function Base64Page() {
   }
 
   return (
-    <ToolPageShell
-      title={tool.name}
-      description={tool.description}
-    >
+    <ToolPageShell title={tool.name} description={tool.description}>
       <Base64Tool />
     </ToolPageShell>
   );

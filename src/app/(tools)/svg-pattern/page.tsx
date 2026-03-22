@@ -3,7 +3,8 @@ import SvgPatternTool from "./_components/SvgPatternTool";
 
 export const metadata = {
   title: "SVG Pattern Generator",
-  description: "Generate infinitely repeating SVG patterns and export them directly to CSS data URIs.",
+  description:
+    "Generate infinitely repeating SVG patterns and export them directly to CSS data URIs.",
 };
 
 export default function SvgPatternPage() {

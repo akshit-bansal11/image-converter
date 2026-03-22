@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Droplet, Copy, CheckCircle2, SlidersHorizontal, Image as ImageIcon } from "lucide-react";
+import {
+  Droplet,
+  Copy,
+  CheckCircle2,
+  SlidersHorizontal,
+  Image as ImageIcon,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -13,8 +19,10 @@ export default function GlassmorphismTool() {
   const [color, setColor] = useState<string>("#ffffff");
   const [borderOpacity, setBorderOpacity] = useState<number>(20);
   const [saturation, setSaturation] = useState<number>(150);
-  
-  const [bgType, setBgType] = useState<"abstract" | "gradient" | "solid">("abstract");
+
+  const [bgType, setBgType] = useState<"abstract" | "gradient" | "solid">(
+    "abstract",
+  );
   const [copiedCSS, setCopiedCSS] = useState(false);
   const [copiedTW, setCopiedTW] = useState(false);
 
@@ -31,17 +39,17 @@ export default function GlassmorphismTool() {
       `backdrop-filter: blur(${blur}px) saturate(${saturation}%);`,
       `-webkit-backdrop-filter: blur(${blur}px) saturate(${saturation}%);`,
       `border: 1px solid ${hexToRgba("#ffffff", borderOpacity)};`,
-      `border-radius: 1rem;`
+      `border-radius: 1rem;`,
     ].join("\n");
   }, [blur, opacity, color, borderOpacity, saturation]);
 
   // Provide an approximate Tailwind output bridging arbitrary values where necessary
   const tailwindValue = useMemo(() => {
-    const rgb = color.replace("#", ""); 
+    const rgb = color.replace("#", "");
     const r = parseInt(rgb.slice(0, 2), 16);
     const g = parseInt(rgb.slice(2, 4), 16);
     const b = parseInt(rgb.slice(4, 6), 16);
-    
+
     // Map blur roughly to TS classes
     let blurClass = `backdrop-blur-[${blur}px]`;
     if (blur === 0) blurClass = "backdrop-blur-none";
@@ -57,36 +65,36 @@ export default function GlassmorphismTool() {
 
   const setCssCopy = () => {
     navigator.clipboard.writeText(cssValue);
-    setCopiedCSS(true); setTimeout(() => setCopiedCSS(false), 2000);
+    setCopiedCSS(true);
+    setTimeout(() => setCopiedCSS(false), 2000);
   };
   const setTwCopy = () => {
     navigator.clipboard.writeText(tailwindValue);
-    setCopiedTW(true); setTimeout(() => setCopiedTW(false), 2000);
+    setCopiedTW(true);
+    setTimeout(() => setCopiedTW(false), 2000);
   };
-
 
   const getBackgroundStyle = () => {
     if (bgType === "abstract") {
       return {
-        backgroundImage: 'radial-gradient(circle at 10% 20%, rgb(180, 50, 150) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgb(50, 150, 250) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgb(50, 200, 150) 0%, transparent 60%)',
-        backgroundColor: '#0f172a'
+        backgroundImage:
+          "radial-gradient(circle at 10% 20%, rgb(180, 50, 150) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgb(50, 150, 250) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgb(50, 200, 150) 0%, transparent 60%)",
+        backgroundColor: "#0f172a",
       };
     } else if (bgType === "gradient") {
       return {
-        background: 'linear-gradient(45deg, #f43f5e, #8b5cf6, #3b82f6)'
+        background: "linear-gradient(45deg, #f43f5e, #8b5cf6, #3b82f6)",
       };
     } else {
       return {
-        backgroundColor: '#1e293b'
+        backgroundColor: "#1e293b",
       };
     }
   };
 
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        
         {/* PREVIEW DOMAIN */}
         <div className="space-y-6 flex flex-col">
           <Card className="border-white/10 bg-card/70 overflow-hidden flex-1 shadow-sm flex flex-col rounded-3xl">
@@ -98,7 +106,9 @@ export default function GlassmorphismTool() {
                 <button
                   onClick={() => setBgType("abstract")}
                   className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    bgType === "abstract" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    bgType === "abstract"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   Abstract
@@ -106,7 +116,9 @@ export default function GlassmorphismTool() {
                 <button
                   onClick={() => setBgType("gradient")}
                   className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    bgType === "gradient" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    bgType === "gradient"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   Gradient
@@ -114,7 +126,9 @@ export default function GlassmorphismTool() {
                 <button
                   onClick={() => setBgType("solid")}
                   className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    bgType === "solid" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    bgType === "solid"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   Solid
@@ -125,32 +139,41 @@ export default function GlassmorphismTool() {
               className="flex-1 flex items-center justify-center p-8 sm:p-16 min-h-[500px] relative transition-all duration-[3000ms] overflow-hidden"
               style={getBackgroundStyle()}
             >
-               {/* Contextual floating elements to showcase refraction */}
-               {bgType === "abstract" && (
-                 <>
-                   <div className="absolute top-[20%] left-[20%] w-32 h-32 bg-rose-500 rounded-full mix-blend-screen mix-blend-overlay filter blur-[4px] animate-pulse" style={{ animationDuration: '4s' }} />
-                   <div className="absolute bottom-[20%] right-[20%] w-48 h-48 bg-blue-500 rounded-full mix-blend-screen mix-blend-overlay filter blur-[8px] animate-pulse" style={{ animationDuration: '6s' }} />
-                 </>
-               )}
+              {/* Contextual floating elements to showcase refraction */}
+              {bgType === "abstract" && (
+                <>
+                  <div
+                    className="absolute top-[20%] left-[20%] w-32 h-32 bg-rose-500 rounded-full mix-blend-screen mix-blend-overlay filter blur-[4px] animate-pulse"
+                    style={{ animationDuration: "4s" }}
+                  />
+                  <div
+                    className="absolute bottom-[20%] right-[20%] w-48 h-48 bg-blue-500 rounded-full mix-blend-screen mix-blend-overlay filter blur-[8px] animate-pulse"
+                    style={{ animationDuration: "6s" }}
+                  />
+                </>
+              )}
 
-               <div
-                 className="relative z-10 w-full max-w-sm sm:max-w-md aspect-[4/3] flex flex-col items-center justify-center p-8 transition-all duration-300 shadow-2xl"
-                 style={{
-                   background: hexToRgba(color, opacity),
-                   backdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
-                   WebkitBackdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
-                   border: `1px solid ${hexToRgba("#ffffff", borderOpacity)}`,
-                   borderRadius: '1rem'
-                 }}
-               >
-                 <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-6 shadow-sm border border-white/20">
-                    <Droplet className="size-8 text-white" />
-                 </div>
-                 <h2 className="text-white font-semibold text-2xl tracking-tight mb-2 text-center drop-shadow-md">Glassmorphism</h2>
-                 <p className="text-white/80 text-center text-sm font-medium leading-relaxed drop-shadow-md">
-                   Beautiful frosted visual hierarchies that securely refract light directly inside your browser.
-                 </p>
-               </div>
+              <div
+                className="relative z-10 w-full max-w-sm sm:max-w-md aspect-[4/3] flex flex-col items-center justify-center p-8 transition-all duration-300 shadow-2xl"
+                style={{
+                  background: hexToRgba(color, opacity),
+                  backdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
+                  WebkitBackdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
+                  border: `1px solid ${hexToRgba("#ffffff", borderOpacity)}`,
+                  borderRadius: "1rem",
+                }}
+              >
+                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-6 shadow-sm border border-white/20">
+                  <Droplet className="size-8 text-white" />
+                </div>
+                <h2 className="text-white font-semibold text-2xl tracking-tight mb-2 text-center drop-shadow-md">
+                  Glassmorphism
+                </h2>
+                <p className="text-white/80 text-center text-sm font-medium leading-relaxed drop-shadow-md">
+                  Beautiful frosted visual hierarchies that securely refract
+                  light directly inside your browser.
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -158,31 +181,63 @@ export default function GlassmorphismTool() {
           <div className="grid sm:grid-cols-2 gap-4">
             <Card className="border-white/10 bg-card/70 shadow-sm">
               <CardHeader className="bg-background/20 border-b border-white/5 py-3 px-4 flex flex-row items-center justify-between">
-                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">Native CSS</CardTitle>
-                 <Button
-                  variant={copiedCSS ? "default" : "secondary"} size="sm" onClick={setCssCopy}
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  Native CSS
+                </CardTitle>
+                <Button
+                  variant={copiedCSS ? "default" : "secondary"}
+                  size="sm"
+                  onClick={setCssCopy}
                   className={`h-7 text-xs px-3 transition-colors ${copiedCSS ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
-                 >
-                  {copiedCSS ? <><CheckCircle2 className="size-3.5 mr-2" /> Copied</> : <><Copy className="size-3.5 mr-2" /> Copy CSS</>}
+                >
+                  {copiedCSS ? (
+                    <>
+                      <CheckCircle2 className="size-3.5 mr-2" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3.5 mr-2" /> Copy CSS
+                    </>
+                  )}
                 </Button>
               </CardHeader>
               <div className="p-0">
-                <Textarea readOnly value={cssValue} className="h-[120px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-blue-400" />
+                <Textarea
+                  readOnly
+                  value={cssValue}
+                  className="h-[120px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-blue-400"
+                />
               </div>
             </Card>
 
             <Card className="border-white/10 bg-card/70 shadow-sm">
               <CardHeader className="bg-background/20 border-b border-white/5 py-3 px-4 flex flex-row items-center justify-between">
-                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">Tailwind Classes</CardTitle>
-                 <Button
-                  variant={copiedTW ? "default" : "secondary"} size="sm" onClick={setTwCopy}
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  Tailwind Classes
+                </CardTitle>
+                <Button
+                  variant={copiedTW ? "default" : "secondary"}
+                  size="sm"
+                  onClick={setTwCopy}
                   className={`h-7 text-xs px-3 transition-colors ${copiedTW ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
-                 >
-                  {copiedTW ? <><CheckCircle2 className="size-3.5 mr-2" /> Copied</> : <><Copy className="size-3.5 mr-2" /> Copy Classes</>}
+                >
+                  {copiedTW ? (
+                    <>
+                      <CheckCircle2 className="size-3.5 mr-2" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3.5 mr-2" /> Copy Classes
+                    </>
+                  )}
                 </Button>
               </CardHeader>
               <div className="p-0">
-                <Textarea readOnly value={tailwindValue} className="h-[120px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-emerald-400" />
+                <Textarea
+                  readOnly
+                  value={tailwindValue}
+                  className="h-[120px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-emerald-400"
+                />
               </div>
             </Card>
           </div>
@@ -198,39 +253,86 @@ export default function GlassmorphismTool() {
               </CardTitle>
             </CardHeader>
             <div className="p-6 space-y-8 layer-editor">
-              
               <div className="space-y-4">
                 <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Blur Radius <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{blur}px</span>
+                  Blur Radius{" "}
+                  <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                    {blur}px
+                  </span>
                 </label>
-                <Slider min={0} max={40} step={1} value={blur} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBlur(Number(e.target.value))} />
+                <Slider
+                  min={0}
+                  max={40}
+                  step={1}
+                  value={blur}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setBlur(Number(e.target.value))
+                  }
+                />
               </div>
 
               <div className="space-y-4">
                 <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Tint Opacity <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{opacity}%</span>
+                  Tint Opacity{" "}
+                  <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                    {opacity}%
+                  </span>
                 </label>
-                <Slider min={0} max={100} step={1} value={opacity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOpacity(Number(e.target.value))} />
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={opacity}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setOpacity(Number(e.target.value))
+                  }
+                />
               </div>
 
               <div className="space-y-4">
                 <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Saturation <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{saturation}%</span>
+                  Saturation{" "}
+                  <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                    {saturation}%
+                  </span>
                 </label>
-                <Slider min={0} max={200} step={10} value={saturation} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSaturation(Number(e.target.value))} />
+                <Slider
+                  min={0}
+                  max={200}
+                  step={10}
+                  value={saturation}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSaturation(Number(e.target.value))
+                  }
+                />
               </div>
 
               <div className="space-y-4">
                 <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Border Edge Opacity <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">{borderOpacity}%</span>
+                  Border Edge Opacity{" "}
+                  <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
+                    {borderOpacity}%
+                  </span>
                 </label>
-                <Slider min={0} max={100} step={1} value={borderOpacity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBorderOpacity(Number(e.target.value))} />
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={borderOpacity}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setBorderOpacity(Number(e.target.value))
+                  }
+                />
               </div>
 
               <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground block">Tint Color</label>
+                <label className="text-sm font-medium text-foreground block">
+                  Tint Color
+                </label>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-muted-foreground uppercase">{color}</span>
+                  <span className="font-mono text-xs text-muted-foreground uppercase">
+                    {color}
+                  </span>
                   <input
                     type="color"
                     value={color}
@@ -239,11 +341,9 @@ export default function GlassmorphismTool() {
                   />
                 </div>
               </div>
-
             </div>
           </Card>
         </div>
-
       </div>
     </div>
   );

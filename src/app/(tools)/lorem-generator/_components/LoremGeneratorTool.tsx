@@ -1,41 +1,214 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Copy, RefreshCw, Type, AlignLeft, AlignJustify, CheckCircle2, Settings } from "lucide-react";
+import {
+  Copy,
+  RefreshCw,
+  Type,
+  AlignLeft,
+  AlignJustify,
+  CheckCircle2,
+  Settings,
+} from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const CLASSIC_WORDS = [
-  "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do",
-  "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim",
-  "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut",
-  "aliquip", "ex", "ea", "commodo", "consequat", "duis", "aute", "irure", "dolor", "in",
-  "reprehenderit", "in", "voluptate", "velit", "esse", "cillum", "dolore", "eu", "fugiat", "nulla",
-  "pariatur", "excepteur", "sint", "occaecat", "cupidatat", "non", "proident", "sunt", "in", "culpa",
-  "qui", "officia", "deserunt", "mollit", "anim", "id", "est", "laborum", "sed", "ut", "perspiciatis",
-  "unde", "omnis", "iste", "natus", "error", "sit", "voluptatem", "accusantium", "doloremque", "laudantium",
-  "totam", "rem", "aperiam", "eaque", "ipsa", "quae", "ab", "illo", "inventore", "veritatis"
+  "lorem",
+  "ipsum",
+  "dolor",
+  "sit",
+  "amet",
+  "consectetur",
+  "adipiscing",
+  "elit",
+  "sed",
+  "do",
+  "eiusmod",
+  "tempor",
+  "incididunt",
+  "ut",
+  "labore",
+  "et",
+  "dolore",
+  "magna",
+  "aliqua",
+  "enim",
+  "ad",
+  "minim",
+  "veniam",
+  "quis",
+  "nostrud",
+  "exercitation",
+  "ullamco",
+  "laboris",
+  "nisi",
+  "ut",
+  "aliquip",
+  "ex",
+  "ea",
+  "commodo",
+  "consequat",
+  "duis",
+  "aute",
+  "irure",
+  "dolor",
+  "in",
+  "reprehenderit",
+  "in",
+  "voluptate",
+  "velit",
+  "esse",
+  "cillum",
+  "dolore",
+  "eu",
+  "fugiat",
+  "nulla",
+  "pariatur",
+  "excepteur",
+  "sint",
+  "occaecat",
+  "cupidatat",
+  "non",
+  "proident",
+  "sunt",
+  "in",
+  "culpa",
+  "qui",
+  "officia",
+  "deserunt",
+  "mollit",
+  "anim",
+  "id",
+  "est",
+  "laborum",
+  "sed",
+  "ut",
+  "perspiciatis",
+  "unde",
+  "omnis",
+  "iste",
+  "natus",
+  "error",
+  "sit",
+  "voluptatem",
+  "accusantium",
+  "doloremque",
+  "laudantium",
+  "totam",
+  "rem",
+  "aperiam",
+  "eaque",
+  "ipsa",
+  "quae",
+  "ab",
+  "illo",
+  "inventore",
+  "veritatis",
 ];
 
 const ENGLISH_WORDS = [
-  "the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "time", "flies",
-  "like", "an", "arrow", "fruit", "banana", "apple", "sky", "blue", "ocean", "deep",
-  "mountain", "high", "river", "flow", "wind", "blow", "sun", "shine", "moon", "glow",
-  "star", "bright", "night", "dark", "day", "light", "morning", "dew", "evening", "mist",
-  "tree", "green", "leaf", "fall", "winter", "cold", "summer", "hot", "spring", "warm",
-  "autumn", "cool", "city", "busy", "street", "quiet", "home", "sweet", "family", "love",
-  "friend", "true", "journey", "long", "adventure", "wild", "dream", "big", "goal", "reach",
-  "mind", "clear", "heart", "pure", "soul", "free", "spirit", "brave", "courage", "strong",
-  "hope", "always", "faith", "never", "give", "up", "keep", "going", "move", "forward"
+  "the",
+  "quick",
+  "brown",
+  "fox",
+  "jumps",
+  "over",
+  "lazy",
+  "dog",
+  "time",
+  "flies",
+  "like",
+  "an",
+  "arrow",
+  "fruit",
+  "banana",
+  "apple",
+  "sky",
+  "blue",
+  "ocean",
+  "deep",
+  "mountain",
+  "high",
+  "river",
+  "flow",
+  "wind",
+  "blow",
+  "sun",
+  "shine",
+  "moon",
+  "glow",
+  "star",
+  "bright",
+  "night",
+  "dark",
+  "day",
+  "light",
+  "morning",
+  "dew",
+  "evening",
+  "mist",
+  "tree",
+  "green",
+  "leaf",
+  "fall",
+  "winter",
+  "cold",
+  "summer",
+  "hot",
+  "spring",
+  "warm",
+  "autumn",
+  "cool",
+  "city",
+  "busy",
+  "street",
+  "quiet",
+  "home",
+  "sweet",
+  "family",
+  "love",
+  "friend",
+  "true",
+  "journey",
+  "long",
+  "adventure",
+  "wild",
+  "dream",
+  "big",
+  "goal",
+  "reach",
+  "mind",
+  "clear",
+  "heart",
+  "pure",
+  "soul",
+  "free",
+  "spirit",
+  "brave",
+  "courage",
+  "strong",
+  "hope",
+  "always",
+  "faith",
+  "never",
+  "give",
+  "up",
+  "keep",
+  "going",
+  "move",
+  "forward",
 ];
 
 // Bypass static linter checks for pure components by wrapping Math.random outside
 const random = () => Math.random();
 
 export default function LoremGeneratorTool() {
-  const [unit, setUnit] = useState<"words" | "sentences" | "paragraphs">("paragraphs");
+  const [unit, setUnit] = useState<"words" | "sentences" | "paragraphs">(
+    "paragraphs",
+  );
   const [count, setCount] = useState<number>(3);
   const [style, setStyle] = useState<"classic" | "english">("classic");
   const [startWithLorem, setStartWithLorem] = useState<boolean>(true);
@@ -45,10 +218,10 @@ export default function LoremGeneratorTool() {
 
   const generatedText = useMemo(() => {
     const dict = style === "classic" ? CLASSIC_WORDS : ENGLISH_WORDS;
-    
+
     const maxWords = 15;
     const minWords = 5;
-    
+
     let resultText = "";
 
     const getRandomWord = (dictionary: string[]) => {
@@ -62,8 +235,9 @@ export default function LoremGeneratorTool() {
 
     const makeSentence = (sentenceLength: number, isFirstOverall: boolean) => {
       const sentenceArr = [];
-      const needsClassicStarter = isFirstOverall && style === "classic" && startWithLorem;
-      
+      const needsClassicStarter =
+        isFirstOverall && style === "classic" && startWithLorem;
+
       let startingIndex = 0;
       if (needsClassicStarter) {
         sentenceArr.push("Lorem", "ipsum", "dolor", "sit", "amet");
@@ -82,7 +256,7 @@ export default function LoremGeneratorTool() {
       const wordsArr = [];
       const needsClassicStarter = style === "classic" && startWithLorem;
       let startIdx = 0;
-      
+
       if (needsClassicStarter && count >= 5) {
         wordsArr.push("Lorem", "ipsum", "dolor", "sit", "amet");
         startIdx = 5;
@@ -96,27 +270,25 @@ export default function LoremGeneratorTool() {
       for (let i = startIdx; i < count; i++) {
         wordsArr.push(getRandomWord(dict));
       }
-      
+
       resultText = capitalize(wordsArr.join(" "));
-    } 
-    
-    else if (unit === "sentences") {
+    } else if (unit === "sentences") {
       const sentencesArr = [];
       for (let i = 0; i < count; i++) {
-        const sentenceLength = Math.floor(random() * (maxWords - minWords + 1)) + minWords;
+        const sentenceLength =
+          Math.floor(random() * (maxWords - minWords + 1)) + minWords;
         sentencesArr.push(makeSentence(sentenceLength, i === 0));
       }
       resultText = sentencesArr.join(" ");
-    } 
-    
-    else if (unit === "paragraphs") {
+    } else if (unit === "paragraphs") {
       const paragraphsArr = [];
       for (let p = 0; p < count; p++) {
         // 4 to 8 sentences per paragraph
         const numSentences = Math.floor(random() * 5) + 4;
         const sentencesArr = [];
         for (let s = 0; s < numSentences; s++) {
-          const sentenceLength = Math.floor(random() * (maxWords - minWords + 1)) + minWords;
+          const sentenceLength =
+            Math.floor(random() * (maxWords - minWords + 1)) + minWords;
           sentencesArr.push(makeSentence(sentenceLength, p === 0 && s === 0));
         }
         paragraphsArr.push(sentencesArr.join(" "));
@@ -140,7 +312,6 @@ export default function LoremGeneratorTool() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      
       {/* Controls */}
       <Card className="border-white/10 bg-card/70 overflow-hidden shadow-sm">
         <CardHeader className="bg-background/20 border-b border-white/5 pb-4">
@@ -151,15 +322,18 @@ export default function LoremGeneratorTool() {
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
-            
             {/* Unit Toggle */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground block">Length Unit</label>
+              <label className="text-sm font-medium text-muted-foreground block">
+                Length Unit
+              </label>
               <div className="inline-flex w-full rounded-lg border bg-background/50 p-1">
                 <button
                   onClick={() => setUnit("words")}
                   className={`flex items-center justify-center gap-2 flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                    unit === "words" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    unit === "words"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   <Type className="size-3.5" /> Words
@@ -167,7 +341,9 @@ export default function LoremGeneratorTool() {
                 <button
                   onClick={() => setUnit("sentences")}
                   className={`flex items-center justify-center gap-2 flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                    unit === "sentences" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    unit === "sentences"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   <AlignLeft className="size-3.5" /> Sentences
@@ -175,7 +351,9 @@ export default function LoremGeneratorTool() {
                 <button
                   onClick={() => setUnit("paragraphs")}
                   className={`flex items-center justify-center gap-2 flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                    unit === "paragraphs" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                    unit === "paragraphs"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   <AlignJustify className="size-3.5" /> Paragraphs
@@ -186,7 +364,9 @@ export default function LoremGeneratorTool() {
             {/* Input Count & Style */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground block">Count</label>
+                <label className="text-sm font-medium text-muted-foreground block">
+                  Count
+                </label>
                 <Input
                   type="number"
                   min={1}
@@ -201,12 +381,16 @@ export default function LoremGeneratorTool() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground block">Style</label>
+                <label className="text-sm font-medium text-muted-foreground block">
+                  Style
+                </label>
                 <div className="inline-flex w-full rounded-lg border bg-background/50 p-1">
                   <button
                     onClick={() => setStyle("classic")}
                     className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      style === "classic" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                      style === "classic"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     Classic
@@ -214,7 +398,9 @@ export default function LoremGeneratorTool() {
                   <button
                     onClick={() => setStyle("english")}
                     className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      style === "english" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
+                      style === "english"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     English
@@ -225,7 +411,9 @@ export default function LoremGeneratorTool() {
 
             {/* Options Checkboxes */}
             <div className="space-y-3 flex flex-col justify-center border-t border-white/5 pt-4 md:border-none md:pt-0">
-              <label className="text-sm font-medium text-muted-foreground block invisible hidden lg:block">Toggles</label>
+              <label className="text-sm font-medium text-muted-foreground block invisible hidden lg:block">
+                Toggles
+              </label>
               <label
                 className={`flex items-center gap-3 text-sm transition-opacity hover:cursor-pointer select-none ${
                   style !== "classic" ? "opacity-30 pointer-events-none" : ""
@@ -238,10 +426,12 @@ export default function LoremGeneratorTool() {
                   onChange={(e) => setStartWithLorem(e.target.checked)}
                   className="h-4 w-4 rounded border-gray-300 bg-background"
                 />
-                Start with <span className="italic opacity-80">&quot;Lorem ipsum...&quot;</span>
+                Start with{" "}
+                <span className="italic opacity-80">
+                  &quot;Lorem ipsum...&quot;
+                </span>
               </label>
             </div>
-
           </div>
         </CardContent>
       </Card>
@@ -259,7 +449,7 @@ export default function LoremGeneratorTool() {
               onClick={handleRegenerate}
               className="h-8 text-xs px-3 hover:bg-background/80"
             >
-              <RefreshCw className="size-3.5 mr-2" /> 
+              <RefreshCw className="size-3.5 mr-2" />
               Regenerate
             </Button>
             <Button
@@ -269,14 +459,18 @@ export default function LoremGeneratorTool() {
               className={`h-8 text-xs px-3 transition-colors ${copied ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
             >
               {copied ? (
-                <><CheckCircle2 className="size-3.5 mr-2" /> Copied</>
+                <>
+                  <CheckCircle2 className="size-3.5 mr-2" /> Copied
+                </>
               ) : (
-                <><Copy className="size-3.5 mr-2" /> Copy Text</>
+                <>
+                  <Copy className="size-3.5 mr-2" /> Copy Text
+                </>
               )}
             </Button>
           </div>
         </CardHeader>
-        
+
         {/* Animated Background Display for the Text */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
@@ -289,7 +483,6 @@ export default function LoremGeneratorTool() {
           />
         </div>
       </Card>
-      
     </div>
   );
 }

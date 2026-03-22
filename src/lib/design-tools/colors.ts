@@ -222,11 +222,7 @@ function parseOklchColor(value: string) {
   const chroma = Number.parseFloat(components[1]);
   const hue = parseHue(components[2]);
 
-  if (
-    Number.isNaN(lightness) ||
-    Number.isNaN(chroma) ||
-    Number.isNaN(hue)
-  ) {
+  if (Number.isNaN(lightness) || Number.isNaN(chroma) || Number.isNaN(hue)) {
     return null;
   }
 
@@ -523,8 +519,7 @@ function rgbToOklch(r: number, g: number, b: number): OklchColor {
     0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue,
   );
 
-  const lightness =
-    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  const lightness = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
   const a = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
   const bAxis = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
 

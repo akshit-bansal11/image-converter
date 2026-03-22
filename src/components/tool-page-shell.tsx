@@ -27,7 +27,12 @@ export function ToolPageShell({
       <RepositoryCorner className="fixed right-0 top-0 z-20 p-2 sm:p-3" />
 
       <main className="relative z-10 w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className={cn("mx-auto", fullWidth ? "w-full lg:px-4 xl:px-8" : "max-w-5xl")}>
+        <div
+          className={cn(
+            "mx-auto",
+            fullWidth ? "w-full lg:px-4 xl:px-8" : "max-w-5xl",
+          )}
+        >
           <div className="mb-4 flex justify-start">
             <Button
               asChild

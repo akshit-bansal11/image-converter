@@ -5,18 +5,21 @@ import { ArrowRightLeft, Wand2 } from "lucide-react";
 import { OutputField } from "@/components/design-tools/output-field";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   normalizeGradientInput,
   parseGradientString,
   type ParsedGradient,
 } from "@/lib/design-tools/gradients";
 
-const SAMPLE_GRADIENT = "linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%)";
+const SAMPLE_GRADIENT =
+  "linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%)";
 
 function detectFormat(value: string): "Tailwind" | "Bootstrap" | "CSS" {
-  if (value.includes("bg-[") || value.match(/\bbg-gradient-to-/)) return "Tailwind";
-  if (value.includes("var(--bs-gradient)") || value.includes(".bg-gradient")) return "Bootstrap";
+  if (value.includes("bg-[") || value.match(/\bbg-gradient-to-/))
+    return "Tailwind";
+  if (value.includes("var(--bs-gradient)") || value.includes(".bg-gradient"))
+    return "Bootstrap";
   return "CSS";
 }
 
@@ -26,20 +29,30 @@ function getTailwindClasses(parsedGradient: ParsedGradient): string {
   }
 
   const dirMap: Record<string, string> = {
-    "to top": "t", "0deg": "t",
-    "to top right": "tr", "45deg": "tr",
-    "to right": "r", "90deg": "r",
-    "to bottom right": "br", "135deg": "br",
-    "to bottom": "b", "180deg": "b",
-    "to bottom left": "bl", "225deg": "bl",
-    "to left": "l", "270deg": "l",
-    "to top left": "tl", "315deg": "tl",
+    "to top": "t",
+    "0deg": "t",
+    "to top right": "tr",
+    "45deg": "tr",
+    "to right": "r",
+    "90deg": "r",
+    "to bottom right": "br",
+    "135deg": "br",
+    "to bottom": "b",
+    "180deg": "b",
+    "to bottom left": "bl",
+    "225deg": "bl",
+    "to left": "l",
+    "270deg": "l",
+    "to top left": "tl",
+    "315deg": "tl",
   };
 
   const dir = dirMap[parsedGradient.orientation.trim().toLowerCase()];
   if (!dir) return `bg-[${parsedGradient.normalized.replace(/\s+/g, "_")}]`;
 
-  const colors = parsedGradient.stops.map((s: string) => s.trim().split(/\s+/)[0]);
+  const colors = parsedGradient.stops.map(
+    (s: string) => s.trim().split(/\s+/)[0],
+  );
   let cls = `bg-gradient-to-${dir} from-[${colors[0]}]`;
   if (colors.length === 3) cls += ` via-[${colors[1]}] to-[${colors[2]}]`;
   else if (colors.length === 2) cls += ` to-[${colors[1]}]`;
@@ -61,11 +74,19 @@ export default function GradientConverterTool() {
     let c = input.trim().replace(/;$/, "");
 
     // Tailwind utility: bg-gradient-to-{dir} from-[...] via-[...] to-[...]
-    const twUtility = c.match(/\bbg-gradient-to-([a-z]+)\s+from-\[([^\]]+)\](?:\s+via-\[([^\]]+)\])?(?:\s+to-\[([^\]]+)\])?/);
+    const twUtility = c.match(
+      /\bbg-gradient-to-([a-z]+)\s+from-\[([^\]]+)\](?:\s+via-\[([^\]]+)\])?(?:\s+to-\[([^\]]+)\])?/,
+    );
     if (twUtility) {
       const dirMap: Record<string, string> = {
-        t: "to top", tr: "to top right", r: "to right", br: "to bottom right",
-        b: "to bottom", bl: "to bottom left", l: "to left", tl: "to top left",
+        t: "to top",
+        tr: "to top right",
+        r: "to right",
+        br: "to bottom right",
+        b: "to bottom",
+        bl: "to bottom left",
+        l: "to left",
+        tl: "to top left",
       };
       const dir = dirMap[twUtility[1]] ?? `to ${twUtility[1]}`;
       const stops = [twUtility[2], twUtility[3], twUtility[4]].filter(Boolean);
@@ -98,18 +119,45 @@ export default function GradientConverterTool() {
     : "";
 
   // Show the two formats that are NOT the detected input
-  const outputPairs: Record<typeof detectedFormat, { label: string; description: string; value: string }[]> = {
+  const outputPairs: Record<
+    typeof detectedFormat,
+    { label: string; description: string; value: string }[]
+  > = {
     CSS: [
-      { label: "Tailwind CSS", description: "Utility classes or arbitrary value syntax.", value: tailwindOutput },
-      { label: "Bootstrap 5", description: "Custom utility using Bootstrap 5 background properties.", value: bootstrapOutput },
+      {
+        label: "Tailwind CSS",
+        description: "Utility classes or arbitrary value syntax.",
+        value: tailwindOutput,
+      },
+      {
+        label: "Bootstrap 5",
+        description: "Custom utility using Bootstrap 5 background properties.",
+        value: bootstrapOutput,
+      },
     ],
     Tailwind: [
-      { label: "Standard CSS", description: "Cross-browser CSS background property.", value: cssOutput },
-      { label: "Bootstrap 5", description: "Custom utility using Bootstrap 5 background properties.", value: bootstrapOutput },
+      {
+        label: "Standard CSS",
+        description: "Cross-browser CSS background property.",
+        value: cssOutput,
+      },
+      {
+        label: "Bootstrap 5",
+        description: "Custom utility using Bootstrap 5 background properties.",
+        value: bootstrapOutput,
+      },
     ],
     Bootstrap: [
-      { label: "Standard CSS", description: "Cross-browser CSS background property.", value: cssOutput },
-      { label: "Tailwind CSS", description: "Utility classes or arbitrary value syntax.", value: tailwindOutput },
+      {
+        label: "Standard CSS",
+        description: "Cross-browser CSS background property.",
+        value: cssOutput,
+      },
+      {
+        label: "Tailwind CSS",
+        description: "Utility classes or arbitrary value syntax.",
+        value: tailwindOutput,
+      },
     ],
   };
 
@@ -124,10 +172,14 @@ export default function GradientConverterTool() {
             <div>
               <CardTitle>Gradient Converter</CardTitle>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                Paste any CSS, Tailwind, or Bootstrap gradient — outputs are generated automatically.
+                Paste any CSS, Tailwind, or Bootstrap gradient — outputs are
+                generated automatically.
               </p>
             </div>
-            <Badge variant="secondary" className="border-primary/50 text-primary uppercase shrink-0">
+            <Badge
+              variant="secondary"
+              className="border-primary/50 text-primary uppercase shrink-0"
+            >
               Detected: {detectedFormat}
             </Badge>
           </div>
@@ -150,7 +202,8 @@ export default function GradientConverterTool() {
 
           {hasError && (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
-              Cannot parse gradient. Ensure it&apos;s a valid linear, radial, or conic gradient value.
+              Cannot parse gradient. Ensure it&apos;s a valid linear, radial, or
+              conic gradient value.
             </div>
           )}
         </CardHeader>
@@ -182,7 +235,12 @@ export default function GradientConverterTool() {
       {/* Outputs — 2 columns */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {outputs.map((o) => (
-          <OutputField key={o.label} label={o.label} description={o.description} value={o.value} />
+          <OutputField
+            key={o.label}
+            label={o.label}
+            description={o.description}
+            value={o.value}
+          />
         ))}
       </div>
     </div>

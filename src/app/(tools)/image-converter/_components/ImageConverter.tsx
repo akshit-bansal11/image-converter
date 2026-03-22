@@ -367,11 +367,11 @@ export default function ImageConverter() {
                 HEIF Export Limitation
               </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
-                HEIF and HEIC files can be uploaded as sources, but the
-                bundled codec does not yet export
+                HEIF and HEIC files can be uploaded as sources, but the bundled
+                codec does not yet export
                 <strong> HEIF </strong>
-                output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are
-                available as targets.
+                output. PNG, JPG, JPEG, WebP, AVIF, TIFF, and ICO are available
+                as targets.
               </p>
             </div>
           </div>
@@ -394,195 +394,191 @@ export default function ImageConverter() {
         </div>
       </div>
 
-        {uploadWarning && (
-          <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
-              <div className="flex-1">
-                <p className="font-medium text-red-600 dark:text-red-400">
-                  Upload Rejected
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {uploadWarning}
-                </p>
-              </div>
-              <button
-                onClick={() => setUploadWarning(null)}
-                className="text-red-500 hover:text-red-600 dark:hover:text-red-400"
-              >
-                <X className="size-4" />
-              </button>
+      {uploadWarning && (
+        <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
+            <div className="flex-1">
+              <p className="font-medium text-red-600 dark:text-red-400">
+                Upload Rejected
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {uploadWarning}
+              </p>
             </div>
-          </div>
-        )}
-
-        <Card
-          className={`relative overflow-hidden transition-all duration-300 ${
-            isDragging
-              ? "scale-[1.01] border-primary/50 bg-primary/5 shadow-lg shadow-primary/10"
-              : "border-dashed hover:border-muted-foreground/30 hover:shadow-md"
-          }`}
-        >
-          <div
-            className="p-8 sm:p-12"
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept={ACCEPTED_INPUT}
-              className="hidden"
-              onChange={handleFileSelect}
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="flex cursor-pointer flex-col items-center gap-4"
+            <button
+              onClick={() => setUploadWarning(null)}
+              className="text-red-500 hover:text-red-600 dark:hover:text-red-400"
             >
-              <div
-                className={`rounded-2xl p-5 transition-all duration-300 ${
-                  isDragging
-                    ? "scale-110 bg-primary/10"
-                    : "bg-muted/50 hover:bg-muted"
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Card
+        className={`relative overflow-hidden transition-all duration-300 ${
+          isDragging
+            ? "scale-[1.01] border-primary/50 bg-primary/5 shadow-lg shadow-primary/10"
+            : "border-dashed hover:border-muted-foreground/30 hover:shadow-md"
+        }`}
+      >
+        <div
+          className="p-8 sm:p-12"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ACCEPTED_INPUT}
+            className="hidden"
+            onChange={handleFileSelect}
+            id="file-upload"
+          />
+          <label
+            htmlFor="file-upload"
+            className="flex cursor-pointer flex-col items-center gap-4"
+          >
+            <div
+              className={`rounded-2xl p-5 transition-all duration-300 ${
+                isDragging
+                  ? "scale-110 bg-primary/10"
+                  : "bg-muted/50 hover:bg-muted"
+              }`}
+            >
+              <Upload
+                className={`size-8 transition-colors ${
+                  isDragging ? "text-primary" : "text-muted-foreground"
                 }`}
-              >
-                <Upload
-                  className={`size-8 transition-colors ${
-                    isDragging ? "text-primary" : "text-muted-foreground"
-                  }`}
-                />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-semibold">
-                  {isDragging ? (
-                    "Drop files here"
-                  ) : (
-                    <>
-                      Drag & drop files or{" "}
-                      <span className="text-primary underline underline-offset-4">
-                        browse
-                      </span>
-                    </>
-                  )}
-                </p>
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, ICO - max 10MB, 4096px
-                  per side, 20MP
-                </p>
-              </div>
-            </label>
-          </div>
-
-          {isDragging && (
-            <div className="pointer-events-none absolute inset-0 animate-pulse rounded-xl border-2 border-primary/40" />
-          )}
-        </Card>
-
-        {hasFiles && (
-          <div className="mt-8 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="px-3 py-1 text-sm">
-                  <FileImage className="mr-1 size-3.5" />
-                  {files.length} file{files.length !== 1 ? "s" : ""}
-                </Badge>
-                {doneCount > 0 && (
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-500/30 px-3 py-1 text-sm text-emerald-600 dark:text-emerald-400"
-                  >
-                    <CheckCircle2 className="mr-1 size-3.5" />
-                    {doneCount} converted
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                {convertibleCount > 0 && (
-                  <Button
-                    onClick={convertAll}
-                    disabled={isConverting}
-                    size="sm"
-                    className="gap-2"
-                  >
-                    {isConverting ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="size-4" />
-                    )}
-                    Convert All
-                  </Button>
-                )}
-                {doneCount > 1 && (
-                  <Button
-                    onClick={downloadAll}
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    disabled={isDownloadingAll}
-                  >
-                    {isDownloadingAll ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <ArchiveIcon className="size-4" />
-                    )}
-                    Download All (.zip)
-                  </Button>
-                )}
-                <Separator orientation="vertical" className="h-6" />
-                <Tooltip content="Clear all files">
-                  <Button
-                    onClick={clearAll}
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </Tooltip>
-              </div>
+              />
             </div>
-
-            <div className="space-y-3">
-              {files.map((item) => (
-                <FileCard
-                  key={item.id}
-                  item={item}
-                  onUpdateTarget={(target) =>
-                    updateFile(item.id, {
-                      targetFormat: target,
-                      status: "idle",
-                      progress: 0,
-                      convertedBlob: undefined,
-                      convertedUrl: undefined,
-                      error: undefined,
-                    })
-                  }
-                  onUpdateQuality={(quality) =>
-                    updateFile(item.id, { quality })
-                  }
-                  onConvert={() => convertFile(item.id)}
-                  onDownload={() => downloadFile(item)}
-                  onRemove={() => removeFile(item.id)}
-                  onRetry={() => {
-                    updateFile(item.id, {
-                      status: "idle",
-                      progress: 0,
-                      error: undefined,
-                    });
-                    convertFile(item.id);
-                  }}
-                />
-              ))}
+            <div className="text-center">
+              <p className="text-lg font-semibold">
+                {isDragging ? (
+                  "Drop files here"
+                ) : (
+                  <>
+                    Drag & drop files or{" "}
+                    <span className="text-primary underline underline-offset-4">
+                      browse
+                    </span>
+                  </>
+                )}
+              </p>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, ICO - max 10MB, 4096px
+                per side, 20MP
+              </p>
             </div>
-          </div>
+          </label>
+        </div>
+
+        {isDragging && (
+          <div className="pointer-events-none absolute inset-0 animate-pulse rounded-xl border-2 border-primary/40" />
         )}
+      </Card>
 
+      {hasFiles && (
+        <div className="mt-8 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className="px-3 py-1 text-sm">
+                <FileImage className="mr-1 size-3.5" />
+                {files.length} file{files.length !== 1 ? "s" : ""}
+              </Badge>
+              {doneCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className="border-emerald-500/30 px-3 py-1 text-sm text-emerald-600 dark:text-emerald-400"
+                >
+                  <CheckCircle2 className="mr-1 size-3.5" />
+                  {doneCount} converted
+                </Badge>
+              )}
+            </div>
 
+            <div className="flex items-center gap-2">
+              {convertibleCount > 0 && (
+                <Button
+                  onClick={convertAll}
+                  disabled={isConverting}
+                  size="sm"
+                  className="gap-2"
+                >
+                  {isConverting ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-4" />
+                  )}
+                  Convert All
+                </Button>
+              )}
+              {doneCount > 1 && (
+                <Button
+                  onClick={downloadAll}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  disabled={isDownloadingAll}
+                >
+                  {isDownloadingAll ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <ArchiveIcon className="size-4" />
+                  )}
+                  Download All (.zip)
+                </Button>
+              )}
+              <Separator orientation="vertical" className="h-6" />
+              <Tooltip content="Clear all files">
+                <Button
+                  onClick={clearAll}
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {files.map((item) => (
+              <FileCard
+                key={item.id}
+                item={item}
+                onUpdateTarget={(target) =>
+                  updateFile(item.id, {
+                    targetFormat: target,
+                    status: "idle",
+                    progress: 0,
+                    convertedBlob: undefined,
+                    convertedUrl: undefined,
+                    error: undefined,
+                  })
+                }
+                onUpdateQuality={(quality) => updateFile(item.id, { quality })}
+                onConvert={() => convertFile(item.id)}
+                onDownload={() => downloadFile(item)}
+                onRemove={() => removeFile(item.id)}
+                onRetry={() => {
+                  updateFile(item.id, {
+                    status: "idle",
+                    progress: 0,
+                    error: undefined,
+                  });
+                  convertFile(item.id);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

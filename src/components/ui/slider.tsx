@@ -14,7 +14,12 @@ function Slider({
   value?: number;
 }) {
   return (
-    <div className={cn("relative flex w-full touch-none select-none items-center", className)}>
+    <div
+      className={cn(
+        "relative flex w-full touch-none select-none items-center",
+        className,
+      )}
+    >
       <input
         type="range"
         min={min}

@@ -115,18 +115,22 @@ export default function PdfToolkitTool() {
 
   // --- FILE HANDLERS ---
   const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    dragCounter.current++; setIsDraggingOver(true);
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    setIsDraggingOver(true);
   }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     dragCounter.current--;
     if (dragCounter.current === 0) setIsDraggingOver(false);
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
   }, []);
 
   const loadPdfMetadata = async (file: File) => {
@@ -140,95 +144,133 @@ export default function PdfToolkitTool() {
     }
   };
 
-  const processUpload = useCallback(async (files: File[]) => {
-    const validPdfs = files.filter(f => f.type === "application/pdf");
-    if (validPdfs.length === 0) return;
+  const processUpload = useCallback(
+    async (files: File[]) => {
+      const validPdfs = files.filter((f) => f.type === "application/pdf");
+      if (validPdfs.length === 0) return;
 
-    if (activeTab === "merge") {
-      setMergeFiles(prev => [...prev, ...validPdfs.map(f => ({ id: generateId(), file: f, name: f.name, size: f.size }))]);
-    } else if (activeTab === "split") {
-      const file = validPdfs[0];
-      setSplitFile(file);
-      const pdf = await loadPdfMetadata(file);
-      if (pdf) setSplitTotalPages(pdf.numPages);
-    } else if (activeTab === "compress") {
-      setCompressFile(validPdfs[0]);
-    } else if (activeTab === "reorder") {
-      const file = validPdfs[0];
-      setReorderFile(file);
-      setReorderPages([]); // clear old
-      setIsProcessing(true);
-      setProgress(0);
+      if (activeTab === "merge") {
+        setMergeFiles((prev) => [
+          ...prev,
+          ...validPdfs.map((f) => ({
+            id: generateId(),
+            file: f,
+            name: f.name,
+            size: f.size,
+          })),
+        ]);
+      } else if (activeTab === "split") {
+        const file = validPdfs[0];
+        setSplitFile(file);
+        const pdf = await loadPdfMetadata(file);
+        if (pdf) setSplitTotalPages(pdf.numPages);
+      } else if (activeTab === "compress") {
+        setCompressFile(validPdfs[0]);
+      } else if (activeTab === "reorder") {
+        const file = validPdfs[0];
+        setReorderFile(file);
+        setReorderPages([]); // clear old
+        setIsProcessing(true);
+        setProgress(0);
 
-      const pdf = await loadPdfMetadata(file);
-      if (pdf) {
-        const total = pdf.numPages;
-        const thumbnails: PdfPageThumbnail[] = [];
-        for (let i = 1; i <= total; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 0.5 }); // Low res for thumbnail
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          canvas.width = viewport.width; canvas.height = viewport.height;
-          if (ctx) {
-            // @ts-expect-error - The pdfjs-dist TS typings strictly require canvas sometimes improperly despite canvasContext being the actual parameter
-            await page.render({ canvasContext: ctx, viewport }).promise;
-            const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/jpeg", 0.7));
-            if (blob) thumbnails.push({ id: generateId(), originalIndex: i - 1, previewUrl: URL.createObjectURL(blob) });
+        const pdf = await loadPdfMetadata(file);
+        if (pdf) {
+          const total = pdf.numPages;
+          const thumbnails: PdfPageThumbnail[] = [];
+          for (let i = 1; i <= total; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 0.5 }); // Low res for thumbnail
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            if (ctx) {
+              // @ts-expect-error - The pdfjs-dist TS typings strictly require canvas sometimes improperly despite canvasContext being the actual parameter
+              await page.render({ canvasContext: ctx, viewport }).promise;
+              const blob = await new Promise<Blob | null>((res) =>
+                canvas.toBlob(res, "image/jpeg", 0.7),
+              );
+              if (blob)
+                thumbnails.push({
+                  id: generateId(),
+                  originalIndex: i - 1,
+                  previewUrl: URL.createObjectURL(blob),
+                });
+            }
+            setProgress(Math.round((i / total) * 100));
           }
-          setProgress(Math.round((i / total) * 100));
+          setReorderPages(thumbnails);
         }
-        setReorderPages(thumbnails);
+        setIsProcessing(false);
+        setProgress(0);
       }
-      setIsProcessing(false);
-      setProgress(0);
-    }
-  }, [activeTab]);
+    },
+    [activeTab],
+  );
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    setIsDraggingOver(false); dragCounter.current = 0;
-    processUpload(Array.from(e.dataTransfer.files));
-  }, [processUpload]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingOver(false);
+      dragCounter.current = 0;
+      processUpload(Array.from(e.dataTransfer.files));
+    },
+    [processUpload],
+  );
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) processUpload(Array.from(e.target.files));
-    e.target.value = "";
-  }, [processUpload]);
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) processUpload(Array.from(e.target.files));
+      e.target.value = "";
+    },
+    [processUpload],
+  );
 
   const downloadBlob = (blob: Blob, name: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
+    a.href = url;
+    a.download = name;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
   // --- TAB PROCESSORS ---
   const executeMerge = async () => {
     if (mergeFiles.length === 0) return;
-    setIsProcessing(true); setProgress(0);
+    setIsProcessing(true);
+    setProgress(0);
     try {
       const mergedPdf = await PDFDocument.create();
       for (let i = 0; i < mergeFiles.length; i++) {
         const fileBuffer = await mergeFiles[i].file.arrayBuffer();
         const pdf = await PDFDocument.load(fileBuffer);
-        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-        copiedPages.forEach(p => mergedPdf.addPage(p));
+        const copiedPages = await mergedPdf.copyPages(
+          pdf,
+          pdf.getPageIndices(),
+        );
+        copiedPages.forEach((p) => mergedPdf.addPage(p));
         setProgress(Math.round(((i + 1) / mergeFiles.length) * 100));
       }
       const bytes = await mergedPdf.save();
       const buffer = Uint8Array.from(bytes).buffer;
-      downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Merged_Document.pdf");
+      downloadBlob(
+        new Blob([buffer], { type: "application/pdf" }),
+        "Merged_Document.pdf",
+      );
     } catch (e) {
       console.error(e);
       alert("Error merging documents.");
     }
-    setIsProcessing(false); setProgress(0);
+    setIsProcessing(false);
+    setProgress(0);
   };
 
   const executeSplit = async () => {
     if (!splitFile) return;
-    setIsProcessing(true); setProgress(0);
+    setIsProcessing(true);
+    setProgress(0);
     try {
       const fileBuffer = await splitFile.arrayBuffer();
       const pdf = await PDFDocument.load(fileBuffer);
@@ -249,24 +291,31 @@ export default function PdfToolkitTool() {
         const indices = parseRanges(splitRange, total);
         if (indices.length === 0) {
           alert("Invalid or empty range.");
-          setIsProcessing(false); return;
+          setIsProcessing(false);
+          return;
         }
         const newPdf = await PDFDocument.create();
         const pages = await newPdf.copyPages(pdf, indices);
-        pages.forEach(p => newPdf.addPage(p));
+        pages.forEach((p) => newPdf.addPage(p));
         const bytes = await newPdf.save();
         const buffer = Uint8Array.from(bytes).buffer;
-        downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Extracted_Pages.pdf");
+        downloadBlob(
+          new Blob([buffer], { type: "application/pdf" }),
+          "Extracted_Pages.pdf",
+        );
       }
     } catch (e) {
-      console.error(e); alert("Failed to split document.");
+      console.error(e);
+      alert("Failed to split document.");
     }
-    setIsProcessing(false); setProgress(0);
+    setIsProcessing(false);
+    setProgress(0);
   };
 
   const executeCompress = async () => {
     if (!compressFile) return;
-    setIsProcessing(true); setProgress(0);
+    setIsProcessing(true);
+    setProgress(0);
     try {
       // Rasterization approach (Flattens PDF but significantly drops sizes of image-heavy docs safely)
       const fileBuffer = await compressFile.arrayBuffer();
@@ -279,49 +328,67 @@ export default function PdfToolkitTool() {
         const viewport = page.getViewport({ scale: compressResolution });
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-        canvas.width = viewport.width; canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
         if (ctx) {
           await page.render({ canvas, canvasContext: ctx, viewport }).promise;
-          const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/jpeg", compressQuality / 100));
+          const blob = await new Promise<Blob | null>((res) =>
+            canvas.toBlob(res, "image/jpeg", compressQuality / 100),
+          );
           if (blob) {
             const imgBytes = await blob.arrayBuffer();
             const jpegImg = await newPdf.embedJpg(imgBytes);
             const newPage = newPdf.addPage([jpegImg.width, jpegImg.height]);
-            newPage.drawImage(jpegImg, { x: 0, y: 0, width: jpegImg.width, height: jpegImg.height });
+            newPage.drawImage(jpegImg, {
+              x: 0,
+              y: 0,
+              width: jpegImg.width,
+              height: jpegImg.height,
+            });
           }
         }
         setProgress(Math.round((i / total) * 100));
       }
       const bytes = await newPdf.save();
       const buffer = Uint8Array.from(bytes).buffer;
-      downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Compressed_Document.pdf");
+      downloadBlob(
+        new Blob([buffer], { type: "application/pdf" }),
+        "Compressed_Document.pdf",
+      );
     } catch (e) {
-      console.error(e); alert("Failed to compress document.");
+      console.error(e);
+      alert("Failed to compress document.");
     }
-    setIsProcessing(false); setProgress(0);
+    setIsProcessing(false);
+    setProgress(0);
   };
 
   const executeReorder = async () => {
     if (!reorderFile || reorderPages.length === 0) return;
-    setIsProcessing(true); setProgress(0);
+    setIsProcessing(true);
+    setProgress(0);
     try {
       const fileBuffer = await reorderFile.arrayBuffer();
       const pdf = await PDFDocument.load(fileBuffer);
       const newPdf = await PDFDocument.create();
-      
-      const orderedIndices = reorderPages.map(p => p.originalIndex);
+
+      const orderedIndices = reorderPages.map((p) => p.originalIndex);
       const copied = await newPdf.copyPages(pdf, orderedIndices);
-      copied.forEach(p => newPdf.addPage(p));
-      
+      copied.forEach((p) => newPdf.addPage(p));
+
       const bytes = await newPdf.save();
       const buffer = Uint8Array.from(bytes).buffer;
-      downloadBlob(new Blob([buffer], { type: "application/pdf" }), "Reordered_Document.pdf");
+      downloadBlob(
+        new Blob([buffer], { type: "application/pdf" }),
+        "Reordered_Document.pdf",
+      );
     } catch (e) {
-      console.error(e); alert("Failed to reorder document.");
+      console.error(e);
+      alert("Failed to reorder document.");
     }
-    setIsProcessing(false); setProgress(0);
+    setIsProcessing(false);
+    setProgress(0);
   };
-
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
@@ -331,7 +398,9 @@ export default function PdfToolkitTool() {
           <button
             onClick={() => setActiveTab("merge")}
             className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "merge" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              activeTab === "merge"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
             <Merge className="size-4" /> Merge
@@ -339,7 +408,9 @@ export default function PdfToolkitTool() {
           <button
             onClick={() => setActiveTab("split")}
             className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "split" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              activeTab === "split"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
             <SplitSquareHorizontal className="size-4" /> Split
@@ -347,7 +418,9 @@ export default function PdfToolkitTool() {
           <button
             onClick={() => setActiveTab("compress")}
             className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "compress" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              activeTab === "compress"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
             <Minimize2 className="size-4" /> Compress
@@ -355,7 +428,9 @@ export default function PdfToolkitTool() {
           <button
             onClick={() => setActiveTab("reorder")}
             className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "reorder" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              activeTab === "reorder"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
             <ArrowUpDown className="size-4" /> Reorder
@@ -366,7 +441,6 @@ export default function PdfToolkitTool() {
       <div className="grid gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_360px]">
         {/* Main Interface Area */}
         <div className="space-y-6">
-          
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -386,9 +460,13 @@ export default function PdfToolkitTool() {
               </div>
               <div className="text-center">
                 <p className="text-lg font-medium text-foreground">
-                  {activeTab === "merge" ? "Drop multiple PDFs here" : "Drop a single PDF here"}
+                  {activeTab === "merge"
+                    ? "Drop multiple PDFs here"
+                    : "Drop a single PDF here"}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">Everything runs directly in your browser securely.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Everything runs directly in your browser securely.
+                </p>
               </div>
             </div>
             <input
@@ -406,9 +484,17 @@ export default function PdfToolkitTool() {
             <div className="space-y-4 rounded-3xl border bg-card/40 p-6">
               <div className="flex items-center justify-between border-b pb-4 border-white/5">
                 <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                  Files to Merge <span className="text-muted-foreground font-normal ml-2">({mergeFiles.length})</span>
+                  Files to Merge{" "}
+                  <span className="text-muted-foreground font-normal ml-2">
+                    ({mergeFiles.length})
+                  </span>
                 </h3>
-                <Button variant="ghost" size="sm" onClick={() => setMergeFiles([])} className="text-muted-foreground hover:text-red-400">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMergeFiles([])}
+                  className="text-muted-foreground hover:text-red-400"
+                >
                   <Trash2 className="size-4 mr-2" />
                   Clear All
                 </Button>
@@ -418,15 +504,23 @@ export default function PdfToolkitTool() {
                   <div
                     key={item.id}
                     draggable
-                    onDragStart={(e) => { setDraggedMergeId(item.id); e.dataTransfer.effectAllowed = "move"; }}
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                    onDragStart={(e) => {
+                      setDraggedMergeId(item.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
                     onDrop={(e) => {
                       e.preventDefault();
                       if (!draggedMergeId || draggedMergeId === item.id) return;
                       setMergeFiles((prev) => {
                         const arr = [...prev];
-                        const oldIdx = arr.findIndex(i => i.id === draggedMergeId);
-                        const newIdx = arr.findIndex(i => i.id === item.id);
+                        const oldIdx = arr.findIndex(
+                          (i) => i.id === draggedMergeId,
+                        );
+                        const newIdx = arr.findIndex((i) => i.id === item.id);
                         const [moved] = arr.splice(oldIdx, 1);
                         arr.splice(newIdx, 0, moved);
                         return arr;
@@ -434,21 +528,31 @@ export default function PdfToolkitTool() {
                       setDraggedMergeId(null);
                     }}
                     className={`group relative flex items-center overflow-hidden rounded-2xl border bg-background/50 pr-2 transition-colors cursor-grab active:cursor-grabbing ${
-                      draggedMergeId === item.id ? "opacity-30" : "hover:border-primary/50"
+                      draggedMergeId === item.id
+                        ? "opacity-30"
+                        : "hover:border-primary/50"
                     }`}
                   >
                     <div className="px-3 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground h-full flex items-center bg-black/10 py-4">
                       <GripVertical className="size-4" />
                     </div>
-                    <div className="p-3 text-red-500/80"><File className="size-6" /></div>
+                    <div className="p-3 text-red-500/80">
+                      <File className="size-6" />
+                    </div>
                     <div className="flex-1 min-w-0 py-3 select-none">
-                      <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
-                      <p className="truncate text-xs text-muted-foreground mt-0.5">{formatFileSize(item.size)}</p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {item.name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground mt-0.5">
+                        {formatFileSize(item.size)}
+                      </p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setMergeFiles(prev => prev.filter(i => i.id !== item.id));
+                        setMergeFiles((prev) =>
+                          prev.filter((i) => i.id !== item.id),
+                        );
                       }}
                       className="p-3 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-red-400"
                     >
@@ -461,31 +565,47 @@ export default function PdfToolkitTool() {
           )}
 
           {/* SINGLE DOC VIEW: Split, Compress, Reorder Context */}
-          {activeTab !== "merge" && (splitFile || compressFile || reorderFile) && (
-            <div className="flex items-center gap-4 bg-background/50 p-4 rounded-3xl border shadow-sm">
-              <div className="p-3 bg-red-500/10 rounded-xl text-red-500">
-                <File className="size-6" />
+          {activeTab !== "merge" &&
+            (splitFile || compressFile || reorderFile) && (
+              <div className="flex items-center gap-4 bg-background/50 p-4 rounded-3xl border shadow-sm">
+                <div className="p-3 bg-red-500/10 rounded-xl text-red-500">
+                  <File className="size-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground truncate">
+                    {(activeTab === "split" && splitFile?.name) ||
+                      (activeTab === "compress" && compressFile?.name) ||
+                      (activeTab === "reorder" && reorderFile?.name)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatFileSize(
+                      (activeTab === "split" && splitFile?.size) ||
+                        (activeTab === "compress" && compressFile?.size) ||
+                        (activeTab === "reorder" && reorderFile?.size) ||
+                        0,
+                    )}
+                    {activeTab === "split" && splitTotalPages > 0
+                      ? ` • ${splitTotalPages} Pages`
+                      : ""}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (activeTab === "split") setSplitFile(null);
+                    if (activeTab === "compress") setCompressFile(null);
+                    if (activeTab === "reorder") {
+                      setReorderFile(null);
+                      setReorderPages([]);
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-red-400"
+                >
+                  <X className="size-5" />
+                </Button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate">
-                  {(activeTab === "split" && splitFile?.name) ||
-                   (activeTab === "compress" && compressFile?.name) ||
-                   (activeTab === "reorder" && reorderFile?.name)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatFileSize((activeTab === "split" && splitFile?.size) || (activeTab === "compress" && compressFile?.size) || (activeTab === "reorder" && reorderFile?.size) || 0)}
-                  {activeTab === "split" && splitTotalPages > 0 ? ` • ${splitTotalPages} Pages` : ""}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => {
-                if (activeTab === "split") setSplitFile(null);
-                if (activeTab === "compress") setCompressFile(null);
-                if (activeTab === "reorder") { setReorderFile(null); setReorderPages([]); }
-              }} className="text-muted-foreground hover:text-red-400">
-                <X className="size-5" />
-              </Button>
-            </div>
-          )}
+            )}
 
           {/* REORDER VIEW: Thumbnail Grid */}
           {activeTab === "reorder" && reorderPages.length > 0 && (
@@ -498,15 +618,24 @@ export default function PdfToolkitTool() {
                   <div
                     key={page.id}
                     draggable
-                    onDragStart={(e) => { setDraggedReorderId(page.id); e.dataTransfer.effectAllowed = "move"; }}
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                    onDragStart={(e) => {
+                      setDraggedReorderId(page.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (!draggedReorderId || draggedReorderId === page.id) return;
+                      if (!draggedReorderId || draggedReorderId === page.id)
+                        return;
                       setReorderPages((prev) => {
                         const arr = [...prev];
-                        const oldIdx = arr.findIndex(i => i.id === draggedReorderId);
-                        const newIdx = arr.findIndex(i => i.id === page.id);
+                        const oldIdx = arr.findIndex(
+                          (i) => i.id === draggedReorderId,
+                        );
+                        const newIdx = arr.findIndex((i) => i.id === page.id);
                         const [moved] = arr.splice(oldIdx, 1);
                         arr.splice(newIdx, 0, moved);
                         return arr;
@@ -514,15 +643,24 @@ export default function PdfToolkitTool() {
                       setDraggedReorderId(null);
                     }}
                     className={`group relative rounded-2xl border bg-background/50 p-2 overflow-hidden shadow-sm cursor-grab active:cursor-grabbing transition-colors ${
-                      draggedReorderId === page.id ? "opacity-30 border-primary" : "hover:border-primary/50"
+                      draggedReorderId === page.id
+                        ? "opacity-30 border-primary"
+                        : "hover:border-primary/50"
                     }`}
                   >
                     <div className="aspect-[1/1.414] w-full overflow-hidden rounded-xl bg-white border pointer-events-none">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={page.previewUrl} alt={`Page ${page.originalIndex + 1}`} className="h-full w-full object-contain" />
+                      <img
+                        src={page.previewUrl}
+                        alt={`Page ${page.originalIndex + 1}`}
+                        className="h-full w-full object-contain"
+                      />
                     </div>
                     <div className="absolute top-4 left-4 pointer-events-none">
-                      <Badge variant="secondary" className="bg-black/80 text-white backdrop-blur shadow-md font-mono">
+                      <Badge
+                        variant="secondary"
+                        className="bg-black/80 text-white backdrop-blur shadow-md font-mono"
+                      >
                         {page.originalIndex + 1}
                       </Badge>
                     </div>
@@ -531,7 +669,6 @@ export default function PdfToolkitTool() {
               </div>
             </div>
           )}
-
         </div>
 
         {/* Sidebar settings */}
@@ -544,18 +681,22 @@ export default function PdfToolkitTool() {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
-              
               {activeTab === "merge" && (
                 <>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Merge multiple PDF documents sequentially into one single file. Rearrange the order in the list on the left.
+                    Merge multiple PDF documents sequentially into one single
+                    file. Rearrange the order in the list on the left.
                   </p>
                   <Button
                     onClick={executeMerge}
                     disabled={mergeFiles.length < 2 || isProcessing}
                     className="w-full gap-2 h-12 rounded-xl shadow-lg border-none bg-blue-600 hover:bg-blue-500 font-semibold"
                   >
-                    {isProcessing ? <RefreshCw className="size-4 animate-spin" /> : <Merge className="size-4" />}
+                    {isProcessing ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <Merge className="size-4" />
+                    )}
                     {isProcessing ? "Merging..." : "Merge PDFs"}
                   </Button>
                 </>
@@ -564,12 +705,16 @@ export default function PdfToolkitTool() {
               {activeTab === "split" && (
                 <>
                   <div className="space-y-3">
-                    <label className="text-sm font-medium leading-none">Extraction Mode</label>
+                    <label className="text-sm font-medium leading-none">
+                      Extraction Mode
+                    </label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setSplitMode("every")}
                         className={`px-3 py-2 text-xs font-medium rounded-xl border transition-colors ${
-                          splitMode === "every" ? "bg-primary border-primary text-primary-foreground" : "bg-background/50 hover:bg-muted"
+                          splitMode === "every"
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "bg-background/50 hover:bg-muted"
                         }`}
                       >
                         Every Page (Zip)
@@ -577,7 +722,9 @@ export default function PdfToolkitTool() {
                       <button
                         onClick={() => setSplitMode("range")}
                         className={`px-3 py-2 text-xs font-medium rounded-xl border transition-colors ${
-                          splitMode === "range" ? "bg-primary border-primary text-primary-foreground" : "bg-background/50 hover:bg-muted"
+                          splitMode === "range"
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "bg-background/50 hover:bg-muted"
                         }`}
                       >
                         Custom Range
@@ -587,7 +734,9 @@ export default function PdfToolkitTool() {
 
                   {splitMode === "range" && (
                     <div className="space-y-3">
-                      <label className="text-sm font-medium leading-none text-muted-foreground">Pages Extract Pattern</label>
+                      <label className="text-sm font-medium leading-none text-muted-foreground">
+                        Pages Extract Pattern
+                      </label>
                       <Input
                         value={splitRange}
                         onChange={(e) => setSplitRange(e.target.value)}
@@ -595,17 +744,26 @@ export default function PdfToolkitTool() {
                         className="bg-background/50 text-sm font-mono h-9"
                       />
                       <p className="text-[11px] text-muted-foreground mt-1">
-                        Select specific pages to extract into a single new PDF document.
+                        Select specific pages to extract into a single new PDF
+                        document.
                       </p>
                     </div>
                   )}
 
                   <Button
                     onClick={executeSplit}
-                    disabled={!splitFile || isProcessing || (splitMode === "range" && !splitRange)}
+                    disabled={
+                      !splitFile ||
+                      isProcessing ||
+                      (splitMode === "range" && !splitRange)
+                    }
                     className="w-full gap-2 h-12 rounded-xl shadow-lg border-none bg-blue-600 hover:bg-blue-500 font-semibold"
                   >
-                    {isProcessing ? <RefreshCw className="size-4 animate-spin" /> : <SplitSquareHorizontal className="size-4" />}
+                    {isProcessing ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <SplitSquareHorizontal className="size-4" />
+                    )}
                     {isProcessing ? "Splitting..." : "Extract Pages"}
                   </Button>
                 </>
@@ -616,31 +774,45 @@ export default function PdfToolkitTool() {
                   <div className="flex items-start gap-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
                     <ImageIcon className="size-5 shrink-0 mt-0.5" />
                     <p className="text-[11px] leading-relaxed">
-                      <strong>Note:</strong> Client-side compression flattens text & vectors into optimized JPEG images to forcefully reduce file size safely.
+                      <strong>Note:</strong> Client-side compression flattens
+                      text & vectors into optimized JPEG images to forcefully
+                      reduce file size safely.
                     </p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <label className="text-sm font-medium leading-none flex items-center justify-between">
                       Rendering Scale
-                      <Badge variant="outline" className="font-mono">{compressResolution.toFixed(1)}x</Badge>
+                      <Badge variant="outline" className="font-mono">
+                        {compressResolution.toFixed(1)}x
+                      </Badge>
                     </label>
                     <Slider
-                      min={0.5} max={3.0} step={0.1}
+                      min={0.5}
+                      max={3.0}
+                      step={0.1}
                       value={compressResolution}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCompressResolution(Number(e.target.value))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setCompressResolution(Number(e.target.value))
+                      }
                     />
                   </div>
 
                   <div className="space-y-4">
                     <label className="text-sm font-medium leading-none flex items-center justify-between">
                       JPEG Image Quality
-                      <Badge variant="outline" className="font-mono">{compressQuality}%</Badge>
+                      <Badge variant="outline" className="font-mono">
+                        {compressQuality}%
+                      </Badge>
                     </label>
                     <Slider
-                      min={10} max={100} step={5}
+                      min={10}
+                      max={100}
+                      step={5}
                       value={compressQuality}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCompressQuality(Number(e.target.value))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setCompressQuality(Number(e.target.value))
+                      }
                     />
                   </div>
 
@@ -649,7 +821,11 @@ export default function PdfToolkitTool() {
                     disabled={!compressFile || isProcessing}
                     className="w-full gap-2 h-12 rounded-xl shadow-lg border-none bg-blue-600 hover:bg-blue-500 font-semibold"
                   >
-                    {isProcessing ? <RefreshCw className="size-4 animate-spin" /> : <Minimize2 className="size-4" />}
+                    {isProcessing ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <Minimize2 className="size-4" />
+                    )}
                     {isProcessing ? "Compressing..." : "Compress PDF"}
                   </Button>
                 </>
@@ -658,14 +834,21 @@ export default function PdfToolkitTool() {
               {activeTab === "reorder" && (
                 <>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Drag the page thumbnails in the main window to build a new sequence, then click below to construct the new PDF.
+                    Drag the page thumbnails in the main window to build a new
+                    sequence, then click below to construct the new PDF.
                   </p>
                   <Button
                     onClick={executeReorder}
-                    disabled={!reorderFile || isProcessing || reorderPages.length === 0}
+                    disabled={
+                      !reorderFile || isProcessing || reorderPages.length === 0
+                    }
                     className="w-full gap-2 h-12 rounded-xl shadow-lg border-none bg-blue-600 hover:bg-blue-500 font-semibold"
                   >
-                    {isProcessing ? <RefreshCw className="size-4 animate-spin" /> : <Download className="size-4" />}
+                    {isProcessing ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <Download className="size-4" />
+                    )}
                     {isProcessing ? "Processing..." : "Export Reordered PDF"}
                   </Button>
                 </>
@@ -680,7 +863,6 @@ export default function PdfToolkitTool() {
                   <Progress value={progress} className="h-2" />
                 </div>
               )}
-
             </CardContent>
           </Card>
         </div>

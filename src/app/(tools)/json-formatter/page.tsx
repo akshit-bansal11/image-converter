@@ -16,10 +16,7 @@ export default function JsonFormatterPage() {
   }
 
   return (
-    <ToolPageShell
-      title={tool.name}
-      description={tool.description}
-    >
+    <ToolPageShell title={tool.name} description={tool.description}>
       <JsonFormatter />
     </ToolPageShell>
   );

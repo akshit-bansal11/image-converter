@@ -74,7 +74,7 @@ export async function getImageMetadata(file: File): Promise<{
 export async function convertImage(
   file: File,
   targetFormat: ImageFormat,
-  quality: number
+  quality: number,
 ): Promise<Blob> {
   if (!SUPPORTED_OUTPUT_FORMATS.includes(targetFormat)) {
     throw new Error(
@@ -111,7 +111,9 @@ export async function convertImage(
       }
 
       return image.write(
-        MAGICK_FORMAT_MAP[targetFormat] as import("@imagemagick/magick-wasm").MagickFormat,
+        MAGICK_FORMAT_MAP[
+          targetFormat
+        ] as import("@imagemagick/magick-wasm").MagickFormat,
         (data) =>
           new Blob([Uint8Array.from(data)], {
             type: FORMAT_MIME_MAP[targetFormat],

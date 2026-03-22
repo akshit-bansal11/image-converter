@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  CheckCircle2,
-  Copy,
-  ImageUp,
-  KeyRound,
-  Loader2,
-} from "lucide-react";
+import { CheckCircle2, Copy, ImageUp, KeyRound, Loader2 } from "lucide-react";
 import { CopyButton } from "@/components/design-tools/copy-button";
 import { GeminiApiKeyDialog } from "@/components/design-tools/gemini-api-key-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +28,7 @@ export default function PaletteExtractorTool() {
     setDialogOpen(!storedKey);
   }, []);
 
-  async function handleFileChange(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -144,7 +136,9 @@ export default function PaletteExtractorTool() {
                 <ImageUp className="size-8" />
               </div>
               <p className="mt-4 text-lg font-medium">
-                {apiKey ? "Click to upload an image" : "Add a Gemini API key first"}
+                {apiKey
+                  ? "Click to upload an image"
+                  : "Add a Gemini API key first"}
               </p>
               <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
                 The file never touches your server. The request goes directly

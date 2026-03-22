@@ -10,7 +10,7 @@ export async function GET() {
     "@imagemagick",
     "magick-wasm",
     "dist",
-    "magick.wasm"
+    "magick.wasm",
   );
 
   const wasmBytes = await readFile(wasmPath);

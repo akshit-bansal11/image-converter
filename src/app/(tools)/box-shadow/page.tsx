@@ -3,7 +3,8 @@ import BoxShadowTool from "./_components/BoxShadowTool";
 
 export const metadata = {
   title: "Box Shadow Generator",
-  description: "Design and instantly preview soft, layered CSS box shadows for your web applications.",
+  description:
+    "Design and instantly preview soft, layered CSS box shadows for your web applications.",
 };
 
 export default function BoxShadowPage() {

@@ -1,26 +1,101 @@
 import {
   ArrowLeftRight,
+  AudioLines,
   Binary,
   Blend,
   Box,
   Braces,
+  Crop,
   Droplet,
+  Film,
   FileBox,
   FileCode2,
   FileDiff,
   FileText,
+  FolderTree,
   Grid3X3,
   ImageIcon,
   ImageUp,
   LibraryBig,
+  Music,
   Pipette,
   Shapes,
   SwatchBook,
   Type,
+  Video,
 } from "lucide-react";
 import type { ToolDefinition } from "@/types/tool";
 
 export const tools: ToolDefinition[] = [
+  {
+    slug: "audio-converter",
+    href: "/audio-converter",
+    name: "Audio Converter",
+    description:
+      "Convert audio files between formats and codecs entirely in the browser using ffmpeg.wasm.",
+    category: "Audio",
+    highlights: [
+      "Per-file format + codec controls",
+      "Batch conversion with ZIP downloads",
+    ],
+    icon: Music,
+  },
+  {
+    slug: "audio-extractor",
+    href: "/audio-extractor",
+    name: "Audio Extractor",
+    description:
+      "Extract the audio track from any video file and download it in your chosen format and codec.",
+    category: "Audio",
+    highlights: ["Video to audio extraction", "Codec-aware output selection"],
+    icon: AudioLines,
+  },
+  {
+    slug: "video-converter",
+    href: "/video-converter",
+    name: "Video Converter",
+    description:
+      "Convert videos between formats and codecs directly in the browser using ffmpeg.wasm.",
+    category: "Video",
+    highlights: [
+      "Per-file video and audio codec mapping",
+      "Batch conversion and ZIP export",
+    ],
+    icon: Video,
+  },
+  {
+    slug: "frames-extractor",
+    href: "/frames-extractor",
+    name: "Frames Extractor",
+    description:
+      "Upload a GIF or video and extract every frame as individual PNG images, then download them as a ZIP.",
+    category: "Video",
+    highlights: ["Frame thumbnail grid", "FPS and frame-count metadata"],
+    icon: Film,
+  },
+  {
+    slug: "git-scaffold",
+    href: "/git-scaffold",
+    name: "Git Scaffold",
+    description:
+      "Paste a public GitHub repository URL and instantly visualize its full directory structure including all filenames.",
+    category: "Dev",
+    highlights: ["Collapsible file tree UI", "ASCII tree copy and TXT export"],
+    icon: FolderTree,
+  },
+  {
+    slug: "image-cropper",
+    href: "/image-cropper",
+    name: "Image Cropper",
+    description:
+      "Crop one or many images in the browser - apply individual crops per image or a single crop to all at once.",
+    category: "Images",
+    highlights: [
+      "Individual and batch crop modes",
+      "Canvas drag-resize crop handles",
+    ],
+    icon: Crop,
+  },
   {
     slug: "svg-pattern",
     href: "/svg-pattern",
@@ -28,7 +103,10 @@ export const tools: ToolDefinition[] = [
     description:
       "Create beautiful, scalable vector patterns directly in your browser. Export native CSS backgrounds or raw SVG data URIs instantly.",
     category: "Design",
-    highlights: ["Injected vector properties directly generated", "CSS backgrounds"],
+    highlights: [
+      "Injected vector properties directly generated",
+      "CSS backgrounds",
+    ],
     icon: Grid3X3,
   },
   {

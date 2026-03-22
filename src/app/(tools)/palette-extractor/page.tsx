@@ -16,10 +16,7 @@ export default function PaletteExtractorPage() {
   }
 
   return (
-    <ToolPageShell
-      title={tool.name}
-      description={tool.description}
-    >
+    <ToolPageShell title={tool.name} description={tool.description}>
       <PaletteExtractorTool />
     </ToolPageShell>
   );

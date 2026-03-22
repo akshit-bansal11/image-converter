@@ -55,7 +55,7 @@ export const SUPPORTED_INPUT_FORMATS: ImageFormat[] = [...SUPPORTED_FORMATS];
 
 // The bundled magick-wasm build can read HEIF but does not ship a HEIF encoder.
 export const SUPPORTED_OUTPUT_FORMATS: ImageFormat[] = SUPPORTED_FORMATS.filter(
-  (format) => format !== "heif"
+  (format) => format !== "heif",
 );
 
 export const LOSSY_FORMATS: ImageFormat[] = [
@@ -105,7 +105,7 @@ export const FORMAT_LABELS: Record<ImageFormat, string> = {
 };
 
 export function getCanonicalFormat(
-  format: ImageFormat | "unknown"
+  format: ImageFormat | "unknown",
 ): CanonicalImageFormat | "unknown" {
   switch (format) {
     case "jpg":
@@ -125,7 +125,7 @@ export function getCanonicalFormat(
 
 export function areFormatsEquivalent(
   source: ImageFormat | "unknown",
-  target: ImageFormat
+  target: ImageFormat,
 ): boolean {
   return getCanonicalFormat(source) === getCanonicalFormat(target);
 }
@@ -174,7 +174,9 @@ export function getDefaultTarget(source: ImageFormat | "unknown"): ImageFormat {
   }
 }
 
-export function getAvailableTargets(source: ImageFormat | "unknown"): ImageFormat[] {
+export function getAvailableTargets(
+  source: ImageFormat | "unknown",
+): ImageFormat[] {
   return SUPPORTED_FORMATS.filter((format) => format !== source);
 }
 

@@ -70,7 +70,9 @@ export default function PdfConverterTool() {
   // --- PDF -> Img State ---
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPages, setPdfPages] = useState<PdfPageItem[]>([]);
-  const [outputImgFormat, setOutputImgFormat] = useState<"image/png" | "image/jpeg">("image/png");
+  const [outputImgFormat, setOutputImgFormat] = useState<
+    "image/png" | "image/jpeg"
+  >("image/png");
   const [isProcessingPdfToImg, setIsProcessingPdfToImg] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
 
@@ -131,7 +133,7 @@ export default function PdfConverterTool() {
         }
       }
     },
-    [activeTab]
+    [activeTab],
   );
 
   const handleDrop = useCallback(
@@ -146,7 +148,7 @@ export default function PdfConverterTool() {
         processUpload(droppedFiles);
       }
     },
-    [processUpload]
+    [processUpload],
   );
 
   const handleFileSelect = useCallback(
@@ -157,7 +159,7 @@ export default function PdfConverterTool() {
       }
       e.target.value = ""; // Reset input
     },
-    [processUpload]
+    [processUpload],
   );
 
   const removeImgFile = (id: string) => {
@@ -207,11 +209,14 @@ export default function PdfConverterTool() {
         for (let i = 0; i < imgFiles.length; i++) {
           const item = imgFiles[i];
           const imgBytes = await item.file.arrayBuffer();
-          
+
           let image;
           if (item.file.type === "image/png") {
             image = await pdfDoc.embedPng(imgBytes);
-          } else if (item.file.type === "image/jpeg" || item.file.type === "image/jpg") {
+          } else if (
+            item.file.type === "image/jpeg" ||
+            item.file.type === "image/jpg"
+          ) {
             image = await pdfDoc.embedJpg(imgBytes);
           } else {
             // Unhandled image typess natively by pdf-lib (like webp) could break here.
@@ -228,9 +233,11 @@ export default function PdfConverterTool() {
             canvas.width = imgEl.width;
             canvas.height = imgEl.height;
             if (ctx) ctx.drawImage(imgEl, 0, 0);
-            
+
             // Standard fallback to PNG for safety
-            const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+            const blob = await new Promise<Blob | null>((res) =>
+              canvas.toBlob(res, "image/png"),
+            );
             if (blob) {
               const buffer = await blob.arrayBuffer();
               image = await pdfDoc.embedPng(buffer);
@@ -239,45 +246,64 @@ export default function PdfConverterTool() {
 
           if (image) {
             const page = pdfDoc.addPage([image.width, image.height]);
-            page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+            page.drawImage(image, {
+              x: 0,
+              y: 0,
+              width: image.width,
+              height: image.height,
+            });
           }
-          
+
           setImgProgress(Math.round(((i + 1) / imgFiles.length) * 100));
         }
 
         const pdfBytes = await pdfDoc.save();
         const pdfBuffer = Uint8Array.from(pdfBytes).buffer;
-        downloadBlob(new Blob([pdfBuffer], { type: "application/pdf" }), "Combined_Images.pdf");
-
-      } else { // Batch mode
+        downloadBlob(
+          new Blob([pdfBuffer], { type: "application/pdf" }),
+          "Combined_Images.pdf",
+        );
+      } else {
+        // Batch mode
         const zip = new JSZip();
         for (let i = 0; i < imgFiles.length; i++) {
           const item = imgFiles[i];
           const pdfDoc = await PDFDocument.create();
-          
+
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
           const imgEl = new Image();
-          await new Promise((res) => { imgEl.onload = res; imgEl.src = item.preview; });
+          await new Promise((res) => {
+            imgEl.onload = res;
+            imgEl.src = item.preview;
+          });
           canvas.width = imgEl.width;
           canvas.height = imgEl.height;
           if (ctx) ctx.drawImage(imgEl, 0, 0);
-          
-          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+
+          const blob = await new Promise<Blob | null>((res) =>
+            canvas.toBlob(res, "image/png"),
+          );
           if (blob) {
-             const buffer = await blob.arrayBuffer();
-             const image = await pdfDoc.embedPng(buffer);
-             const page = pdfDoc.addPage([image.width, image.height]);
-             page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+            const buffer = await blob.arrayBuffer();
+            const image = await pdfDoc.embedPng(buffer);
+            const page = pdfDoc.addPage([image.width, image.height]);
+            page.drawImage(image, {
+              x: 0,
+              y: 0,
+              width: image.width,
+              height: image.height,
+            });
           }
-          
+
           const pdfBytes = await pdfDoc.save();
-          const safeName = item.name.split(".").slice(0, -1).join(".") || `image_${i}`;
+          const safeName =
+            item.name.split(".").slice(0, -1).join(".") || `image_${i}`;
           zip.file(`${safeName}.pdf`, pdfBytes);
-          
+
           setImgProgress(Math.round(((i + 1) / imgFiles.length) * 100));
         }
-        
+
         const content = await zip.generateAsync({ type: "blob" });
         downloadBlob(content, "Batch_PDFs.zip");
       }
@@ -314,16 +340,19 @@ export default function PdfConverterTool() {
         canvas.width = viewport.width;
 
         if (context) {
-          await page.render({ canvas, canvasContext: context, viewport }).promise;
-          
-          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, outputImgFormat, 0.9));
+          await page.render({ canvas, canvasContext: context, viewport })
+            .promise;
+
+          const blob = await new Promise<Blob | null>((res) =>
+            canvas.toBlob(res, outputImgFormat, 0.9),
+          );
           if (blob) {
             extractedPages.push({
               id: generateId(),
               pageNumber: pageNum,
               preview: URL.createObjectURL(blob),
               blob,
-              name: `Page_${pageNum}.${outputImgFormat === "image/png" ? "png" : "jpg"}`
+              name: `Page_${pageNum}.${outputImgFormat === "image/png" ? "png" : "jpg"}`,
             });
           }
         }
@@ -335,7 +364,7 @@ export default function PdfConverterTool() {
       console.error(e);
       alert("An error occurred while reading the PDF.");
     }
-    
+
     setIsProcessingPdfToImg(false);
     setPdfProgress(100);
     setTimeout(() => setPdfProgress(0), 2000);
@@ -348,7 +377,7 @@ export default function PdfConverterTool() {
   const handleDownloadPagesAsZip = async () => {
     if (pdfPages.length === 0) return;
     const zip = new JSZip();
-    pdfPages.forEach(p => {
+    pdfPages.forEach((p) => {
       zip.file(p.name, p.blob);
     });
     const content = await zip.generateAsync({ type: "blob" });
@@ -422,7 +451,9 @@ export default function PdfConverterTool() {
               </div>
               <div className="text-center">
                 <p className="text-lg font-medium text-foreground">
-                  {activeTab === "img-to-pdf" ? "Drop images here" : "Drop a PDF file here"}
+                  {activeTab === "img-to-pdf"
+                    ? "Drop images here"
+                    : "Drop a PDF file here"}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {activeTab === "img-to-pdf"
@@ -430,7 +461,10 @@ export default function PdfConverterTool() {
                     : "Extract every graphical page straight from the document."}
                 </p>
               </div>
-              <Badge variant="secondary" className="mt-4 shrink-0 bg-background/80 font-mono backdrop-blur-md">
+              <Badge
+                variant="secondary"
+                className="mt-4 shrink-0 bg-background/80 font-mono backdrop-blur-md"
+              >
                 Or click to browse
               </Badge>
             </div>
@@ -438,7 +472,11 @@ export default function PdfConverterTool() {
               ref={fileInputRef}
               type="file"
               multiple={activeTab === "img-to-pdf"}
-              accept={activeTab === "img-to-pdf" ? "image/png, image/jpeg, image/webp" : "application/pdf"}
+              accept={
+                activeTab === "img-to-pdf"
+                  ? "image/png, image/jpeg, image/webp"
+                  : "application/pdf"
+              }
               className="hidden"
               onChange={handleFileSelect}
             />
@@ -449,9 +487,17 @@ export default function PdfConverterTool() {
             <div className="space-y-4 rounded-3xl border bg-card/40 p-6">
               <div className="flex items-center justify-between border-b pb-4 border-white/5">
                 <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                  Queued Images <span className="text-muted-foreground font-normal ml-2">({imgFiles.length})</span>
+                  Queued Images{" "}
+                  <span className="text-muted-foreground font-normal ml-2">
+                    ({imgFiles.length})
+                  </span>
                 </h3>
-                <Button variant="ghost" size="sm" onClick={() => setImgFiles([])} className="text-muted-foreground hover:text-red-400">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setImgFiles([])}
+                  className="text-muted-foreground hover:text-red-400"
+                >
                   <Trash2 className="size-4 mr-2" />
                   Clear All
                 </Button>
@@ -466,7 +512,9 @@ export default function PdfConverterTool() {
                     onDragOver={handleSortDragOver}
                     onDrop={(e) => handleSortDrop(e, item.id)}
                     className={`group relative flex items-center overflow-hidden rounded-2xl border bg-background/50 pr-2 transition-colors ${
-                      draggedImgId === item.id ? "opacity-30" : "hover:border-primary/50"
+                      draggedImgId === item.id
+                        ? "opacity-30"
+                        : "hover:border-primary/50"
                     } ${imgMode === "combined" ? "cursor-grab active:cursor-grabbing" : ""}`}
                   >
                     {imgMode === "combined" && (
@@ -474,13 +522,23 @@ export default function PdfConverterTool() {
                         <GripVertical className="size-4" />
                       </div>
                     )}
-                    <div className={`h-[60px] w-[60px] shrink-0 overflow-hidden ${imgMode === "batch" ? "ml-2 my-2 rounded-xl" : ""}`}>
+                    <div
+                      className={`h-[60px] w-[60px] shrink-0 overflow-hidden ${imgMode === "batch" ? "ml-2 my-2 rounded-xl" : ""}`}
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.preview} alt={item.name} className="h-full w-full object-cover" />
+                      <img
+                        src={item.preview}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div className="flex-1 min-w-0 pl-3 py-3 select-none">
-                      <p className="truncate text-xs font-medium text-foreground">{item.name}</p>
-                      <p className="truncate text-[10px] text-muted-foreground mt-0.5">{formatFileSize(item.file.size)}</p>
+                      <p className="truncate text-xs font-medium text-foreground">
+                        {item.name}
+                      </p>
+                      <p className="truncate text-[10px] text-muted-foreground mt-0.5">
+                        {formatFileSize(item.file.size)}
+                      </p>
                     </div>
                     <button
                       onClick={(e) => {
@@ -505,10 +563,22 @@ export default function PdfConverterTool() {
                   <File className="size-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground truncate">{pdfFile.name}</p>
-                  <p className="text-sm text-muted-foreground">{formatFileSize(pdfFile.size)}</p>
+                  <p className="font-semibold text-foreground truncate">
+                    {pdfFile.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatFileSize(pdfFile.size)}
+                  </p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => { setPdfFile(null); setPdfPages([]); }} className="text-muted-foreground hover:text-red-400">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setPdfFile(null);
+                    setPdfPages([]);
+                  }}
+                  className="text-muted-foreground hover:text-red-400"
+                >
                   <X className="size-5" />
                 </Button>
               </div>
@@ -516,27 +586,49 @@ export default function PdfConverterTool() {
               {pdfPages.length > 0 && (
                 <div className="pt-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium">Extracted Pages ({pdfPages.length})</h3>
-                    <Button onClick={handleDownloadPagesAsZip} size="sm" className="h-8 gap-2 bg-blue-600 hover:bg-blue-500 border-none">
+                    <h3 className="font-medium">
+                      Extracted Pages ({pdfPages.length})
+                    </h3>
+                    <Button
+                      onClick={handleDownloadPagesAsZip}
+                      size="sm"
+                      className="h-8 gap-2 bg-blue-600 hover:bg-blue-500 border-none"
+                    >
                       <Download className="size-3.5" />
                       Download ZIP
                     </Button>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {pdfPages.map((page) => (
-                      <div key={page.id} className="group relative rounded-2xl border bg-background/50 p-2 overflow-hidden shadow-sm">
+                      <div
+                        key={page.id}
+                        className="group relative rounded-2xl border bg-background/50 p-2 overflow-hidden shadow-sm"
+                      >
                         <div className="aspect-[1/1.414] w-full overflow-hidden rounded-xl bg-white border">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={page.preview} alt={page.name} className="h-full w-full object-contain" />
+                          <img
+                            src={page.preview}
+                            alt={page.name}
+                            className="h-full w-full object-contain"
+                          />
                         </div>
                         <div className="absolute top-4 left-4">
-                          <Badge variant="secondary" className="bg-black/80 text-white backdrop-blur shadow-md">
+                          <Badge
+                            variant="secondary"
+                            className="bg-black/80 text-white backdrop-blur shadow-md"
+                          >
                             Page {page.pageNumber}
                           </Badge>
                         </div>
                         <div className="absolute inset-x-2 bottom-2 rounded-xl bg-black/60 p-2 opacity-0 backdrop-blur-md transition-all group-hover:opacity-100 flex items-center justify-center">
-                          <Button size="sm" variant="secondary" onClick={() => handleDownloadSinglePage(page)} className="w-full text-xs gap-2">
-                            <Download className="size-3.5" /> Save {outputImgFormat === "image/png" ? "PNG" : "JPG"}
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleDownloadSinglePage(page)}
+                            className="w-full text-xs gap-2"
+                          >
+                            <Download className="size-3.5" /> Save{" "}
+                            {outputImgFormat === "image/png" ? "PNG" : "JPG"}
                           </Button>
                         </div>
                       </div>
@@ -558,7 +650,6 @@ export default function PdfConverterTool() {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
-              
               {activeTab === "img-to-pdf" && (
                 <>
                   <div className="space-y-3">
@@ -590,8 +681,8 @@ export default function PdfConverterTool() {
                       </button>
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      {imgMode === "combined" 
-                        ? "Merge all uploaded images sequentially into a single multi-page PDF document. Drag list items to reorder pages." 
+                      {imgMode === "combined"
+                        ? "Merge all uploaded images sequentially into a single multi-page PDF document. Drag list items to reorder pages."
                         : "Convert every uploaded image individually into its own separate single-page PDF, generating a ZIP."}
                     </p>
                   </div>
@@ -599,7 +690,9 @@ export default function PdfConverterTool() {
                   {imgProgress > 0 && imgProgress < 100 && (
                     <div className="space-y-2 pt-2">
                       <div className="flex text-xs justify-between mb-1">
-                        <span className="text-muted-foreground">Processing...</span>
+                        <span className="text-muted-foreground">
+                          Processing...
+                        </span>
                         <span className="font-medium">{imgProgress}%</span>
                       </div>
                       <Progress value={imgProgress} className="h-2" />
@@ -611,7 +704,11 @@ export default function PdfConverterTool() {
                     disabled={imgFiles.length === 0 || isProcessingImgToPdf}
                     className="w-full gap-2 h-12 rounded-xl shadow-lg border-none bg-blue-600 hover:bg-blue-500 font-semibold"
                   >
-                    {isProcessingImgToPdf ? <RefreshCw className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+                    {isProcessingImgToPdf ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <ArrowRight className="size-4" />
+                    )}
                     {isProcessingImgToPdf ? "Generating..." : "Generate PDF"}
                   </Button>
                 </>
@@ -625,20 +722,27 @@ export default function PdfConverterTool() {
                     </label>
                     <Select
                       value={outputImgFormat}
-                      onChange={(e) => setOutputImgFormat(e.target.value as "image/png" | "image/jpeg")}
+                      onChange={(e) =>
+                        setOutputImgFormat(
+                          e.target.value as "image/png" | "image/jpeg",
+                        )
+                      }
                     >
                       <option value="image/png">PNG Sequence</option>
                       <option value="image/jpeg">JPEG Sequence</option>
                     </Select>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      PNGs preserve transparency and sharp text lines. JPEGs are highly compressed and suitable for photos.
+                      PNGs preserve transparency and sharp text lines. JPEGs are
+                      highly compressed and suitable for photos.
                     </p>
                   </div>
 
                   {pdfProgress > 0 && pdfProgress < 100 && (
                     <div className="space-y-2 pt-2">
                       <div className="flex text-xs justify-between mb-1">
-                        <span className="text-muted-foreground">Extracting...</span>
+                        <span className="text-muted-foreground">
+                          Extracting...
+                        </span>
                         <span className="font-medium">{pdfProgress}%</span>
                       </div>
                       <Progress value={pdfProgress} className="h-2" />
@@ -650,12 +754,15 @@ export default function PdfConverterTool() {
                     disabled={!pdfFile || isProcessingPdfToImg}
                     className="w-full gap-2 h-12 rounded-xl shadow-lg border-none bg-blue-600 hover:bg-blue-500 font-semibold"
                   >
-                    {isProcessingPdfToImg ? <RefreshCw className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                    {isProcessingPdfToImg ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="size-4" />
+                    )}
                     {isProcessingPdfToImg ? "Extracting..." : "Extract Pages"}
                   </Button>
                 </>
               )}
-
             </CardContent>
           </Card>
         </div>
