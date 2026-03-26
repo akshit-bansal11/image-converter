@@ -11,6 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
 type PlayMode = "sequential" | "simultaneous";
+type StrokeLinecap = "butt" | "round" | "square";
+type StrokeLinejoin = "miter" | "round" | "bevel";
 
 interface ParsedSvgData {
   fileName: string;
@@ -21,6 +23,13 @@ interface ParsedSvgData {
 const MIN_DURATION = 0.2;
 const MAX_DURATION = 6;
 const DEFAULT_DURATION = 1.2;
+
+const MIN_STROKE_WIDTH = 0.5;
+const MAX_STROKE_WIDTH = 10;
+const DEFAULT_STROKE_WIDTH = 1.5;
+const DEFAULT_STROKE_COLOR = "#000000";
+const DEFAULT_STROKE_LINECAP: StrokeLinecap = "round";
+const DEFAULT_STROKE_LINEJOIN: StrokeLinejoin = "round";
 
 function isSvgFile(file: File) {
   return file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
@@ -98,6 +107,11 @@ function buildAnimatedSvg(
   pathLengths: number[],
   durationPerPath: number,
   mode: PlayMode,
+  strokeColor: string,
+  strokeWidth: number,
+  strokeLinecap: StrokeLinecap,
+  strokeLinejoin: StrokeLinejoin,
+  strokeOnly: boolean,
 ) {
   const doc = new DOMParser().parseFromString(sourceSvg, "image/svg+xml");
   const parserError = doc.querySelector("parsererror");
@@ -119,23 +133,22 @@ function buildAnimatedSvg(
     const length = Math.max(pathLengths[index] ?? 1, 1);
     const delay = mode === "sequential" ? index * durationPerPath : 0;
 
-    if (!path.hasAttribute("stroke")) {
-      path.setAttribute("stroke", "currentColor");
+    const styles = [
+      `stroke:${strokeColor}`,
+      `stroke-width:${strokeWidth}`,
+      `stroke-linecap:${strokeLinecap}`,
+      `stroke-linejoin:${strokeLinejoin}`,
+      `stroke-dasharray:${length}`,
+      `stroke-dashoffset:${length}`,
+      `animation:svgPathDraw ${durationPerPath}s ease forwards`,
+      `animation-delay:${delay}s`,
+    ];
+
+    if (strokeOnly) {
+      styles.push("fill:none");
     }
 
-    if (!path.hasAttribute("stroke-width")) {
-      path.setAttribute("stroke-width", "1.5");
-    }
-
-    mergeInlineStyle(
-      path,
-      [
-        `stroke-dasharray:${length}`,
-        `stroke-dashoffset:${length}`,
-        `animation:svgPathDraw ${durationPerPath}s ease forwards`,
-        `animation-delay:${delay}s`,
-      ].join(";"),
-    );
+    mergeInlineStyle(path, styles.join(";"));
   });
 
   const style = doc.createElement("style");
@@ -155,6 +168,11 @@ export default function SvgAnimatorTool() {
   const [parsedSvg, setParsedSvg] = useState<ParsedSvgData | null>(null);
   const [mode, setMode] = useState<PlayMode>("sequential");
   const [durationPerPath, setDurationPerPath] = useState(DEFAULT_DURATION);
+  const [strokeColor, setStrokeColor] = useState(DEFAULT_STROKE_COLOR);
+  const [strokeWidth, setStrokeWidth] = useState(DEFAULT_STROKE_WIDTH);
+  const [strokeLinecap, setStrokeLinecap] = useState<StrokeLinecap>(DEFAULT_STROKE_LINECAP);
+  const [strokeLinejoin, setStrokeLinejoin] = useState<StrokeLinejoin>(DEFAULT_STROKE_LINEJOIN);
+  const [strokeOnly, setStrokeOnly] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [replayTick, setReplayTick] = useState(0);
@@ -172,8 +190,13 @@ export default function SvgAnimatorTool() {
       parsedSvg.pathLengths,
       durationPerPath,
       mode,
+      strokeColor,
+      strokeWidth,
+      strokeLinecap,
+      strokeLinejoin,
+      strokeOnly,
     );
-  }, [parsedSvg, durationPerPath, mode]);
+  }, [parsedSvg, durationPerPath, mode, strokeColor, strokeWidth, strokeLinecap, strokeLinejoin, strokeOnly]);
 
   const totalAnimationTime = useMemo(() => {
     if (!parsedSvg) {
@@ -190,8 +213,8 @@ export default function SvgAnimatorTool() {
       return "empty";
     }
 
-    return `${parsedSvg.fileName}-${mode}-${durationPerPath}-${replayTick}`;
-  }, [parsedSvg, mode, durationPerPath, replayTick]);
+    return `${parsedSvg.fileName}-${mode}-${durationPerPath}-${strokeColor}-${strokeWidth}-${strokeLinecap}-${strokeLinejoin}-${strokeOnly}-${replayTick}`;
+  }, [parsedSvg, mode, durationPerPath, strokeColor, strokeWidth, strokeLinecap, strokeLinejoin, replayTick]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!isSvgFile(file)) {
@@ -396,6 +419,116 @@ export default function SvgAnimatorTool() {
               }}
               disabled={!parsedSvg}
             />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Border color</Label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={strokeColor}
+                onChange={(event) => setStrokeColor(event.target.value)}
+                disabled={!parsedSvg}
+                className="h-10 w-20 cursor-pointer rounded-lg border border-white/20 bg-background disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <input
+                type="text"
+                value={strokeColor}
+                onChange={(event) => setStrokeColor(event.target.value)}
+                disabled={!parsedSvg}
+                placeholder="#000000"
+                className="flex h-10 w-full rounded-md border border-white/20 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Border size (stroke width: {strokeWidth.toFixed(1)})</Label>
+            <Slider
+              value={strokeWidth}
+              min={MIN_STROKE_WIDTH}
+              max={MAX_STROKE_WIDTH}
+              step={0.1}
+              onChange={(event) => {
+                const next = Number(event.currentTarget.value);
+                setStrokeWidth(next);
+              }}
+              disabled={!parsedSvg}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Border style (linecap)</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={strokeLinecap === "butt" ? "default" : "outline"}
+                onClick={() => setStrokeLinecap("butt")}
+                disabled={!parsedSvg}
+              >
+                Butt
+              </Button>
+              <Button
+                type="button"
+                variant={strokeLinecap === "round" ? "default" : "outline"}
+                onClick={() => setStrokeLinecap("round")}
+                disabled={!parsedSvg}
+              >
+                Round
+              </Button>
+              <Button
+                type="button"
+                variant={strokeLinecap === "square" ? "default" : "outline"}
+                onClick={() => setStrokeLinecap("square")}
+                disabled={!parsedSvg}
+              >
+                Square
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Border join style (linejoin)</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={strokeLinejoin === "miter" ? "default" : "outline"}
+                onClick={() => setStrokeLinejoin("miter")}
+                disabled={!parsedSvg}
+              >
+                Miter
+              </Button>
+              <Button
+                type="button"
+                variant={strokeLinejoin === "round" ? "default" : "outline"}
+                onClick={() => setStrokeLinejoin("round")}
+                disabled={!parsedSvg}
+              >
+                Round
+              </Button>
+              <Button
+                type="button"
+                variant={strokeLinejoin === "bevel" ? "default" : "outline"}
+                onClick={() => setStrokeLinejoin("bevel")}
+                disabled={!parsedSvg}
+              >
+                Bevel
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="stroke-only"
+              checked={strokeOnly}
+              onChange={(e) => setStrokeOnly(e.target.checked)}
+              disabled={!parsedSvg}
+              className="h-4 w-4 rounded border-white/20 bg-background accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <Label htmlFor="stroke-only" className="cursor-pointer">
+              Stroke only (remove fill)
+            </Label>
           </div>
 
           <div className="space-y-3">

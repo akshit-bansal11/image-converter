@@ -99,7 +99,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: "svg-animator",
-    href: "/tools/svg-animator",
+    href: "/svg-animator",
     name: "SVG Border Animator",
     description:
       "Upload any SVG and animate each path border locally with stroke-dashoffset controls and export-ready output.",
