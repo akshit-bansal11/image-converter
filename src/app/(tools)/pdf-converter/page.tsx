@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import PdfConverterTool from "./_components/PdfConverterTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function PdfConverterPage() {
     <ToolPageShell
       title="PDF ↔ Image Converter"
       description="Seamlessly merge images into a PDF, batch convert them, or explode a PDF into individual image files entirely in your browser."
-      fullWidth
     >
       <PdfConverterTool />
     </ToolPageShell>

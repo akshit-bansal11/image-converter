@@ -1,7 +1,7 @@
 import { Github, Linkedin, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/interaction/Button";
 
 interface SiteFooterProps {
   className?: string;
@@ -11,7 +11,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
   return (
     <footer className={cn("flex flex-col items-center gap-6", className)}>
       <div className="text-center">
-        <p>
+        <p className="text-sm text-muted-foreground">
           Made by: {siteConfig.author.name} ({siteConfig.author.role})
         </p>
       </div>
@@ -20,7 +20,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           asChild
           variant="outline"
           size="sm"
-          className="bg-card/70 backdrop-blur-sm"
+          className="glass-button"
         >
           <a href={siteConfig.social.github} target="_blank" rel="noreferrer">
             <Github className="size-4" />
@@ -31,7 +31,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           asChild
           variant="outline"
           size="sm"
-          className="bg-card/70 backdrop-blur-sm"
+          className="glass-button"
         >
           <a href={siteConfig.social.linkedin} target="_blank" rel="noreferrer">
             <Linkedin className="size-4" />
@@ -42,7 +42,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           asChild
           variant="outline"
           size="sm"
-          className="bg-card/70 backdrop-blur-sm"
+          className="glass-button"
         >
           <a href={`mailto:${siteConfig.social.email}`}>
             <Mail className="size-4" />

@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { fetchFile } from "@ffmpeg/util";
@@ -13,17 +12,16 @@ import {
   ArrowRight,
   Clapperboard,
   Download,
-  FileVideo,
   Loader2,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Progress } from "@/components/ui/feedback/Progress";
+import { Select } from "@/components/ui/form/Select";
 import {
   formatFileSize,
   getFFmpeg,
@@ -59,12 +57,9 @@ const VIDEO_FORMATS = Object.keys(
 
 export default function VideoConverterTool() {
   const [files, setFiles] = useState<VideoItem[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [isConvertingAll, setIsConvertingAll] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragCounter = useRef(0);
 
   const updateFile = useCallback((id: string, patch: Partial<VideoItem>) => {
     setFiles((prev) =>
@@ -102,46 +97,6 @@ export default function VideoConverterTool() {
 
     setFiles((prev) => [...prev, ...nextItems]);
   }, []);
-
-  const handleDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dragCounter.current = 0;
-      setIsDragging(false);
-
-      const dropped = Array.from(event.dataTransfer.files).filter((file) => {
-        const ext = getFileExtension(file.name);
-        return (
-          file.type.startsWith("video/") || ACCEPTED_VIDEO.includes(`.${ext}`)
-        );
-      });
-
-      if (dropped.length > 0) {
-        addFiles(dropped);
-      }
-    },
-    [addFiles],
-  );
-
-  const handleFileInput = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const selected = event.target.files ? Array.from(event.target.files) : [];
-      const valid = selected.filter((file) => {
-        const ext = getFileExtension(file.name);
-        return (
-          file.type.startsWith("video/") || ACCEPTED_VIDEO.includes(`.${ext}`)
-        );
-      });
-
-      if (valid.length > 0) {
-        addFiles(valid);
-      }
-
-      event.target.value = "";
-    },
-    [addFiles],
-  );
 
   const removeFile = useCallback((id: string) => {
     setFiles((prev) => {
@@ -310,63 +265,28 @@ export default function VideoConverterTool() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-card/70">
-        <CardContent className="p-5">
-          <div
-            className={`rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
-              isDragging
-                ? "border-primary bg-primary/10"
-                : "border-white/15 bg-background/40 hover:border-primary/60"
-            }`}
-            onDragEnter={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              dragCounter.current += 1;
-              setIsDragging(true);
-            }}
-            onDragLeave={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              dragCounter.current -= 1;
-              if (dragCounter.current === 0) {
-                setIsDragging(false);
-              }
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            onDrop={handleDrop}
-          >
-            <FileVideo className="mx-auto mb-3 size-9 text-muted-foreground" />
-            <h2 className="text-lg font-semibold">Drop video files here</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Supports mp4, webm, mkv, mov, avi, flv, ogv, and 3gp.
-            </p>
+      <FileDropzoneCard
+        fileTypeLabel="video files"
+        supportedFormats="mp4, webm, mkv, mov, avi, flv, ogv, and 3gp"
+        accept={ACCEPTED_VIDEO}
+        multiple
+        onFilesSelected={(incoming) => {
+          const valid = incoming.filter((file) => {
+            const ext = getFileExtension(file.name);
+            return (
+              file.type.startsWith("video/") ||
+              ACCEPTED_VIDEO.includes(`.${ext}`)
+            );
+          });
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPTED_VIDEO}
-              multiple
-              className="hidden"
-              onChange={handleFileInput}
-            />
-
-            <Button
-              className="mt-4"
-              variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="size-4" />
-              Upload videos
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          if (valid.length > 0) {
+            addFiles(valid);
+          }
+        }}
+      />
 
       {files.length > 0 ? (
-        <Card className="border-white/10 bg-card/70">
+        <Card className="tool-card-inline">
           <CardHeader className="border-b border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2 text-lg">

@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import LoremGeneratorTool from "./_components/LoremGeneratorTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function LoremGeneratorPage() {
     <ToolPageShell
       title="Lorem Generator"
       description="Generate customized placeholder text instantly for your mockups, using either classic Latin or random English prose."
-      fullWidth
     >
       <LoremGeneratorTool />
     </ToolPageShell>

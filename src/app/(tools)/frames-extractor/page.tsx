@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import FramesExtractorTool from "./_components/FramesExtractorTool";
 
 const tool = getToolBySlug("frames-extractor");
@@ -16,7 +16,7 @@ export default function FramesExtractorPage() {
   }
 
   return (
-    <ToolPageShell title={tool.name} description={tool.description} fullWidth>
+    <ToolPageShell title={tool.name} description={tool.description}>
       <FramesExtractorTool />
     </ToolPageShell>
   );

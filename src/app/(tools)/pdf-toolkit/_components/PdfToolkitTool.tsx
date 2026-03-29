@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
-  FileText,
   Merge,
   SplitSquareHorizontal,
   Minimize2,
@@ -16,12 +15,13 @@ import {
   Settings,
   Image as ImageIcon,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/form/Input";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Slider } from "@/components/ui/Slider";
+import { Progress } from "@/components/ui/feedback/Progress";
 import { PDFDocument } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
@@ -78,11 +78,6 @@ const parseRanges = (str: string, maxPages: number): number[] => {
 export default function PdfToolkitTool() {
   const [activeTab, setActiveTab] = useState<TabType>("merge");
 
-  // Global Dropzone State
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const dragCounter = useRef(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -112,26 +107,6 @@ export default function PdfToolkitTool() {
       reorderPages.forEach((p) => URL.revokeObjectURL(p.previewUrl));
     };
   }, [reorderPages]);
-
-  // --- FILE HANDLERS ---
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    setIsDraggingOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current--;
-    if (dragCounter.current === 0) setIsDraggingOver(false);
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
 
   const loadPdfMetadata = async (file: File) => {
     try {
@@ -206,25 +181,6 @@ export default function PdfToolkitTool() {
       }
     },
     [activeTab],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDraggingOver(false);
-      dragCounter.current = 0;
-      processUpload(Array.from(e.dataTransfer.files));
-    },
-    [processUpload],
-  );
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) processUpload(Array.from(e.target.files));
-      e.target.value = "";
-    },
-    [processUpload],
   );
 
   const downloadBlob = (blob: Blob, name: string) => {
@@ -441,43 +397,15 @@ export default function PdfToolkitTool() {
       <div className="grid gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_360px]">
         {/* Main Interface Area */}
         <div className="space-y-6">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={`group relative flex w-full flex-col items-center justify-center overflow-hidden rounded-[2rem] border-2 border-dashed bg-card/40 p-12 transition-all duration-300 ${
-              isDraggingOver
-                ? "border-primary bg-primary/10 scale-[1.02]"
-                : "border-muted-foreground/20 hover:border-primary/50 hover:bg-card/60"
-            }`}
-          >
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="rounded-full bg-primary/10 p-4 transition-transform group-hover:scale-110">
-                <FileText className="size-8 text-primary" />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-medium text-foreground">
-                  {activeTab === "merge"
-                    ? "Drop multiple PDFs here"
-                    : "Drop a single PDF here"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Everything runs directly in your browser securely.
-                </p>
-              </div>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple={activeTab === "merge"}
-              accept="application/pdf"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-          </button>
+          <FileDropzoneCard
+            fileTypeLabel={activeTab === "merge" ? "PDF files" : "a PDF file"}
+            supportedFormats="PDF"
+            accept="application/pdf"
+            multiple={activeTab === "merge"}
+            onFilesSelected={(files) => {
+              processUpload(files);
+            }}
+          />
 
           {/* MERGE VIEW: List of PDFs */}
           {activeTab === "merge" && mergeFiles.length > 0 && (
@@ -673,7 +601,7 @@ export default function PdfToolkitTool() {
 
         {/* Sidebar settings */}
         <div className="space-y-6">
-          <Card className="border-white/10 bg-card/70 sticky top-6 lg:top-8">
+          <Card className="tool-card-inline sticky top-6 lg:top-8">
             <CardHeader className="border-b border-white/5 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Settings className="size-5 text-muted-foreground" />

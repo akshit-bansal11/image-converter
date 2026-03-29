@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { fetchFile } from "@ffmpeg/util";
@@ -12,18 +11,17 @@ import JSZip from "jszip";
 import {
   ArrowRight,
   Download,
-  FileAudio,
   Loader2,
   Music,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/interaction/Button";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
+import { Progress } from "@/components/ui/feedback/Progress";
+import { Select } from "@/components/ui/form/Select";
 import {
   AUDIO_FORMAT_CODEC_MAP,
   type AudioOutputFormat,
@@ -84,12 +82,9 @@ function animateNumber(
 
 export default function AudioConverterTool() {
   const [files, setFiles] = useState<AudioFileItem[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConvertingAll, setIsConvertingAll] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragCounter = useRef(0);
 
   const updateFile = useCallback(
     (id: string, patch: Partial<AudioFileItem>) => {
@@ -131,62 +126,6 @@ export default function AudioConverterTool() {
 
     setFiles((prev) => [...prev, ...nextItems]);
   }, []);
-
-  const handleDragEnter = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounter.current += 1;
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounter.current -= 1;
-    if (dragCounter.current === 0) {
-      setIsDragging(false);
-    }
-  }, []);
-
-  const handleDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dragCounter.current = 0;
-      setIsDragging(false);
-
-      const droppedFiles = Array.from(event.dataTransfer.files).filter(
-        (file) =>
-          file.type.startsWith("audio/") ||
-          ACCEPTED_AUDIO.includes(`.${getFileExtension(file.name)}`),
-      );
-
-      if (droppedFiles.length > 0) {
-        addFiles(droppedFiles);
-      }
-    },
-    [addFiles],
-  );
-
-  const handleFileSelect = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFiles = event.target.files
-        ? Array.from(event.target.files)
-        : [];
-      const validFiles = selectedFiles.filter(
-        (file) =>
-          file.type.startsWith("audio/") ||
-          ACCEPTED_AUDIO.includes(`.${getFileExtension(file.name)}`),
-      );
-
-      if (validFiles.length > 0) {
-        addFiles(validFiles);
-      }
-
-      event.target.value = "";
-    },
-    [addFiles],
-  );
 
   const removeFile = useCallback(
     (id: string) => {
@@ -364,65 +303,43 @@ export default function AudioConverterTool() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-card/70">
-        <CardContent className="p-5">
-          <div
-            className={`rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
-              isDragging
-                ? "border-primary bg-primary/10"
-                : "border-white/15 bg-background/40 hover:border-primary/60"
-            }`}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            onDrop={handleDrop}
-          >
-            <FileAudio className="mx-auto mb-3 size-9 text-muted-foreground" />
-            <h2 className="text-lg font-semibold">Drop audio files here</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Supports mp3, opus, m4a, aac, mpeg, wma, flac, wav, and aiff.
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPTED_AUDIO}
-              multiple
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-            <Button
-              className="mt-4"
-              variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="size-4" />
-              Upload audio files
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <FileDropZoneCard
+        fileTypeLabel="audio files"
+        supportedFormats="mp3, opus, m4a, aac, mpeg, wma, flac, wav, and aiff"
+        accept={ACCEPTED_AUDIO}
+        multiple
+        onFilesSelected={(incoming) => {
+          const validFiles = incoming.filter(
+            (file) =>
+              file.type.startsWith("audio/") ||
+              ACCEPTED_AUDIO.includes(`.${getFileExtension(file.name)}`),
+          );
+
+          if (validFiles.length > 0) {
+            addFiles(validFiles);
+          }
+        }}
+      />
 
       {files.length > 0 && (
-        <Card className="border-white/10 bg-card/70">
-          <CardHeader className="border-b border-white/10">
+        <div className="tool-card">
+          <CardHeader className="border-b border-white/[0.06]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Music className="size-5 text-primary" />
+                <Music className="size-5 text-emerald-400" />
                 Conversion queue ({files.length})
               </CardTitle>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
-                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  className="badge-emerald"
                 >
                   {doneCount} done
                 </Badge>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="glass-button"
                   disabled={isConvertingAll}
                   onClick={() => void convertAll()}
                 >
@@ -434,6 +351,7 @@ export default function AudioConverterTool() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="glass-button"
                   disabled={isDownloadingZip}
                   onClick={() => void downloadAll()}
                 >
@@ -453,7 +371,7 @@ export default function AudioConverterTool() {
           </CardHeader>
           <CardContent className="space-y-4 p-5">
             {errorMessage ? (
-              <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              <div className="error-banner">
                 {errorMessage}
               </div>
             ) : null}
@@ -465,123 +383,122 @@ export default function AudioConverterTool() {
               const isBusy = item.status === "converting";
 
               return (
-                <Card
+                <div
                   key={item.id}
-                  className="border-white/10 bg-background/40"
+                  className="surface-inset p-4 space-y-4"
                 >
-                  <CardContent className="space-y-4 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium">{item.file.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatFileSize(item.file.size)}
-                        </p>
-                      </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{item.file.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(item.file.size)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeFile(item.id)}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 lg:grid-cols-[auto_auto_1fr_1fr_auto] lg:items-center">
+                    <Badge
+                      variant="outline"
+                      className="w-fit border-white/[0.1] bg-white/[0.03]"
+                    >
+                      {item.sourceFormat || "unknown"}
+                    </Badge>
+                    <ArrowRight className="size-4 text-muted-foreground" />
+
+                    <Select
+                      value={item.targetFormat}
+                      onChange={(event) => {
+                        const nextFormat = event.target
+                          .value as AudioOutputFormat;
+                        const nextCodecs =
+                          getAudioCodecsForFormat(nextFormat);
+                        updateFile(item.id, {
+                          targetFormat: nextFormat,
+                          codec: nextCodecs[0],
+                          status: "idle",
+                          progress: 0,
+                          error: undefined,
+                        });
+                      }}
+                      disabled={isBusy}
+                      className="bg-white/[0.03]"
+                    >
+                      {AUDIO_FORMATS.map((format) => (
+                        <option key={format} value={format}>
+                          {format.toUpperCase()}
+                        </option>
+                      ))}
+                    </Select>
+
+                    <Select
+                      value={item.codec}
+                      onChange={(event) =>
+                        updateFile(item.id, {
+                          codec: event.target.value,
+                          status: "idle",
+                          progress: 0,
+                          error: undefined,
+                        })
+                      }
+                      disabled={isBusy}
+                      className="bg-white/[0.03]"
+                    >
+                      {availableCodecs.map((codec) => (
+                        <option key={codec} value={codec}>
+                          {codec}
+                        </option>
+                      ))}
+                    </Select>
+
+                    <div className="flex items-center justify-end gap-2">
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeFile(item.id)}
+                        size="sm"
+                        variant="outline"
+                        className="glass-button"
+                        disabled={isBusy}
+                        onClick={() => void convertOne(item)}
                       >
-                        <X className="size-4" />
+                        {isBusy ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : null}
+                        Convert
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={item.status !== "done"}
+                        onClick={() => downloadOne(item)}
+                      >
+                        <Download className="size-4" />
+                        Download
                       </Button>
                     </div>
+                  </div>
 
-                    <div className="grid gap-3 lg:grid-cols-[auto_auto_1fr_1fr_auto] lg:items-center">
-                      <Badge
-                        variant="outline"
-                        className="w-fit border-white/20 bg-background/70"
-                      >
-                        {item.sourceFormat || "unknown"}
-                      </Badge>
-                      <ArrowRight className="size-4 text-muted-foreground" />
+                  <Progress value={item.progress} />
 
-                      <Select
-                        value={item.targetFormat}
-                        onChange={(event) => {
-                          const nextFormat = event.target
-                            .value as AudioOutputFormat;
-                          const nextCodecs =
-                            getAudioCodecsForFormat(nextFormat);
-                          updateFile(item.id, {
-                            targetFormat: nextFormat,
-                            codec: nextCodecs[0],
-                            status: "idle",
-                            progress: 0,
-                            error: undefined,
-                          });
-                        }}
-                        disabled={isBusy}
-                        className="bg-card/70"
-                      >
-                        {AUDIO_FORMATS.map((format) => (
-                          <option key={format} value={format}>
-                            {format.toUpperCase()}
-                          </option>
-                        ))}
-                      </Select>
-
-                      <Select
-                        value={item.codec}
-                        onChange={(event) =>
-                          updateFile(item.id, {
-                            codec: event.target.value,
-                            status: "idle",
-                            progress: 0,
-                            error: undefined,
-                          })
-                        }
-                        disabled={isBusy}
-                        className="bg-card/70"
-                      >
-                        {availableCodecs.map((codec) => (
-                          <option key={codec} value={codec}>
-                            {codec}
-                          </option>
-                        ))}
-                      </Select>
-
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={isBusy}
-                          onClick={() => void convertOne(item)}
-                        >
-                          {isBusy ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : null}
-                          Convert
-                        </Button>
-                        <Button
-                          size="sm"
-                          disabled={item.status !== "done"}
-                          onClick={() => downloadOne(item)}
-                        >
-                          <Download className="size-4" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-
-                    <Progress value={item.progress} />
-
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <Badge
-                        variant="outline"
-                        className="border-white/15 bg-background/60"
-                      >
-                        {item.status}
-                      </Badge>
-                      {item.error ? (
-                        <span className="text-red-300">{item.error}</span>
-                      ) : null}
-                    </div>
-                  </CardContent>
-                </Card>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="border-white/[0.08] bg-white/[0.03]"
+                    >
+                      {item.status}
+                    </Badge>
+                    {item.error ? (
+                      <span className="text-red-300">{item.error}</span>
+                    ) : null}
+                  </div>
+                </div>
               );
             })}
           </CardContent>
-        </Card>
+        </div>
       )}
     </div>
   );

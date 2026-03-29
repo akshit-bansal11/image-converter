@@ -10,10 +10,10 @@ import {
   CheckCircle2,
   Settings,
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/layout/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/form/Input";
+import { Textarea } from "@/components/ui/form/Textarea";
 
 const CLASSIC_WORDS = [
   "lorem",

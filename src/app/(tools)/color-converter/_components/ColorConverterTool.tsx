@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { Pipette, Droplets } from "lucide-react";
-import { OutputField } from "@/components/design-tools/output-field";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { OutputField } from "@/components/design-tools/OutputField";
+import { Input } from "@/components/ui/form/Input";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import {
   formatColorOutputs,
   parseColorInput,

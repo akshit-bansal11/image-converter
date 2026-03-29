@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   FileImage,
   FileBox,
@@ -16,11 +16,12 @@ import {
   File,
   Sparkles,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Progress } from "@/components/ui/feedback/Progress";
+import { Select } from "@/components/ui/form/Select";
 import { PDFDocument } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
@@ -76,11 +77,6 @@ export default function PdfConverterTool() {
   const [isProcessingPdfToImg, setIsProcessingPdfToImg] = useState(false);
   const [pdfProgress, setPdfProgress] = useState(0);
 
-  // --- Common DnD State ---
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const dragCounter = useRef(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // HTML5 Sortable Drag State for Img -> PDF Combined mode
   const [draggedImgId, setDraggedImgId] = useState<string | null>(null);
 
@@ -91,28 +87,6 @@ export default function PdfConverterTool() {
       pdfPages.forEach((p) => URL.revokeObjectURL(p.preview));
     };
   }, []); // eslint-disable-line
-
-  // --- File Handlers ---
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    setIsDraggingOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current--;
-    if (dragCounter.current === 0) {
-      setIsDraggingOver(false);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
 
   const processUpload = useCallback(
     (files: File[]) => {
@@ -134,32 +108,6 @@ export default function PdfConverterTool() {
       }
     },
     [activeTab],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDraggingOver(false);
-      dragCounter.current = 0;
-
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      if (droppedFiles.length > 0) {
-        processUpload(droppedFiles);
-      }
-    },
-    [processUpload],
-  );
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selected = e.target.files ? Array.from(e.target.files) : [];
-      if (selected.length > 0) {
-        processUpload(selected);
-      }
-      e.target.value = ""; // Reset input
-    },
-    [processUpload],
   );
 
   const removeImgFile = (id: string) => {
@@ -427,60 +375,23 @@ export default function PdfConverterTool() {
       <div className="grid gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_360px]">
         {/* Main Interface Area */}
         <div className="space-y-6">
-          {/* Uploader Block */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={`group relative flex w-full flex-col items-center justify-center overflow-hidden rounded-[2rem] border-2 border-dashed bg-card/40 p-12 transition-all duration-300 ${
-              isDraggingOver
-                ? "border-primary bg-primary/10 scale-[1.02]"
-                : "border-muted-foreground/20 hover:border-primary/50 hover:bg-card/60"
-            }`}
-          >
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="rounded-full bg-primary/10 p-4 transition-transform group-hover:scale-110">
-                {activeTab === "img-to-pdf" ? (
-                  <ImageIcon className="size-8 text-primary" />
-                ) : (
-                  <File className="size-8 text-primary" />
-                )}
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-medium text-foreground">
-                  {activeTab === "img-to-pdf"
-                    ? "Drop images here"
-                    : "Drop a PDF file here"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {activeTab === "img-to-pdf"
-                    ? "Supports JPG, PNG, WEBP. You can upload multiple files."
-                    : "Extract every graphical page straight from the document."}
-                </p>
-              </div>
-              <Badge
-                variant="secondary"
-                className="mt-4 shrink-0 bg-background/80 font-mono backdrop-blur-md"
-              >
-                Or click to browse
-              </Badge>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple={activeTab === "img-to-pdf"}
-              accept={
-                activeTab === "img-to-pdf"
-                  ? "image/png, image/jpeg, image/webp"
-                  : "application/pdf"
-              }
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-          </button>
+          <FileDropzoneCard
+            fileTypeLabel={
+              activeTab === "img-to-pdf" ? "image files" : "a PDF file"
+            }
+            supportedFormats={
+              activeTab === "img-to-pdf" ? "JPG, PNG, and WEBP" : "PDF"
+            }
+            accept={
+              activeTab === "img-to-pdf"
+                ? "image/png, image/jpeg, image/webp"
+                : "application/pdf"
+            }
+            multiple={activeTab === "img-to-pdf"}
+            onFilesSelected={(files) => {
+              processUpload(files);
+            }}
+          />
 
           {/* Render Img -> PDF Uploaded Files */}
           {activeTab === "img-to-pdf" && imgFiles.length > 0 && (
@@ -642,7 +553,7 @@ export default function PdfConverterTool() {
 
         {/* Sidebar settings */}
         <div className="space-y-6">
-          <Card className="border-white/10 bg-card/70 sticky top-6 lg:top-24">
+          <Card className="tool-card-inline sticky top-6 lg:top-24">
             <CardHeader className="border-b border-white/5 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Settings className="size-5 text-muted-foreground" />

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/common/ToolPageShell";
 import SvgAnimatorTool from "./_components/SvgAnimatorTool";
 
 const tool = getToolBySlug("svg-animator");

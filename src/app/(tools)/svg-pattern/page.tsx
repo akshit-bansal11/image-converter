@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/common/ToolPageShell";
 import SvgPatternTool from "./_components/SvgPatternTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function SvgPatternPage() {
     <ToolPageShell
       title="SVG Pattern Generator"
       description="Create beautiful, scalable vector patterns directly in your browser. Export native CSS backgrounds or raw SVG data URIs instantly."
-      fullWidth
     >
       <SvgPatternTool />
     </ToolPageShell>

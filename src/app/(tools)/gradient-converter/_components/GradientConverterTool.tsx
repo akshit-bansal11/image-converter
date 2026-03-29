@@ -2,10 +2,10 @@
 
 import { useMemo, useState, useRef, useEffect } from "react";
 import { ArrowRightLeft, Wand2 } from "lucide-react";
-import { OutputField } from "@/components/design-tools/output-field";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { OutputField } from "@/components/design-tools/OutputField";
+import { Textarea } from "@/components/ui/form/Textarea";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import {
   normalizeGradientInput,
   parseGradientString,

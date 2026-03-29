@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useCallback, useRef, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FileCode2,
-  Upload,
   Copy,
   Download,
   Settings,
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Slider } from "@/components/ui/Slider";
+import { Textarea } from "@/components/ui/form/Textarea";
 
 import { optimize } from "svgo/browser";
 
@@ -65,9 +65,6 @@ function convertToJSX(svgString: string) {
 
 export default function SvgOptimizerTool() {
   const [inputSvg, setInputSvg] = useState<string>("");
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragCounter = useRef(0);
 
   // Notification UI
   const [copiedId, setCopiedId] = useState<"optimized" | "jsx" | null>(null);
@@ -92,54 +89,6 @@ export default function SvgOptimizerTool() {
     };
     reader.readAsText(file);
   };
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    setIsDraggingOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current--;
-    if (dragCounter.current === 0) {
-      setIsDraggingOver(false);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOver(false);
-    dragCounter.current = 0;
-
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    const validSvg = droppedFiles.find(
-      (f) =>
-        f.name.toLowerCase().endsWith(".svg") || f.type === "image/svg+xml",
-    );
-    if (validSvg) handleFileLoad(validSvg);
-  }, []);
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selected = e.target.files ? Array.from(e.target.files) : [];
-      const validSvg = selected.find(
-        (f) =>
-          f.name.toLowerCase().endsWith(".svg") || f.type === "image/svg+xml",
-      );
-      if (validSvg) handleFileLoad(validSvg);
-      e.target.value = "";
-    },
-    [],
-  );
 
   // Compute Optimizations live
   const optimizedData = useMemo(() => {
@@ -263,7 +212,7 @@ export default function SvgOptimizerTool() {
       <div className="grid gap-6 xl:grid-cols-[300px_1fr]">
         {/* Settings Sidebar */}
         <div className="space-y-6">
-          <Card className="border-white/10 bg-card/70 sticky top-6 lg:top-8">
+          <Card className="tool-card-inline sticky top-6 lg:top-8">
             <CardHeader className="border-b border-white/5 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Settings className="size-5 text-muted-foreground" />
@@ -368,53 +317,43 @@ export default function SvgOptimizerTool() {
             {/* Input Header & Dragzone */}
             <div className="space-y-4">
               <label className="text-sm font-medium">Original SVG Input</label>
-              <div
-                className={`relative overflow-hidden rounded-[1.5rem] border-2 border-dashed bg-card/40 transition-all duration-300 ${
-                  isDraggingOver
-                    ? "border-primary bg-primary/10"
-                    : "border-muted-foreground/20 focus-within:border-primary/50 focus-within:bg-card/60"
-                }`}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
+              <FileDropzoneCard
+                fileTypeLabel="an SVG file"
+                supportedFormats="SVG"
+                accept=".svg,image/svg+xml"
+                onFilesSelected={(incoming) => {
+                  const validSvg = incoming.find(
+                    (file) =>
+                      file.name.toLowerCase().endsWith(".svg") ||
+                      file.type === "image/svg+xml",
+                  );
+
+                  if (validSvg) {
+                    handleFileLoad(validSvg);
+                  }
+                }}
               >
-                <div className="absolute top-4 right-4 z-10">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-xs backdrop-blur-md"
-                  >
-                    <Upload className="size-3.5 mr-2" /> Upload .svg
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".svg,image/svg+xml"
-                    className="hidden"
-                    onChange={handleFileSelect}
+                <div className="relative">
+                  {inputSvg ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-3 top-3 z-10 text-muted-foreground hover:text-red-400"
+                      onClick={() => setInputSvg("")}
+                    >
+                      Clear
+                    </Button>
+                  ) : null}
+
+                  <Textarea
+                    value={inputSvg}
+                    onChange={(e) => setInputSvg(e.target.value)}
+                    spellCheck={false}
+                    placeholder="Paste raw <svg> markup here, or drop a file anywhere on this box..."
+                    className="min-h-[260px] w-full resize-none border border-white/10 bg-background/30 p-4 pt-12 font-mono text-xs leading-relaxed focus-visible:ring-0"
                   />
                 </div>
-                {inputSvg && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-4 right-[120px] z-10 text-muted-foreground hover:text-red-400"
-                    onClick={() => setInputSvg("")}
-                  >
-                    Clear
-                  </Button>
-                )}
-
-                <Textarea
-                  value={inputSvg}
-                  onChange={(e) => setInputSvg(e.target.value)}
-                  spellCheck={false}
-                  placeholder="Paste raw <svg> markup here, or drop a file anywhere on this box..."
-                  className="min-h-[260px] w-full resize-none border-none bg-transparent p-6 font-mono text-xs focus-visible:ring-0 leading-relaxed z-0"
-                />
-              </div>
+              </FileDropzoneCard>
             </div>
 
             {/* Live Visual Preview */}

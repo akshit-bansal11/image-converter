@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { Download, GripVertical, Layers3, Plus, Trash2 } from "lucide-react";
-import { CopyButton } from "@/components/design-tools/copy-button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { OutputField } from "@/components/design-tools/output-field";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
+import { CopyButton } from "@/components/design-tools/CopyButton";
+import { Label } from "@/components/ui/form/Label";
+import { Input } from "@/components/ui/form/Input";
+import { OutputField } from "@/components/design-tools/OutputField";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Select } from "@/components/ui/form/Select";
+import { Slider } from "@/components/ui/Slider";
 import {
   addStop,
   buildGradientCss,

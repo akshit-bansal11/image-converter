@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { ExternalLink, KeyRound, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/interaction/Button";
+import { Card } from "@/components/ui/layout/Card";
+import { Label } from "@/components/ui/form/Label";
+import { Input } from "@/components/ui/form/Input";
 
 interface GeminiApiKeyDialogProps {
   open: boolean;

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { CheckCircle2, Copy, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/form/Input";
+import { Card, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import { palettePresets } from "@/lib/design-tools/data/palette-presets";
 
 export default function PaletteLibraryTool() {

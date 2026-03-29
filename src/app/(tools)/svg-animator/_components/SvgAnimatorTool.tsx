@@ -1,18 +1,21 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Download, Play, Upload } from "lucide-react";
-import { OutputField } from "@/components/design-tools/output-field";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
+import { useCallback, useMemo, useState } from "react";
+import { Download, Play } from "lucide-react";
+import { OutputField } from "@/components/ui/design/OutputField";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/interaction/Button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/layout/Card";
+import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
+import { Label } from "@/components/ui/form/Label";
+import { Slider } from "@/components/ui/interaction/Slider";
 
 type PlayMode = "sequential" | "simultaneous";
-type StrokeLinecap = "butt" | "round" | "square";
-type StrokeLinejoin = "miter" | "round" | "bevel";
 
 interface ParsedSvgData {
   fileName: string;
@@ -20,19 +23,23 @@ interface ParsedSvgData {
   pathLengths: number[];
 }
 
-const MIN_DURATION = 0.2;
-const MAX_DURATION = 6;
-const DEFAULT_DURATION = 1.2;
+const MIN_SPEED = 0.01;
+const MAX_SPEED = 5;
+const DEFAULT_SPEED = 0.5;
 
 const MIN_STROKE_WIDTH = 0.5;
 const MAX_STROKE_WIDTH = 10;
 const DEFAULT_STROKE_WIDTH = 1.5;
 const DEFAULT_STROKE_COLOR = "#000000";
-const DEFAULT_STROKE_LINECAP: StrokeLinecap = "round";
-const DEFAULT_STROKE_LINEJOIN: StrokeLinejoin = "round";
+
+function speedToDuration(speed: number): number {
+  return 1 / speed;
+}
 
 function isSvgFile(file: File) {
-  return file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+  return (
+    file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
+  );
 }
 
 function readSvgText(file: File) {
@@ -109,9 +116,7 @@ function buildAnimatedSvg(
   mode: PlayMode,
   strokeColor: string,
   strokeWidth: number,
-  strokeLinecap: StrokeLinecap,
-  strokeLinejoin: StrokeLinejoin,
-  strokeOnly: boolean,
+  hasFill: boolean,
 ) {
   const doc = new DOMParser().parseFromString(sourceSvg, "image/svg+xml");
   const parserError = doc.querySelector("parsererror");
@@ -133,19 +138,21 @@ function buildAnimatedSvg(
     const length = Math.max(pathLengths[index] ?? 1, 1);
     const delay = mode === "sequential" ? index * durationPerPath : 0;
 
+    path.removeAttribute("stroke");
+    path.removeAttribute("stroke-width");
+
     const styles = [
-      `stroke:${strokeColor}`,
-      `stroke-width:${strokeWidth}`,
-      `stroke-linecap:${strokeLinecap}`,
-      `stroke-linejoin:${strokeLinejoin}`,
+      `stroke:${strokeColor} !important`,
+      `stroke-width:${strokeWidth} !important`,
       `stroke-dasharray:${length}`,
       `stroke-dashoffset:${length}`,
       `animation:svgPathDraw ${durationPerPath}s ease forwards`,
       `animation-delay:${delay}s`,
     ];
 
-    if (strokeOnly) {
-      styles.push("fill:none");
+    if (!hasFill) {
+      path.removeAttribute("fill");
+      styles.push("fill:none !important");
     }
 
     mergeInlineStyle(path, styles.join(";"));
@@ -161,24 +168,20 @@ function buildAnimatedSvg(
 }
 
 function formatDuration(seconds: number) {
-  return `${seconds.toFixed(1)}s`;
+  return `${seconds.toFixed(2)}s`;
 }
 
 export default function SvgAnimatorTool() {
   const [parsedSvg, setParsedSvg] = useState<ParsedSvgData | null>(null);
   const [mode, setMode] = useState<PlayMode>("sequential");
-  const [durationPerPath, setDurationPerPath] = useState(DEFAULT_DURATION);
+  const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const [strokeColor, setStrokeColor] = useState(DEFAULT_STROKE_COLOR);
   const [strokeWidth, setStrokeWidth] = useState(DEFAULT_STROKE_WIDTH);
-  const [strokeLinecap, setStrokeLinecap] = useState<StrokeLinecap>(DEFAULT_STROKE_LINECAP);
-  const [strokeLinejoin, setStrokeLinejoin] = useState<StrokeLinejoin>(DEFAULT_STROKE_LINEJOIN);
-  const [strokeOnly, setStrokeOnly] = useState(false);
+  const [hasFill, setHasFill] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [replayTick, setReplayTick] = useState(0);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragCounter = useRef(0);
+  const durationPerPath = useMemo(() => speedToDuration(speed), [speed]);
 
   const animatedSvg = useMemo(() => {
     if (!parsedSvg) {
@@ -192,11 +195,9 @@ export default function SvgAnimatorTool() {
       mode,
       strokeColor,
       strokeWidth,
-      strokeLinecap,
-      strokeLinejoin,
-      strokeOnly,
+      hasFill,
     );
-  }, [parsedSvg, durationPerPath, mode, strokeColor, strokeWidth, strokeLinecap, strokeLinejoin, strokeOnly]);
+  }, [parsedSvg, durationPerPath, mode, strokeColor, strokeWidth, hasFill]);
 
   const totalAnimationTime = useMemo(() => {
     if (!parsedSvg) {
@@ -213,8 +214,8 @@ export default function SvgAnimatorTool() {
       return "empty";
     }
 
-    return `${parsedSvg.fileName}-${mode}-${durationPerPath}-${strokeColor}-${strokeWidth}-${strokeLinecap}-${strokeLinejoin}-${strokeOnly}-${replayTick}`;
-  }, [parsedSvg, mode, durationPerPath, strokeColor, strokeWidth, strokeLinecap, strokeLinejoin, replayTick]);
+    return `${parsedSvg.fileName}-${mode}-${speed}-${strokeColor}-${strokeWidth}-${hasFill}-${replayTick}`;
+  }, [parsedSvg, mode, speed, strokeColor, strokeWidth, hasFill, replayTick]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!isSvgFile(file)) {
@@ -260,62 +261,6 @@ export default function SvgAnimatorTool() {
     }
   }, []);
 
-  const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounter.current += 1;
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounter.current -= 1;
-
-    if (dragCounter.current <= 0) {
-      dragCounter.current = 0;
-      setIsDragging(false);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback(
-    async (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dragCounter.current = 0;
-      setIsDragging(false);
-
-      const file = Array.from(event.dataTransfer.files).find((entry) =>
-        isSvgFile(entry),
-      );
-
-      if (!file) {
-        setErrorMessage("Drop an SVG file to continue.");
-        return;
-      }
-
-      await handleFile(file);
-    },
-    [handleFile],
-  );
-
-  const handleFileInputChange = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        await handleFile(file);
-      }
-
-      event.target.value = "";
-    },
-    [handleFile],
-  );
-
   const handleReplay = useCallback(() => {
     setReplayTick((current) => current + 1);
   }, []);
@@ -335,264 +280,210 @@ export default function SvgAnimatorTool() {
   }, [animatedSvg, parsedSvg]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <Card className="border-white/10 bg-card/70">
-        <CardHeader className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>Upload SVG</CardTitle>
-            <Badge variant="outline" className="uppercase">
-              Client-side
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Upload any SVG and animate each path border using stroke-dashoffset.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div
-            className={cn(
-              "rounded-2xl border border-dashed p-6 text-center transition",
-              isDragging
-                ? "border-primary bg-primary/10"
-                : "border-white/20 bg-background/30",
-            )}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <Upload className="mx-auto mb-3 size-6 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Drag and drop your SVG here, or choose a file manually.
-            </p>
-            <Button
-              className="mt-4"
-              variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Choose SVG File
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".svg,image/svg+xml"
-              className="hidden"
-              onChange={handleFileInputChange}
-            />
-          </div>
+    <div className="space-y-6">
+      <FileDropZoneCard
+        fileTypeLabel="an SVG file"
+        supportedFormats="SVG"
+        accept=".svg,image/svg+xml"
+        onFilesSelected={(incoming) => {
+          const file = incoming.find((entry) => isSvgFile(entry));
 
-          {errorMessage ? (
-            <div className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-300">
-              {errorMessage}
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
+          if (!file) {
+            setErrorMessage("Drop an SVG file to continue.");
+            return;
+          }
 
-      <Card className="border-white/10 bg-card/70">
-        <CardHeader className="space-y-3">
-          <CardTitle>Animation Controls</CardTitle>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Mode: {mode}</Badge>
-            <Badge variant="secondary">
-              Duration per path: {formatDuration(durationPerPath)}
-            </Badge>
-            <Badge variant="secondary">
-              Total time: {formatDuration(totalAnimationTime)}
-            </Badge>
-            <Badge variant="secondary">
-              Paths: {parsedSvg?.pathLengths.length ?? 0}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label>Animation duration per path</Label>
-            <Slider
-              value={durationPerPath}
-              min={MIN_DURATION}
-              max={MAX_DURATION}
-              step={0.1}
-              onChange={(event) => {
-                const next = Number(event.currentTarget.value);
-                setDurationPerPath(next);
-              }}
-              disabled={!parsedSvg}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label>Border color</Label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={strokeColor}
-                onChange={(event) => setStrokeColor(event.target.value)}
-                disabled={!parsedSvg}
-                className="h-10 w-20 cursor-pointer rounded-lg border border-white/20 bg-background disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <input
-                type="text"
-                value={strokeColor}
-                onChange={(event) => setStrokeColor(event.target.value)}
-                disabled={!parsedSvg}
-                placeholder="#000000"
-                className="flex h-10 w-full rounded-md border border-white/20 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label>Border size (stroke width: {strokeWidth.toFixed(1)})</Label>
-            <Slider
-              value={strokeWidth}
-              min={MIN_STROKE_WIDTH}
-              max={MAX_STROKE_WIDTH}
-              step={0.1}
-              onChange={(event) => {
-                const next = Number(event.currentTarget.value);
-                setStrokeWidth(next);
-              }}
-              disabled={!parsedSvg}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label>Border style (linecap)</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant={strokeLinecap === "butt" ? "default" : "outline"}
-                onClick={() => setStrokeLinecap("butt")}
-                disabled={!parsedSvg}
-              >
-                Butt
-              </Button>
-              <Button
-                type="button"
-                variant={strokeLinecap === "round" ? "default" : "outline"}
-                onClick={() => setStrokeLinecap("round")}
-                disabled={!parsedSvg}
-              >
-                Round
-              </Button>
-              <Button
-                type="button"
-                variant={strokeLinecap === "square" ? "default" : "outline"}
-                onClick={() => setStrokeLinecap("square")}
-                disabled={!parsedSvg}
-              >
-                Square
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label>Border join style (linejoin)</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant={strokeLinejoin === "miter" ? "default" : "outline"}
-                onClick={() => setStrokeLinejoin("miter")}
-                disabled={!parsedSvg}
-              >
-                Miter
-              </Button>
-              <Button
-                type="button"
-                variant={strokeLinejoin === "round" ? "default" : "outline"}
-                onClick={() => setStrokeLinejoin("round")}
-                disabled={!parsedSvg}
-              >
-                Round
-              </Button>
-              <Button
-                type="button"
-                variant={strokeLinejoin === "bevel" ? "default" : "outline"}
-                onClick={() => setStrokeLinejoin("bevel")}
-                disabled={!parsedSvg}
-              >
-                Bevel
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="stroke-only"
-              checked={strokeOnly}
-              onChange={(e) => setStrokeOnly(e.target.checked)}
-              disabled={!parsedSvg}
-              className="h-4 w-4 rounded border-white/20 bg-background accent-primary disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            <Label htmlFor="stroke-only" className="cursor-pointer">
-              Stroke only (remove fill)
-            </Label>
-          </div>
-
-          <div className="space-y-3">
-            <Label>Playback mode</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant={mode === "sequential" ? "default" : "outline"}
-                onClick={() => setMode("sequential")}
-                disabled={!parsedSvg}
-              >
-                Sequential
-              </Button>
-              <Button
-                type="button"
-                variant={mode === "simultaneous" ? "default" : "outline"}
-                onClick={() => setMode("simultaneous")}
-                disabled={!parsedSvg}
-              >
-                Simultaneous
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={handleReplay} disabled={!animatedSvg}>
-              <Play className="size-4" />
-              Replay
-            </Button>
-            <Button onClick={handleDownload} variant="outline" disabled={!animatedSvg}>
-              <Download className="size-4" />
-              Download Animated SVG
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-white/10 bg-card/70">
-        <CardHeader>
-          <CardTitle>Animated Preview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {animatedSvg ? (
-            <div className="rounded-2xl border bg-background/60 p-6">
-              <div
-                key={previewKey}
-                className="mx-auto flex min-h-[260px] items-center justify-center text-foreground [&_svg]:h-auto [&_svg]:max-h-[420px] [&_svg]:max-w-full"
-                dangerouslySetInnerHTML={{ __html: animatedSvg }}
-              />
-            </div>
-          ) : (
-            <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-white/20 bg-background/40 text-sm text-muted-foreground">
-              Upload an SVG file to start animating its paths.
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <OutputField
-        label="Animated SVG Markup"
-        description="Export-ready SVG with embedded @keyframes and per-path animation styles."
-        value={animatedSvg}
-        className="border-white/10 bg-card/70"
+          void handleFile(file);
+        }}
       />
+
+      {errorMessage ? (
+        <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {errorMessage}
+        </div>
+      ) : null}
+
+      {parsedSvg ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
+                {parsedSvg.pathLengths.length} paths
+              </Badge>
+              <Badge className="border-blue-500/20 bg-blue-500/10 text-blue-300">
+                Mode: {mode}
+              </Badge>
+              <Badge className="border-purple-500/20 bg-purple-500/10 text-purple-300">
+                Speed: {speed.toFixed(2)}x
+              </Badge>
+              <Badge className="border-orange-500/20 bg-orange-500/10 text-orange-300">
+                Total: {formatDuration(totalAnimationTime)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {parsedSvg && animatedSvg ? (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Controls */}
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="text-sm">Controls</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs">Mode</Label>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant={mode === "sequential" ? "default" : "outline"}
+                    onClick={() => setMode("sequential")}
+                    size="sm"
+                    className="flex-1 text-xs"
+                  >
+                    Sequential
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={mode === "simultaneous" ? "default" : "outline"}
+                    onClick={() => setMode("simultaneous")}
+                    size="sm"
+                    className="flex-1 text-xs"
+                  >
+                    Simultaneous
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">Speed: {speed.toFixed(2)}x</Label>
+                <Slider
+                  value={speed}
+                  min={MIN_SPEED}
+                  max={MAX_SPEED}
+                  step={0.01}
+                  onChange={(event) => {
+                    const next = Number(event.currentTarget.value);
+                    setSpeed(next);
+                  }}
+                  disabled={!parsedSvg}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">Stroke Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={strokeColor}
+                    onChange={(event) => setStrokeColor(event.target.value)}
+                    disabled={!parsedSvg}
+                    className="h-8 w-12 cursor-pointer rounded border border-white/20 bg-background disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <input
+                    type="text"
+                    value={strokeColor}
+                    onChange={(event) => setStrokeColor(event.target.value)}
+                    disabled={!parsedSvg}
+                    placeholder="#000000"
+                    className="flex h-8 flex-1 rounded text-xs border border-white/20 bg-background px-2 py-1 text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">Width: {strokeWidth.toFixed(1)}</Label>
+                <Slider
+                  value={strokeWidth}
+                  min={MIN_STROKE_WIDTH}
+                  max={MAX_STROKE_WIDTH}
+                  step={0.1}
+                  onChange={(event) => {
+                    const next = Number(event.currentTarget.value);
+                    setStrokeWidth(next);
+                  }}
+                  disabled={!parsedSvg}
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="fill"
+                  checked={hasFill}
+                  onChange={(e) => setHasFill(e.target.checked)}
+                  disabled={!parsedSvg}
+                  className="h-3 w-3 rounded border-white/20 bg-background accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <Label htmlFor="fill" className="cursor-pointer text-xs">
+                  Fill?
+                </Label>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={handleReplay}
+                  disabled={!animatedSvg}
+                  size="sm"
+                  className="flex-1 text-xs"
+                >
+                  <Play className="size-3" />
+                  Replay
+                </Button>
+                <Button
+                  onClick={handleDownload}
+                  variant="outline"
+                  disabled={!animatedSvg}
+                  size="sm"
+                  className="flex-1 text-xs"
+                >
+                  <Download className="size-3" />
+                  Download
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preview */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-sm">Preview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-2xl border border-white/10 bg-background/40 p-6">
+                <div
+                  key={previewKey}
+                  className="flex min-h-[420px] items-center justify-center text-foreground [&_svg]:h-auto [&_svg]:max-h-[400px] [&_svg]:max-w-full"
+                  dangerouslySetInnerHTML={{ __html: animatedSvg }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : parsedSvg ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Preview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-white/20 bg-background/40 text-sm text-muted-foreground">
+              Building animation...
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {animatedSvg ? (
+        <OutputField
+          label="Animated SVG Markup"
+          description="Export-ready SVG with embedded @keyframes and per-path animation styles."
+          value={animatedSvg}
+        />
+      ) : null}
     </div>
   );
 }

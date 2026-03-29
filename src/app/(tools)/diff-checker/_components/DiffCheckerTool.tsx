@@ -10,10 +10,10 @@ import {
   AlignLeft,
   AlignJustify,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/form/Textarea";
+import { Badge } from "@/components/ui/feedback/Badge";
 import * as diff from "diff";
 
 export default function DiffCheckerTool() {

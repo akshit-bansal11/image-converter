@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import BlobGeneratorTool from "./_components/BlobGeneratorTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function BlobGeneratorPage() {
     <ToolPageShell
       title="CSS Blob Generator"
       description="Create intricate, organic shapes natively by independently customizing the 8 anchor points of the border-radius property."
-      fullWidth
     >
       <BlobGeneratorTool />
     </ToolPageShell>

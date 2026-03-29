@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import DiffCheckerTool from "./_components/DiffCheckerTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function DiffCheckerPage() {
     <ToolPageShell
       title="Diff Checker"
       description="Find inline character-level or line-level text differences with robust ignoring whitespace and case sensitivity."
-      fullWidth
     >
       <DiffCheckerTool />
     </ToolPageShell>

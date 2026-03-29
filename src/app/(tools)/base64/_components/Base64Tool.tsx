@@ -9,8 +9,8 @@ import {
   Lock,
   Unlock,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 
 const SAMPLE_TEXT = "open-tools keeps small utilities easy to use.";
 

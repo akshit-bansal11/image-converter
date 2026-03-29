@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import GradientLibraryTool from "./_components/GradientLibraryTool";
 
 const tool = getToolBySlug("gradient-library");
@@ -16,7 +16,7 @@ export default function GradientLibraryPage() {
   }
 
   return (
-    <ToolPageShell title={tool.name} description={tool.description} fullWidth>
+    <ToolPageShell title={tool.name} description={tool.description}>
       <GradientLibraryTool />
     </ToolPageShell>
   );

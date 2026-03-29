@@ -11,10 +11,10 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/interaction/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Input } from "@/components/ui/form/Input";
 
 interface GitTreeEntry {
   path: string;
@@ -335,101 +335,106 @@ export default function GitScaffoldTool() {
       return;
     }
 
-    const blob = new Blob([asciiTree], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([`\`\`\`\n${asciiTree}\n\`\`\``], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "repository-tree.txt";
+    link.download = "repository-tree.md";
     link.click();
     URL.revokeObjectURL(url);
   }, [asciiTree]);
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-card/70">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <FolderTree className="size-5 text-primary" />
-            GitHub repository scaffold viewer
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-3 lg:grid-cols-[2fr_1fr_auto] lg:items-end">
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">
-                Repository URL or owner/repo
-              </label>
-              <Input
-                value={repoInput}
-                onChange={(event) => setRepoInput(event.target.value)}
-                placeholder="https://github.com/owner/repo or owner/repo"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">
-                Personal access token (optional)
-              </label>
-              <Input
-                value={tokenInput}
-                onChange={(event) => setTokenInput(event.target.value)}
-                placeholder="ghp_xxx"
-                type="password"
-              />
-            </div>
-            <Button onClick={() => void loadTree()} disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <RefreshCw className="size-4" />
-              )}
-              Fetch tree
-            </Button>
+      <Card>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Repository URL or owner/repo
+            </label>
+            <Input
+              value={repoInput}
+              onChange={(event) => setRepoInput(event.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void loadTree();
+              }}
+              placeholder="https://github.com/owner/repo or owner/repo"
+              disabled={isLoading}
+            />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Personal access token (optional)
+            </label>
+            <Input
+              value={tokenInput}
+              onChange={(event) => setTokenInput(event.target.value)}
+              placeholder="ghp_xxx"
+              type="password"
+              disabled={isLoading}
+            />
+          </div>
+
+          <Button
+            onClick={() => void loadTree()}
+            disabled={isLoading || !repoInput.trim()}
+            className="w-full"
+          >
+            {isLoading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <RefreshCw className="size-4" />
+            )}
+            {isLoading ? "Fetching..." : "Fetch tree"}
+          </Button>
+
           {errorMessage ? (
-            <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {errorMessage}
             </div>
           ) : null}
 
           {treeRoot ? (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <Badge
                 variant="outline"
-                className="border-white/15 bg-background/60"
+                className="border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
               >
                 {nodeCounts.folders} folders
               </Badge>
               <Badge
                 variant="outline"
-                className="border-white/15 bg-background/60"
+                className="border-blue-500/20 bg-blue-500/10 text-blue-300"
               >
                 {nodeCounts.files} files
               </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void copyAscii()}
-              >
-                <Copy className="size-4" />
-                {copied ? "Copied" : "Copy ASCII"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={downloadAscii}>
-                <Download className="size-4" />
-                Download TXT
-              </Button>
+              <div className="ml-auto flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void copyAscii()}
+                >
+                  <Copy className="size-4" />
+                  {copied ? "Copied!" : "Copy"}
+                </Button>
+                <Button variant="secondary" size="sm" onClick={downloadAscii}>
+                  <Download className="size-4" />
+                  Download
+                </Button>
+              </div>
             </div>
           ) : null}
         </CardContent>
       </Card>
 
       {treeRoot ? (
-        <Card className="border-white/10 bg-card/70">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-lg">Directory tree</CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Directory structure</CardTitle>
           </CardHeader>
           <CardContent className="max-h-[70vh] overflow-auto p-4">
-            <ul className="space-y-1">
+            <ul className="space-y-1 text-sm font-mono">
               {treeRoot.children.map((node) => (
                 <TreeNodeItem
                   key={node.path}

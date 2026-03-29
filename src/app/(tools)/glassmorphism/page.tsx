@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import GlassmorphismTool from "./_components/GlassmorphismTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function GlassmorphismPage() {
     <ToolPageShell
       title="Glassmorphism Generator"
       description="Design stunning frosted-glass UI elements with real-time backdrop filtering and export the CSS directly."
-      fullWidth
     >
       <GlassmorphismTool />
     </ToolPageShell>

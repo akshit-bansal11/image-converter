@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import JsonFormatter from "./_components/JsonFormatter";
 
 const tool = getToolBySlug("json-formatter");

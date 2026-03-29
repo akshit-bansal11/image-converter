@@ -4,17 +4,17 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import Image from "next/image";
 import { fetchFile } from "@ffmpeg/util";
 import JSZip from "jszip";
-import { Download, Film, Loader2, PlaySquare, Upload, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Download, Film, Loader2, X } from "lucide-react";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Progress } from "@/components/ui/feedback/Progress";
 import {
   formatFileSize,
   getFFmpeg,
@@ -47,7 +47,6 @@ export default function FramesExtractorTool() {
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const clearFrames = useCallback(() => {
     frames.forEach((frame) => URL.revokeObjectURL(frame.url));
@@ -60,48 +59,6 @@ export default function FramesExtractorTool() {
       frames.forEach((frame) => URL.revokeObjectURL(frame.url));
     };
   }, [frames]);
-
-  const onFileSelect = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFile = event.target.files?.[0] ?? null;
-      event.target.value = "";
-      if (!selectedFile) {
-        return;
-      }
-
-      clearFrames();
-      setErrorMessage(null);
-      setProgress(0);
-      setFile(selectedFile);
-    },
-    [clearFrames],
-  );
-
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const dropped = event.dataTransfer.files?.[0] ?? null;
-      if (!dropped) {
-        return;
-      }
-
-      const ext = getFileExtension(dropped.name);
-      const allowed = ["mp4", "webm", "mov", "avi", "mkv", "gif"];
-      if (!allowed.includes(ext)) {
-        setErrorMessage(
-          "Unsupported file type. Please upload mp4, webm, mov, avi, mkv, or gif.",
-        );
-        return;
-      }
-
-      clearFrames();
-      setErrorMessage(null);
-      setProgress(0);
-      setFile(dropped);
-    },
-    [clearFrames],
-  );
 
   const detectFps = useCallback(
     async (ffmpegInputName: string): Promise<number | null> => {
@@ -254,7 +211,7 @@ export default function FramesExtractorTool() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-card/70">
+      <Card className="tool-card-inline">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Film className="size-5 text-primary" />
@@ -262,39 +219,31 @@ export default function FramesExtractorTool() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div
-            className="rounded-2xl border-2 border-dashed border-white/15 bg-background/40 p-8 text-center transition-colors hover:border-primary/60"
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
+          <FileDropzoneCard
+            fileTypeLabel="a GIF or video file"
+            supportedFormats="mp4, webm, mov, avi, mkv, and gif"
+            accept={ACCEPTED_INPUT}
+            onFilesSelected={(incoming) => {
+              const selected = incoming[0] ?? null;
+              if (!selected) {
+                return;
+              }
+
+              const ext = getFileExtension(selected.name);
+              const allowed = ["mp4", "webm", "mov", "avi", "mkv", "gif"];
+              if (!allowed.includes(ext)) {
+                setErrorMessage(
+                  "Unsupported file type. Please upload mp4, webm, mov, avi, mkv, or gif.",
+                );
+                return;
+              }
+
+              clearFrames();
+              setErrorMessage(null);
+              setProgress(0);
+              setFile(selected);
             }}
-            onDrop={onDrop}
-          >
-            <PlaySquare className="mx-auto mb-3 size-9 text-muted-foreground" />
-            <p className="text-base font-semibold">
-              Drop a GIF or video file here
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Accepted: mp4, webm, mov, avi, mkv, gif
-            </p>
-
-            <input
-              ref={inputRef}
-              type="file"
-              accept={ACCEPTED_INPUT}
-              className="hidden"
-              onChange={onFileSelect}
-            />
-
-            <Button
-              className="mt-4"
-              variant="secondary"
-              onClick={() => inputRef.current?.click()}
-            >
-              <Upload className="size-4" />
-              Choose media file
-            </Button>
-          </div>
+          />
 
           {file ? (
             <div className="rounded-xl border border-white/10 bg-background/40 p-4">
@@ -368,7 +317,7 @@ export default function FramesExtractorTool() {
       </Card>
 
       {frames.length > 0 ? (
-        <Card className="border-white/10 bg-card/70">
+        <Card className="tool-card-inline">
           <CardHeader className="border-b border-white/10">
             <CardTitle className="text-lg">
               Extracted frame thumbnails

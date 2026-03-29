@@ -2,10 +2,10 @@
 
 import React, { useState, useMemo } from "react";
 import { Dices, Copy, CheckCircle2, SlidersVertical } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Button } from "@/components/ui/Button";
+import { Slider } from "@/components/ui/Slider";
+import { Textarea } from "@/components/ui/form/Textarea";
 
 export default function BlobGeneratorTool() {
   const [tlX, setTlX] = useState<number>(30);

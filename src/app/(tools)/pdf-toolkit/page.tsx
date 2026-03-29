@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import PdfToolkitTool from "./_components/PdfToolkitTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function PdfToolkitPage() {
     <ToolPageShell
       title="PDF Toolkit"
       description="Merge multiple files, break PDFs apart by page, reorder structure, or compress files directly in your browser."
-      fullWidth
     >
       <PdfToolkitTool />
     </ToolPageShell>

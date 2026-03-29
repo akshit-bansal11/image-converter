@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { fetchFile } from "@ffmpeg/util";
 import {
   AudioLines,
   Download,
-  FileVideo,
   Loader2,
   ScissorsLineDashed,
-  Upload,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/interaction/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
+import { Progress } from "@/components/ui/feedback/Progress";
+import { Select } from "@/components/ui/form/Select";
 import {
   type AudioOutputFormat,
   formatFileSize,
@@ -45,7 +44,6 @@ export default function AudioExtractorTool() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ExtractResult | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const revokeResult = useCallback((nextResult: ExtractResult | null) => {
     if (nextResult?.url) {
@@ -72,38 +70,6 @@ export default function AudioExtractorTool() {
       setResult(null);
     },
     [result, revokeResult],
-  );
-
-  const onFileSelect = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFile = event.target.files?.[0] ?? null;
-      handleFile(selectedFile);
-      event.target.value = "";
-    },
-    [handleFile],
-  );
-
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const file = event.dataTransfer.files?.[0] ?? null;
-      if (!file) {
-        return;
-      }
-
-      const isAcceptedMime = ACCEPTED_VIDEO.split(",").includes(file.type);
-      if (!isAcceptedMime) {
-        setErrorMessage(
-          "Unsupported video type. Please upload mp4, mkv, mov, avi, webm, or flv.",
-        );
-        return;
-      }
-
-      handleFile(file);
-    },
-    [handleFile],
   );
 
   const onFormatChange = useCallback(
@@ -195,45 +161,27 @@ export default function AudioExtractorTool() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-card/70">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <AudioLines className="size-5 text-primary" />
-            Extract audio from video
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div
-            className="rounded-2xl border-2 border-dashed border-white/15 bg-background/40 p-8 text-center transition-colors hover:border-primary/60"
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
+            <FileDropZoneCard
+            fileTypeLabel="a video file"
+            supportedFormats="mp4, mkv, mov, avi, webm, and flv"
+            accept={ACCEPTED_VIDEO}
+            onFilesSelected={(incoming) => {
+              const file = incoming[0] ?? null;
+              if (!file) {
+                return;
+              }
+
+              const isAcceptedMime = ACCEPTED_VIDEO.split(",").includes(file.type);
+              if (!isAcceptedMime) {
+                setErrorMessage(
+                  "Unsupported video type. Please upload mp4, mkv, mov, avi, webm, or flv.",
+                );
+                return;
+              }
+
+              handleFile(file);
             }}
-            onDrop={onDrop}
-          >
-            <FileVideo className="mx-auto mb-3 size-9 text-muted-foreground" />
-            <p className="text-base font-semibold">Drop a video file here</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Accepted: mp4, mkv, mov, avi, webm, flv
-            </p>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPTED_VIDEO}
-              className="hidden"
-              onChange={onFileSelect}
-            />
-
-            <Button
-              className="mt-4"
-              variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="size-4" />
-              Choose video file
-            </Button>
-          </div>
+          />
 
           {inputFile ? (
             <div className="rounded-xl border border-white/10 bg-background/40 p-4">
@@ -336,8 +284,6 @@ export default function AudioExtractorTool() {
               {errorMessage}
             </div>
           ) : null}
-        </CardContent>
-      </Card>
     </div>
   );
 }

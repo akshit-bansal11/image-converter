@@ -1,4 +1,4 @@
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import BoxShadowTool from "./_components/BoxShadowTool";
 
 export const metadata = {
@@ -12,7 +12,6 @@ export default function BoxShadowPage() {
     <ToolPageShell
       title="Box Shadow Generator"
       description="Create layered CSS shadows natively through visual controls and export the exact styling string for your projects."
-      fullWidth
     >
       <BoxShadowTool />
     </ToolPageShell>

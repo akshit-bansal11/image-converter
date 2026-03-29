@@ -1,5 +1,5 @@
-import { CopyButton } from "@/components/design-tools/copy-button";
-import { Label } from "@/components/ui/label";
+import { CopyButton } from "@/components/ui/design/CopyButton";
+import { Label } from "@/components/ui/form/Label";
 import { cn } from "@/lib/utils";
 
 interface OutputFieldProps {
@@ -18,7 +18,7 @@ export function OutputField({
   valueClassName,
 }: OutputFieldProps) {
   return (
-    <div className={cn("rounded-2xl border bg-background/60 p-4", className)}>
+    <div className={cn("tool-card p-4", className)}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Label className="block">{label}</Label>
@@ -30,7 +30,7 @@ export function OutputField({
       </div>
       <pre
         className={cn(
-          "mt-4 overflow-x-auto rounded-xl border bg-background/80 p-4 font-mono text-sm whitespace-pre-wrap break-all text-emerald-200",
+          "surface-inset mt-4 overflow-x-auto p-4 font-mono text-sm whitespace-pre-wrap break-all text-emerald-200",
           valueClassName,
         )}
       >

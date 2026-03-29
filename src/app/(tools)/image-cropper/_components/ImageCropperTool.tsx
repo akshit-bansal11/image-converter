@@ -12,16 +12,15 @@ import JSZip from "jszip";
 import {
   Crop,
   Download,
-  ImageIcon,
   Loader2,
   Scissors,
-  Upload,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Select } from "@/components/ui/form/Select";
 import { formatFileSize, uid } from "@/lib/ffmpeg/client";
 
 type CropMode = "individual" | "batch";
@@ -470,11 +469,8 @@ export default function ImageCropperTool() {
   const [mode, setMode] = useState<CropMode>("individual");
   const [aspect, setAspect] = useState<AspectValue>("free");
   const [batchCrop, setBatchCrop] = useState<CropRect | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const dragCounter = useRef(0);
 
   const aspectRatio = useMemo(() => getAspectRatio(aspect), [aspect]);
 
@@ -564,31 +560,6 @@ export default function ImageCropperTool() {
     setBatchCrop(null);
     setErrorMessage(null);
   }, [images]);
-
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setIsDragging(false);
-      dragCounter.current = 0;
-      const files = Array.from(event.dataTransfer.files);
-      if (files.length > 0) {
-        void addFiles(files);
-      }
-    },
-    [addFiles],
-  );
-
-  const onSelectFiles = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files ? Array.from(event.target.files) : [];
-      if (files.length > 0) {
-        void addFiles(files);
-      }
-      event.target.value = "";
-    },
-    [addFiles],
-  );
 
   const generatePreviewForImage = useCallback(
     async (image: UploadedImage) => {
@@ -687,7 +658,7 @@ export default function ImageCropperTool() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-card/70">
+      <Card className="tool-card-inline">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Crop className="size-5 text-primary" />
@@ -769,58 +740,15 @@ export default function ImageCropperTool() {
             </div>
           </div>
 
-          <div
-            className={`rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
-              isDragging
-                ? "border-primary bg-primary/10"
-                : "border-white/15 bg-background/40 hover:border-primary/60"
-            }`}
-            onDragEnter={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              dragCounter.current += 1;
-              setIsDragging(true);
+          <FileDropzoneCard
+            fileTypeLabel="image files"
+            supportedFormats="JPG, PNG, and WEBP"
+            accept={ACCEPTED_IMAGES}
+            multiple
+            onFilesSelected={(files) => {
+              void addFiles(files);
             }}
-            onDragLeave={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              dragCounter.current -= 1;
-              if (dragCounter.current === 0) {
-                setIsDragging(false);
-              }
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            onDrop={onDrop}
-          >
-            <ImageIcon className="mx-auto mb-3 size-9 text-muted-foreground" />
-            <p className="text-base font-semibold">
-              Drop one or multiple images here
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Drag inside the crop box to move. Drag edges or corners to resize.
-            </p>
-
-            <input
-              ref={inputRef}
-              type="file"
-              accept={ACCEPTED_IMAGES}
-              multiple
-              className="hidden"
-              onChange={onSelectFiles}
-            />
-
-            <Button
-              className="mt-4"
-              variant="secondary"
-              onClick={() => inputRef.current?.click()}
-            >
-              <Upload className="size-4" />
-              Upload images
-            </Button>
-          </div>
+          />
 
           {errorMessage ? (
             <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
@@ -831,7 +759,7 @@ export default function ImageCropperTool() {
       </Card>
 
       {mode === "batch" && referenceImage && batchCrop ? (
-        <Card className="border-white/10 bg-card/70">
+        <Card className="tool-card-inline">
           <CardHeader className="border-b border-white/10">
             <CardTitle className="text-lg">Shared batch crop region</CardTitle>
           </CardHeader>
@@ -865,7 +793,7 @@ export default function ImageCropperTool() {
       ) : null}
 
       {images.length > 0 ? (
-        <Card className="border-white/10 bg-card/70">
+        <Card className="tool-card-inline">
           <CardHeader className="border-b border-white/10">
             <CardTitle className="text-lg">
               Image list ({images.length})

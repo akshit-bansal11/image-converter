@@ -86,3 +86,85 @@
       "calt" 1;
   }
 }
+
+/* ───────────────────────────────────────────────
+   Design-system utilities
+   All pages and tool components share these.
+   ─────────────────────────────────────────────── */
+
+@layer components {
+  /* Full-page shell: gradient background */
+  .page-shell {
+    @apply relative min-h-screen;
+    background: linear-gradient(
+      135deg,
+      hsl(0 0% 5.5%) 0%,
+      hsl(0 0% 5.5%) 50%,
+      hsl(210 6% 8%) 100%
+    );
+  }
+
+  /* Subtle grid + radial glow overlay */
+  .page-grid-overlay {
+    @apply fixed inset-0 pointer-events-none;
+    background:
+      radial-gradient(
+        ellipse at 50% 0%,
+        rgba(255, 255, 255, 0.06) 0%,
+        transparent 50%
+      ),
+      linear-gradient(
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px
+      );
+    background-size:
+      auto,
+      64px 64px,
+      64px 64px;
+  }
+
+  /* Main content area — always full-width with consistent padding */
+  .page-main {
+    @apply relative z-10 mx-auto w-full px-5 py-6 sm:px-8 sm:py-8 lg:px-10 xl:px-12;
+    max-width: 1600px;
+  }
+
+  /* Glass-morphism button */
+  .glass-button {
+    @apply bg-white/[0.03] backdrop-blur-sm border-white/10 hover:bg-white/[0.06] hover:border-white/15 transition-all;
+  }
+
+  /* Consistent tool card — used inside each tool component */
+  .tool-card {
+    @apply rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm;
+  }
+
+  /* Inner recessed surfaces (textareas, code blocks, etc.) */
+  .surface-inset {
+    @apply rounded-xl border border-white/[0.06] bg-black/20;
+  }
+
+  /* Drop zone styling */
+  .drop-zone {
+    @apply rounded-[1.75rem] border-2 border-dashed border-white/[0.12] bg-white/[0.02] p-8 text-center transition-all duration-300;
+  }
+  .drop-zone:hover,
+  .drop-zone-active {
+    @apply border-emerald-500/55 bg-emerald-500/[0.05];
+  }
+
+  /* Error banner */
+  .error-banner {
+    @apply rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300;
+  }
+
+  /* Emerald accent badge (used for status, "client-side" pills, etc.) */
+  .badge-emerald {
+    @apply border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-300;
+  }
+}

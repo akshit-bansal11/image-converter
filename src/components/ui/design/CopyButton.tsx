@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/interaction/Button";
 import { cn } from "@/lib/utils";
 
 interface CopyButtonProps {

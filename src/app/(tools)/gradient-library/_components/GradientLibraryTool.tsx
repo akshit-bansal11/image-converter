@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Download, Search } from "lucide-react";
-import { CopyButton } from "@/components/design-tools/copy-button";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { CopyButton } from "@/components/design-tools/CopyButton";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/form/Input";
+import { Badge } from "@/components/ui/feedback/Badge";
 import { gradientPresets } from "@/lib/design-tools/data/gradient-presets";
 import { cn } from "@/lib/utils";
 import {

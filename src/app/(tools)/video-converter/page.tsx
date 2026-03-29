@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getToolBySlug } from "@/config/tools";
-import { ToolPageShell } from "@/components/tool-page-shell";
+import { ToolPageShell } from "@/components/ToolPageShell";
 import VideoConverterTool from "./_components/VideoConverterTool";
 
 const tool = getToolBySlug("video-converter");
@@ -16,7 +16,7 @@ export default function VideoConverterPage() {
   }
 
   return (
-    <ToolPageShell title={tool.name} description={tool.description} fullWidth>
+    <ToolPageShell title={tool.name} description={tool.description}>
       <VideoConverterTool />
     </ToolPageShell>
   );

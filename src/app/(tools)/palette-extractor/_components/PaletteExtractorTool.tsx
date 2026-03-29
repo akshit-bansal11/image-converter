@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, ImageUp, KeyRound, Loader2 } from "lucide-react";
-import { CopyButton } from "@/components/design-tools/copy-button";
-import { GeminiApiKeyDialog } from "@/components/design-tools/gemini-api-key-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle2, Copy, KeyRound, Loader2 } from "lucide-react";
+import { CopyButton } from "@/components/design-tools/CopyButton";
+import { GeminiApiKeyDialog } from "@/components/design-tools/GeminiApiKeyDialog";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
 import { GEMINI_API_KEY_STORAGE_KEY } from "@/lib/design-tools/constants";
 import {
   extractPaletteWithGemini,
@@ -28,9 +29,7 @@ export default function PaletteExtractorTool() {
     setDialogOpen(!storedKey);
   }, []);
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
+  async function handleFile(file: File | null) {
     if (!file) {
       return;
     }
@@ -96,10 +95,10 @@ export default function PaletteExtractorTool() {
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <Card className="border-white/10 bg-card/70">
-          <CardHeader className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <CardTitle>Upload an Image</CardTitle>
+        <CardHeader className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle>Upload an Image</CardTitle>
                 <p className="mt-2 text-sm text-muted-foreground">
                   The extractor uses Gemini vision to return the dominant
                   palette from your uploaded image.
@@ -112,39 +111,32 @@ export default function PaletteExtractorTool() {
                 onClick={() => setDialogOpen(true)}
               >
                 <KeyRound className="size-4" />
-                {apiKey ? "Change Key" : "Add Key"}
-              </Button>
-            </div>
-          </CardHeader>
+              {apiKey ? "Change Key" : "Add Key"}
+            </Button>
+          </div>
+        </CardHeader>
 
-          <CardContent className="space-y-4">
-            <label
-              className={`flex min-h-[260px] cursor-pointer flex-col items-center justify-center rounded-[2rem] border border-dashed bg-background/50 p-8 text-center transition ${
-                apiKey
-                  ? "hover:border-primary/40 hover:bg-background/70"
-                  : "cursor-not-allowed opacity-60"
-              }`}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-                disabled={!apiKey || isLoading}
-              />
-              <div className="rounded-2xl border bg-background/80 p-4">
-                <ImageUp className="size-8" />
-              </div>
-              <p className="mt-4 text-lg font-medium">
-                {apiKey
-                  ? "Click to upload an image"
-                  : "Add a Gemini API key first"}
+        <CardContent className="space-y-4">
+          <FileDropzoneCard
+            fileTypeLabel="an image"
+            supportedFormats="PNG, JPG, JPEG, WEBP, and GIF"
+            accept="image/*"
+            disabled={!apiKey || isLoading}
+            onFilesSelected={(files) => {
+              void handleFile(files[0] ?? null);
+            }}
+          >
+            {!apiKey ? (
+              <p className="text-sm text-muted-foreground">
+                Add a Gemini API key to enable uploads.
               </p>
-              <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+            ) : (
+              <p className="text-sm text-muted-foreground">
                 The file never touches your server. The request goes directly
                 from your browser to Gemini when extraction starts.
               </p>
-            </label>
+            )}
+          </FileDropzoneCard>
 
             {image ? (
               <div className="overflow-hidden rounded-[2rem] border">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   AlertCircle,
   ArchiveIcon,
@@ -14,17 +14,17 @@ import {
   RotateCcw,
   Sparkles,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { Slider } from "@/components/ui/slider";
-import { Select } from "@/components/ui/select";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/layout/Card";
+import { Badge } from "@/components/ui/feedback/Badge";
+import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { Separator } from "@/components/ui/layout/Separator";
+import { Progress } from "@/components/ui/feedback/Progress";
+import { Slider } from "@/components/ui/Slider";
+import { Select } from "@/components/ui/form/Select";
+import { Tooltip } from "@/components/ui/feedback/Tooltip";
 import {
   areFormatsEquivalent,
   type ConversionStatus,
@@ -68,11 +68,8 @@ function summarizeUploadIssues(issues: string[]) {
 
 export default function ImageConverter() {
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragCounter = useRef(0);
 
   const addFiles = useCallback(async (newFiles: File[]) => {
     const validFiles: File[] = [];
@@ -141,53 +138,6 @@ export default function ImageConverter() {
 
     setFiles((prev) => [...prev, ...items]);
   }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current--;
-    if (dragCounter.current === 0) {
-      setIsDragging(false);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      dragCounter.current = 0;
-
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      if (droppedFiles.length > 0) {
-        void addFiles(droppedFiles);
-      }
-    },
-    [addFiles],
-  );
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selected = e.target.files ? Array.from(e.target.files) : [];
-      if (selected.length > 0) {
-        void addFiles(selected);
-      }
-      e.target.value = "";
-    },
-    [addFiles],
-  );
 
   const updateFile = useCallback((id: string, updates: Partial<FileItem>) => {
     setFiles((prev) =>
@@ -416,71 +366,15 @@ export default function ImageConverter() {
         </div>
       )}
 
-      <Card
-        className={`relative overflow-hidden transition-all duration-300 ${
-          isDragging
-            ? "scale-[1.01] border-primary/50 bg-primary/5 shadow-lg shadow-primary/10"
-            : "border-dashed hover:border-muted-foreground/30 hover:shadow-md"
-        }`}
-      >
-        <div
-          className="p-8 sm:p-12"
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept={ACCEPTED_INPUT}
-            className="hidden"
-            onChange={handleFileSelect}
-            id="file-upload"
-          />
-          <label
-            htmlFor="file-upload"
-            className="flex cursor-pointer flex-col items-center gap-4"
-          >
-            <div
-              className={`rounded-2xl p-5 transition-all duration-300 ${
-                isDragging
-                  ? "scale-110 bg-primary/10"
-                  : "bg-muted/50 hover:bg-muted"
-              }`}
-            >
-              <Upload
-                className={`size-8 transition-colors ${
-                  isDragging ? "text-primary" : "text-muted-foreground"
-                }`}
-              />
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold">
-                {isDragging ? (
-                  "Drop files here"
-                ) : (
-                  <>
-                    Drag & drop files or{" "}
-                    <span className="text-primary underline underline-offset-4">
-                      browse
-                    </span>
-                  </>
-                )}
-              </p>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, ICO - max 10MB, 4096px
-                per side, 20MP
-              </p>
-            </div>
-          </label>
-        </div>
-
-        {isDragging && (
-          <div className="pointer-events-none absolute inset-0 animate-pulse rounded-xl border-2 border-primary/40" />
-        )}
-      </Card>
+      <FileDropzoneCard
+        fileTypeLabel="image files"
+        supportedFormats="PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, and ICO"
+        accept={ACCEPTED_INPUT}
+        multiple
+        onFilesSelected={(incoming) => {
+          void addFiles(incoming);
+        }}
+      />
 
       {hasFiles && (
         <div className="mt-8 space-y-4">
