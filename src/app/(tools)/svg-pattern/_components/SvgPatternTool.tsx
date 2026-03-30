@@ -64,7 +64,7 @@ export default function SvgPatternTool() {
     const generator = PATTERNS[activePattern];
     // Checker pattern doesn't use width param
     if (activePattern === "checker") {
-      return generator(finalFgHex, size);
+      return generator(finalFgHex, size, fgSize);
     }
     return generator(finalFgHex, size, fgSize);
   }, [activePattern, finalFgHex, size, fgSize]);
@@ -152,7 +152,7 @@ export default function SvgPatternTool() {
               // Small preview SVG for each pattern
               const preview = (() => {
                 const gen = PATTERNS[p];
-                if (p === "checker") return gen(finalFgHex, 24);
+                if (p === "checker") return gen(finalFgHex, 24, 1);
                 return gen(finalFgHex, 24, 1);
               })();
               return (
