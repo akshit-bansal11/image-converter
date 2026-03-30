@@ -632,16 +632,17 @@ export default function PdfConverterTool() {
                       Extract Format
                     </label>
                     <Select
+                      options={[
+                        { label: "PNG Sequence", value: "image/png" },
+                        { label: "JPEG Sequence", value: "image/jpeg" },
+                      ]}
                       value={outputImgFormat}
                       onChange={(e) =>
                         setOutputImgFormat(
                           e.target.value as "image/png" | "image/jpeg",
                         )
                       }
-                    >
-                      <option value="image/png">PNG Sequence</option>
-                      <option value="image/jpeg">JPEG Sequence</option>
-                    </Select>
+                    />
                     <p className="text-[11px] text-muted-foreground mt-1">
                       PNGs preserve transparency and sharp text lines. JPEGs are
                       highly compressed and suitable for photos.

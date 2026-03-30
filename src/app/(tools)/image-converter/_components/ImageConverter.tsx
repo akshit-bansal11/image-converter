@@ -16,13 +16,13 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/interaction/Button";
 import { Card, CardContent } from "@/components/ui/layout/Card";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Separator } from "@/components/ui/layout/Separator";
 import { Progress } from "@/components/ui/feedback/Progress";
-import { Slider } from "@/components/ui/Slider";
+import { Slider } from "@/components/ui/interaction/Slider";
 import { Select } from "@/components/ui/form/Select";
 import { Tooltip } from "@/components/ui/feedback/Tooltip";
 import {
@@ -366,7 +366,7 @@ export default function ImageConverter() {
         </div>
       )}
 
-      <FileDropzoneCard
+      <FileDropZoneCard
         fileTypeLabel="image files"
         supportedFormats="PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, and ICO"
         accept={ACCEPTED_INPUT}
@@ -568,22 +568,16 @@ function FileCard({
           <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
             <div className="flex flex-col gap-1">
               <Select
+                options={availableTargets.map((format) => ({
+                  label: `${FORMAT_LABELS[format]}${UNSUPPORTED_OUTPUT_SET.has(format) ? " (Unavailable)" : ""}`,
+                  value: format,
+                  disabled: UNSUPPORTED_OUTPUT_SET.has(format),
+                }))}
                 value={item.targetFormat}
                 onChange={(e) => onUpdateTarget(e.target.value as ImageFormat)}
                 disabled={item.status === "converting"}
                 className="h-8 w-28 text-xs"
-              >
-                {availableTargets.map((format) => (
-                  <option
-                    key={format}
-                    value={format}
-                    disabled={UNSUPPORTED_OUTPUT_SET.has(format)}
-                  >
-                    {FORMAT_LABELS[format]}
-                    {UNSUPPORTED_OUTPUT_SET.has(format) ? " (Unavailable)" : ""}
-                  </option>
-                ))}
-              </Select>
+              />
             </div>
 
             {isLossyTarget && (

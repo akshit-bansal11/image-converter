@@ -19,7 +19,6 @@ import {
   AUDIO_FORMAT_CODEC_MAP,
   type AudioOutputFormat,
   formatFileSize,
-  getAudioCodecsForFormat,
   getFFmpeg,
   getFileExtension,
   stripExtension,
@@ -33,7 +32,6 @@ interface AudioFileItem {
   file: File;
   sourceFormat: string;
   targetFormat: AudioOutputFormat;
-  codec: string;
   status: ConversionStatus;
   progress: number;
   error?: string;
@@ -46,6 +44,11 @@ const ACCEPTED_AUDIO =
 const AUDIO_FORMATS = Object.keys(
   AUDIO_FORMAT_CODEC_MAP,
 ) as AudioOutputFormat[];
+
+const AUDIO_FORMAT_OPTIONS = AUDIO_FORMATS.map((format) => ({
+  label: format.toUpperCase(),
+  value: format,
+}));
 
 function animateNumber(
   start: number,
@@ -104,14 +107,11 @@ export default function AudioConverterTool() {
     const nextItems: AudioFileItem[] = incoming.map((file) => {
       const sourceFormat = getFileExtension(file.name) || "unknown";
       const targetFormat: AudioOutputFormat = "mp3";
-      const codecs = getAudioCodecsForFormat(targetFormat);
-
       return {
         id: uid("audio"),
         file,
         sourceFormat,
         targetFormat,
-        codec: codecs[0],
         status: "idle",
         progress: 0,
       };
@@ -190,7 +190,7 @@ export default function AudioConverterTool() {
           updateFile(item.id, { progress: value }),
         );
 
-        await ffmpeg.exec(["-i", inputName, "-c:a", item.codec, outputName]);
+        await ffmpeg.exec(["-i", inputName, outputName]);
         progressState.target = 99;
 
         const output = await ffmpeg.readFile(outputName);
@@ -317,7 +317,7 @@ export default function AudioConverterTool() {
       {files.length > 0 && (
         <Card>
           <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <CardTitle className="flex items-center gap-2 text-2xl">
                 Conversion queue
                 <Badge variant="outline" className="badge-emerald text-sm">
@@ -361,122 +361,149 @@ export default function AudioConverterTool() {
               <div className="error-banner">{errorMessage}</div>
             ) : null}
 
-            {files.map((item) => {
-              const availableCodecs = getAudioCodecsForFormat(
-                item.targetFormat,
-              );
-              const isBusy = item.status === "converting";
+            <div className="space-y-4">
+              {files.map((item) => {
+                const isBusy = item.status === "converting";
+                const isDone = item.status === "done";
 
-              return (
-                <div key={item.id} className="surface-inset p-4 space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{item.file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(item.file.size)}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeFile(item.id)}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-3 lg:grid-cols-[auto_auto_1fr_1fr_auto] lg:items-center">
-                    <Badge
-                      variant="outline"
-                      className="w-fit border-white/[0.1] bg-white/[0.03]"
-                    >
-                      {item.sourceFormat || "unknown"}
-                    </Badge>
-                    <ArrowRight className="size-4 text-muted-foreground" />
-
-                    <Select
-                      value={item.targetFormat}
-                      onChange={(event) => {
-                        const nextFormat = event.target
-                          .value as AudioOutputFormat;
-                        const nextCodecs = getAudioCodecsForFormat(nextFormat);
-                        updateFile(item.id, {
-                          targetFormat: nextFormat,
-                          codec: nextCodecs[0],
-                          status: "idle",
-                          progress: 0,
-                          error: undefined,
-                        });
-                      }}
-                      disabled={isBusy}
-                      className="bg-white/[0.03]"
-                    >
-                      {AUDIO_FORMATS.map((format) => (
-                        <option key={format} value={format}>
-                          {format.toUpperCase()}
-                        </option>
-                      ))}
-                    </Select>
-
-                    <Select
-                      value={item.codec}
-                      onChange={(event) =>
-                        updateFile(item.id, {
-                          codec: event.target.value,
-                          status: "idle",
-                          progress: 0,
-                          error: undefined,
-                        })
-                      }
-                      disabled={isBusy}
-                      className="bg-white/[0.03]"
-                    >
-                      {availableCodecs.map((codec) => (
-                        <option key={codec} value={codec}>
-                          {codec}
-                        </option>
-                      ))}
-                    </Select>
-
-                    <div className="flex items-center justify-end gap-2">
+                return (
+                  <div
+                    key={item.id}
+                    className="surface-inset p-5 space-y-4 rounded-lg"
+                  >
+                    {/* Header: File info + Delete */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-white truncate">
+                          {item.file.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatFileSize(item.file.size)}
+                        </p>
+                      </div>
                       <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={isBusy}
-                        onClick={() => void convertOne(item)}
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0"
+                        onClick={() => removeFile(item.id)}
                       >
-                        {isBusy ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : null}
-                        Convert
-                      </Button>
-                      <Button
-                        size="sm"
-                        disabled={item.status !== "done"}
-                        onClick={() => downloadOne(item)}
-                      >
-                        <Download className="size-4" />
-                        Download
+                        <X className="size-4" />
                       </Button>
                     </div>
-                  </div>
 
-                  <Progress value={item.progress} />
+                    {/* Controls Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      {/* Format Selection */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Format
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            variant="outline"
+                            className="flex-shrink-0 border-white/10 bg-white/5 text-xs"
+                          >
+                            {item.sourceFormat || "unknown"}
+                          </Badge>
+                          <ArrowRight className="size-3.5 text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <Select
+                              options={AUDIO_FORMAT_OPTIONS}
+                              className="h-10 surface-inset border-white/[0.06] bg-white/[0.06] text-foreground shadow-none hover:bg-white/[0.09] focus:ring-0 focus:ring-offset-0"
+                              value={item.targetFormat}
+                              onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+                                const nextFormat = event.target
+                                  .value as AudioOutputFormat;
+                                updateFile(item.id, {
+                                  targetFormat: nextFormat,
+                                  status: "idle",
+                                  progress: 0,
+                                  error: undefined,
+                                });
+                              }}
+                              disabled={isBusy}
+                            />
+                          </div>
+                        </div>
+                      </div>
 
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <Badge
-                      variant="outline"
-                      className="border-white/[0.08] bg-white/[0.03]"
-                    >
-                      {item.status}
-                    </Badge>
-                    {item.error ? (
-                      <span className="text-red-300">{item.error}</span>
+                      {/* Status & Progress */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Progress
+                        </label>
+                        <div className="space-y-2">
+                          <Progress value={item.progress} />
+                          <div className="flex items-center justify-between text-xs">
+                            <Badge
+                              variant="outline"
+                              className="border-white/10 bg-white/5"
+                            >
+                              {item.status === "converting"
+                                ? `${item.progress}%`
+                                : item.status}
+                            </Badge>
+                            {item.error ? (
+                              <span className="text-red-400 text-right">
+                                {item.error}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          Actions
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="flex-1"
+                            disabled={isBusy}
+                            onClick={() => void convertOne(item)}
+                          >
+                            {isBusy ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Music className="size-4" />
+                            )}
+                            Convert
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={!isDone}
+                            className="flex-1"
+                            onClick={() => downloadOne(item)}
+                          >
+                            <Download className="size-4" />
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview Section */}
+                    {isDone && item.outputUrl ? (
+                      <div className="mt-2 pt-4 border-t border-white/10">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                          Preview
+                        </p>
+                        <div className="flex justify-center">
+                          <audio
+                            controls
+                            src={item.outputUrl}
+                            className="w-full max-w-sm rounded-lg"
+                          />
+                        </div>
+                      </div>
                     ) : null}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       )}

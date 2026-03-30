@@ -391,6 +391,10 @@ export default function VideoConverterTool() {
                       <ArrowRight className="size-4 text-muted-foreground" />
 
                       <Select
+                        options={VIDEO_FORMATS.map((format) => ({
+                          label: format.toUpperCase(),
+                          value: format,
+                        }))}
                         value={item.targetFormat}
                         onChange={(event) => {
                           const nextFormat = event.target
@@ -409,15 +413,10 @@ export default function VideoConverterTool() {
                           });
                         }}
                         disabled={item.status === "converting"}
-                      >
-                        {VIDEO_FORMATS.map((format) => (
-                          <option key={format} value={format}>
-                            {format.toUpperCase()}
-                          </option>
-                        ))}
-                      </Select>
+                      />
 
                       <Select
+                        options={videoCodecs}
                         value={item.videoCodec}
                         onChange={(event) =>
                           updateFile(item.id, {
@@ -428,15 +427,10 @@ export default function VideoConverterTool() {
                           })
                         }
                         disabled={item.status === "converting"}
-                      >
-                        {videoCodecs.map((codec) => (
-                          <option key={codec} value={codec}>
-                            {codec}
-                          </option>
-                        ))}
-                      </Select>
+                      />
 
                       <Select
+                        options={audioCodecs}
                         value={item.audioCodec}
                         onChange={(event) =>
                           updateFile(item.id, {
@@ -447,13 +441,7 @@ export default function VideoConverterTool() {
                           })
                         }
                         disabled={item.status === "converting"}
-                      >
-                        {audioCodecs.map((codec) => (
-                          <option key={codec} value={codec}>
-                            {codec}
-                          </option>
-                        ))}
-                      </Select>
+                      />
 
                       <div className="flex items-center justify-end gap-2">
                         <Button

@@ -75,15 +75,16 @@ export default function GradientMakerTool() {
               <Label htmlFor="gradient-type">Gradient Type</Label>
               <Select
                 id="gradient-type"
+                options={[
+                  { label: "Linear", value: "linear" },
+                  { label: "Radial", value: "radial" },
+                  { label: "Conic", value: "conic" },
+                ]}
                 value={type}
                 onChange={(event) =>
                   setType(event.target.value as GradientKind)
                 }
-              >
-                <option value="linear">Linear</option>
-                <option value="radial">Radial</option>
-                <option value="conic">Conic</option>
-              </Select>
+              />
             </div>
 
             {type === "linear" ? (
@@ -91,17 +92,15 @@ export default function GradientMakerTool() {
                 <Label htmlFor="linear-angle">Direction / Angle</Label>
                 <Select
                   id="linear-angle"
+                  options={LINEAR_DIRECTION_PRESETS.map((preset) => ({
+                    label: preset.label,
+                    value: String(preset.value),
+                  }))}
                   value={String(linearAngle)}
                   onChange={(event) =>
                     setLinearAngle(Number(event.target.value))
                   }
-                >
-                  {LINEAR_DIRECTION_PRESETS.map((preset) => (
-                    <option key={preset.value} value={preset.value}>
-                      {preset.label}
-                    </option>
-                  ))}
-                </Select>
+                />
               </div>
             ) : null}
 
@@ -110,15 +109,10 @@ export default function GradientMakerTool() {
                 <Label htmlFor="radial-shape">Radial Shape</Label>
                 <Select
                   id="radial-shape"
+                  options={RADIAL_SHAPES}
                   value={radialShape}
                   onChange={(event) => setRadialShape(event.target.value)}
-                >
-                  {RADIAL_SHAPES.map((shape) => (
-                    <option key={shape} value={shape}>
-                      {shape}
-                    </option>
-                  ))}
-                </Select>
+                />
               </div>
             ) : null}
 

@@ -695,17 +695,15 @@ export default function ImageCropperTool() {
                 Aspect ratio preset
               </p>
               <Select
+                options={ASPECT_PRESETS.map((preset) => ({
+                  label: preset.label,
+                  value: preset.value,
+                }))}
                 value={aspect}
                 onChange={(event) =>
                   setAspect(event.target.value as AspectValue)
                 }
-              >
-                {ASPECT_PRESETS.map((preset) => (
-                  <option key={preset.value} value={preset.value}>
-                    {preset.label}
-                  </option>
-                ))}
-              </Select>
+              />
             </div>
 
             <div className="flex flex-wrap gap-2">

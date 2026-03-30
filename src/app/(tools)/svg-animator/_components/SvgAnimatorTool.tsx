@@ -26,6 +26,9 @@ interface ParsedSvgData {
 const MIN_SPEED = 0.01;
 const MAX_SPEED = 5;
 const DEFAULT_SPEED = 0.5;
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 3;
+const DEFAULT_ZOOM = 1;
 
 const MIN_STROKE_WIDTH = 0.5;
 const MAX_STROKE_WIDTH = 10;
@@ -61,22 +64,6 @@ function readSvgText(file: File) {
 
     reader.readAsText(file);
   });
-}
-
-function mergeInlineStyle(node: Element, styleChunk: string) {
-  const existing = node.getAttribute("style");
-  const normalized = existing?.trim();
-
-  if (!normalized) {
-    node.setAttribute("style", styleChunk);
-    return;
-  }
-
-  const next = normalized.endsWith(";")
-    ? `${normalized} ${styleChunk}`
-    : `${normalized}; ${styleChunk}`;
-
-  node.setAttribute("style", next);
 }
 
 function measurePathLengths(svg: SVGSVGElement) {
@@ -129,40 +116,62 @@ function buildAnimatedSvg(
     return "";
   }
 
-  svg.querySelectorAll("style[data-svg-animator='true']").forEach((node) => {
-    node.remove();
-  });
+  svg
+    .querySelectorAll("style[data-svg-animator='true'], animate[data-svg-animator='true']")
+    .forEach((node) => {
+      node.remove();
+    });
 
   const paths = Array.from(svg.querySelectorAll("path"));
+  paths.forEach((path) => {
+    const existingAnimations = path.querySelectorAll(
+      "animate[data-svg-animator='true']",
+    );
+
+    existingAnimations.forEach((node) => {
+      node.remove();
+    });
+  });
+
   paths.forEach((path, index) => {
     const length = Math.max(pathLengths[index] ?? 1, 1);
     const delay = mode === "sequential" ? index * durationPerPath : 0;
 
     path.removeAttribute("stroke");
     path.removeAttribute("stroke-width");
+    path.removeAttribute("stroke-dasharray");
+    path.removeAttribute("stroke-dashoffset");
 
-    const styles = [
-      `stroke:${strokeColor} !important`,
-      `stroke-width:${strokeWidth} !important`,
-      `stroke-dasharray:${length}`,
-      `stroke-dashoffset:${length}`,
-      `animation:svgPathDraw ${durationPerPath}s ease forwards`,
-      `animation-delay:${delay}s`,
-    ];
+    path.setAttribute("stroke", strokeColor);
+    path.setAttribute("stroke-width", String(strokeWidth));
+    path.setAttribute("stroke-dasharray", String(length));
+    path.setAttribute("stroke-dashoffset", String(length));
 
     if (!hasFill) {
-      path.removeAttribute("fill");
-      styles.push("fill:none !important");
+      path.setAttribute("fill", "none");
     }
 
-    mergeInlineStyle(path, styles.join(";"));
+    const animate = doc.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "animate",
+    );
+
+    animate.setAttribute("data-svg-animator", "true");
+    animate.setAttribute("attributeName", "stroke-dashoffset");
+    animate.setAttribute("from", String(length));
+    animate.setAttribute("to", "0");
+    animate.setAttribute("dur", `${durationPerPath}s`);
+    animate.setAttribute("begin", `${delay}s`);
+    animate.setAttribute("fill", "freeze");
+    animate.setAttribute("calcMode", "spline");
+    animate.setAttribute("keySplines", "0.25 0.1 0.25 1");
+    animate.setAttribute("keyTimes", "0;1");
+
+    path.appendChild(animate);
   });
 
-  const style = doc.createElement("style");
-  style.setAttribute("data-svg-animator", "true");
-  style.textContent = "@keyframes svgPathDraw { to { stroke-dashoffset: 0; } }";
-
-  svg.insertBefore(style, svg.firstChild);
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
   return new XMLSerializer().serializeToString(svg);
 }
@@ -178,6 +187,7 @@ export default function SvgAnimatorTool() {
   const [strokeColor, setStrokeColor] = useState(DEFAULT_STROKE_COLOR);
   const [strokeWidth, setStrokeWidth] = useState(DEFAULT_STROKE_WIDTH);
   const [hasFill, setHasFill] = useState(true);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replayTick, setReplayTick] = useState(0);
 
@@ -410,6 +420,21 @@ export default function SvgAnimatorTool() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label className="text-xs">Zoom: {Math.round(zoom * 100)}%</Label>
+                <Slider
+                  value={zoom}
+                  min={MIN_ZOOM}
+                  max={MAX_ZOOM}
+                  step={0.05}
+                  onChange={(event) => {
+                    const next = Number(event.currentTarget.value);
+                    setZoom(next);
+                  }}
+                  disabled={!parsedSvg}
+                />
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -454,10 +479,11 @@ export default function SvgAnimatorTool() {
               <CardTitle className="text-sm">Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-2xl border border-white/10 bg-background/40 p-6">
+              <div className="overflow-auto rounded-2xl border border-white/10 bg-background/40 p-6">
                 <div
                   key={previewKey}
-                  className="flex min-h-[420px] items-center justify-center text-foreground [&_svg]:h-auto [&_svg]:max-h-[400px] [&_svg]:max-w-full"
+                  className="flex min-h-[420px] items-center justify-center text-foreground [&_svg]:h-auto [&_svg]:max-h-none [&_svg]:max-w-none"
+                  style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}
                   dangerouslySetInnerHTML={{ __html: animatedSvg }}
                 />
               </div>
