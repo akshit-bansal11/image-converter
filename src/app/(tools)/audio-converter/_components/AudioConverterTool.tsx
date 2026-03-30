@@ -1,24 +1,17 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchFile } from "@ffmpeg/util";
 import JSZip from "jszip";
-import {
-  ArrowRight,
-  Download,
-  Loader2,
-  Music,
-  Trash2,
-  X,
-} from "lucide-react";
+import { ArrowRight, Download, Loader2, Music, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { Button } from "@/components/ui/interaction/Button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/layout/Card";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Progress } from "@/components/ui/feedback/Progress";
 import { Select } from "@/components/ui/form/Select";
@@ -322,24 +315,19 @@ export default function AudioConverterTool() {
       />
 
       {files.length > 0 && (
-        <div className="tool-card">
-          <CardHeader className="border-b border-white/[0.06]">
+        <Card>
+          <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Music className="size-5 text-emerald-400" />
-                Conversion queue ({files.length})
-              </CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="badge-emerald"
-                >
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                Conversion queue
+                <Badge variant="outline" className="badge-emerald text-sm">
                   {doneCount} done
                 </Badge>
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="glass-button"
                   disabled={isConvertingAll}
                   onClick={() => void convertAll()}
                 >
@@ -349,9 +337,8 @@ export default function AudioConverterTool() {
                   Convert all
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="glass-button"
                   disabled={isDownloadingZip}
                   onClick={() => void downloadAll()}
                 >
@@ -369,11 +356,9 @@ export default function AudioConverterTool() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 p-5">
+          <CardContent>
             {errorMessage ? (
-              <div className="error-banner">
-                {errorMessage}
-              </div>
+              <div className="error-banner">{errorMessage}</div>
             ) : null}
 
             {files.map((item) => {
@@ -383,10 +368,7 @@ export default function AudioConverterTool() {
               const isBusy = item.status === "converting";
 
               return (
-                <div
-                  key={item.id}
-                  className="surface-inset p-4 space-y-4"
-                >
+                <div key={item.id} className="surface-inset p-4 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">{item.file.name}</p>
@@ -417,8 +399,7 @@ export default function AudioConverterTool() {
                       onChange={(event) => {
                         const nextFormat = event.target
                           .value as AudioOutputFormat;
-                        const nextCodecs =
-                          getAudioCodecsForFormat(nextFormat);
+                        const nextCodecs = getAudioCodecsForFormat(nextFormat);
                         updateFile(item.id, {
                           targetFormat: nextFormat,
                           codec: nextCodecs[0],
@@ -460,8 +441,7 @@ export default function AudioConverterTool() {
                     <div className="flex items-center justify-end gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="glass-button"
+                        variant="secondary"
                         disabled={isBusy}
                         onClick={() => void convertOne(item)}
                       >
@@ -498,7 +478,7 @@ export default function AudioConverterTool() {
               );
             })}
           </CardContent>
-        </div>
+        </Card>
       )}
     </div>
   );

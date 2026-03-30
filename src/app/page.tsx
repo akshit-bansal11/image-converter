@@ -3,9 +3,9 @@ import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { RepositoryCorner } from "@/components/common/RepositoryCorner";
 import { SiteFooter } from "@/components/ui/layout/SiteFooter";
-import { ToolCard } from "@/components/common/ToolCard";
 
 import { tools } from "@/config/tools";
+import { GridCard } from "@/components/ui/layout/GridCard";
 
 const inDevelopmentSlugs = new Set([
   "video-converter",
@@ -41,13 +41,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-8">
+        <section>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {tools.map((tool) => {
               const isInDevelopment = inDevelopmentSlugs.has(tool.slug);
 
               const card = (
-                <ToolCard tool={tool} isInDevelopment={isInDevelopment} />
+                <GridCard tool={tool} isInDevelopment={isInDevelopment} />
               );
 
               if (isInDevelopment) {
