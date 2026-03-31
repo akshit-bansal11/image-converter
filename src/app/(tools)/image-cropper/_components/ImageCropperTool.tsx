@@ -1,468 +1,29 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import NextImage from "next/image";
 import JSZip from "jszip";
-import {
-  Crop,
-  Download,
-  Loader2,
-  Scissors,
-  X,
-} from "lucide-react";
+import { Crop, Download, Loader2, Scissors, X } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/interaction/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
-import { FileDropzoneCard } from "@/components/ui/FileDropZone";
+import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Select } from "@/components/ui/form/Select";
 import { formatFileSize, uid } from "@/lib/ffmpeg/client";
-
-type CropMode = "individual" | "batch";
-
-type Handle = "move" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
-
-interface CropRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-interface UploadedImage {
-  id: string;
-  file: File;
-  name: string;
-  type: string;
-  size: number;
-  srcUrl: string;
-  width: number;
-  height: number;
-  crop: CropRect;
-  outputUrl?: string;
-  outputBlob?: Blob;
-}
-
-interface PointerState {
-  active: boolean;
-  pointerId: number | null;
-  handle: Handle;
-  startPoint: { x: number; y: number };
-  startRect: CropRect;
-}
-
-const ACCEPTED_IMAGES = "image/*";
-const MIN_CROP_SIZE = 20;
-
-const ASPECT_PRESETS = [
-  { value: "free", label: "Free", ratio: null },
-  { value: "1:1", label: "1:1", ratio: 1 },
-  { value: "4:3", label: "4:3", ratio: 4 / 3 },
-  { value: "16:9", label: "16:9", ratio: 16 / 9 },
-  { value: "3:2", label: "3:2", ratio: 3 / 2 },
-  { value: "2:3", label: "2:3", ratio: 2 / 3 },
-] as const;
-
-type AspectValue = (typeof ASPECT_PRESETS)[number]["value"];
-
-function createDefaultCrop(width: number, height: number): CropRect {
-  const targetW = Math.max(MIN_CROP_SIZE, Math.round(width * 0.7));
-  const targetH = Math.max(MIN_CROP_SIZE, Math.round(height * 0.7));
-  const x = Math.round((width - targetW) / 2);
-  const y = Math.round((height - targetH) / 2);
-  return { x, y, w: targetW, h: targetH };
-}
-
-function clampRect(rect: CropRect, width: number, height: number): CropRect {
-  const w = Math.max(MIN_CROP_SIZE, Math.min(rect.w, width));
-  const h = Math.max(MIN_CROP_SIZE, Math.min(rect.h, height));
-  const x = Math.max(0, Math.min(rect.x, width - w));
-  const y = Math.max(0, Math.min(rect.y, height - h));
-  return { x, y, w, h };
-}
-
-async function loadImage(url: string): Promise<HTMLImageElement> {
-  const image = new Image();
-  image.decoding = "async";
-  image.src = url;
-
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () => reject(new Error("Unable to load image."));
-  });
-
-  return image;
-}
-
-async function cropToBlob(image: UploadedImage, crop: CropRect): Promise<Blob> {
-  const source = await loadImage(image.srcUrl);
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(crop.w));
-  canvas.height = Math.max(1, Math.round(crop.h));
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Unable to initialize image canvas context.");
-  }
-
-  context.drawImage(
-    source,
-    crop.x,
-    crop.y,
-    crop.w,
-    crop.h,
-    0,
-    0,
-    crop.w,
-    crop.h,
-  );
-
-  const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, image.type || "image/png", 0.95);
-  });
-
-  if (!blob) {
-    throw new Error("Failed to export cropped image.");
-  }
-
-  return blob;
-}
-
-function clampBatchCropToImage(
-  batchCrop: CropRect,
-  image: UploadedImage,
-): CropRect {
-  return clampRect(batchCrop, image.width, image.height);
-}
-
-function getAspectRatio(value: AspectValue): number | null {
-  return ASPECT_PRESETS.find((preset) => preset.value === value)?.ratio ?? null;
-}
-
-function pointToCanvasSpace(
-  canvas: HTMLCanvasElement,
-  clientX: number,
-  clientY: number,
-) {
-  const rect = canvas.getBoundingClientRect();
-  const x = ((clientX - rect.left) * canvas.width) / rect.width;
-  const y = ((clientY - rect.top) * canvas.height) / rect.height;
-  return { x, y };
-}
-
-function getHandleAtPoint(
-  point: { x: number; y: number },
-  crop: CropRect,
-  tolerance: number,
-): Handle | null {
-  const points: Array<{ handle: Handle; x: number; y: number }> = [
-    { handle: "nw", x: crop.x, y: crop.y },
-    { handle: "n", x: crop.x + crop.w / 2, y: crop.y },
-    { handle: "ne", x: crop.x + crop.w, y: crop.y },
-    { handle: "e", x: crop.x + crop.w, y: crop.y + crop.h / 2 },
-    { handle: "se", x: crop.x + crop.w, y: crop.y + crop.h },
-    { handle: "s", x: crop.x + crop.w / 2, y: crop.y + crop.h },
-    { handle: "sw", x: crop.x, y: crop.y + crop.h },
-    { handle: "w", x: crop.x, y: crop.y + crop.h / 2 },
-  ];
-
-  for (const candidate of points) {
-    if (
-      Math.abs(point.x - candidate.x) <= tolerance &&
-      Math.abs(point.y - candidate.y) <= tolerance
-    ) {
-      return candidate.handle;
-    }
-  }
-
-  if (
-    point.x >= crop.x &&
-    point.x <= crop.x + crop.w &&
-    point.y >= crop.y &&
-    point.y <= crop.y + crop.h
-  ) {
-    return "move";
-  }
-
-  return null;
-}
-
-function resizeRect(
-  start: CropRect,
-  dx: number,
-  dy: number,
-  handle: Handle,
-  ratio: number | null,
-): CropRect {
-  const next: CropRect = { ...start };
-
-  const right = start.x + start.w;
-  const bottom = start.y + start.h;
-
-  if (handle === "move") {
-    return { ...start, x: start.x + dx, y: start.y + dy };
-  }
-
-  if (handle.includes("e")) {
-    next.w = start.w + dx;
-  }
-  if (handle.includes("w")) {
-    next.x = start.x + dx;
-    next.w = right - next.x;
-  }
-  if (handle.includes("s")) {
-    next.h = start.h + dy;
-  }
-  if (handle.includes("n")) {
-    next.y = start.y + dy;
-    next.h = bottom - next.y;
-  }
-
-  if (ratio) {
-    const horizontal = handle.includes("e") || handle.includes("w");
-    const vertical = handle.includes("n") || handle.includes("s");
-
-    if (horizontal && !vertical) {
-      next.h = next.w / ratio;
-      next.y = start.y + (start.h - next.h) / 2;
-    } else if (vertical && !horizontal) {
-      next.w = next.h * ratio;
-      next.x = start.x + (start.w - next.w) / 2;
-    } else {
-      const basedOnWidth = Math.abs(dx) >= Math.abs(dy);
-      if (basedOnWidth) {
-        next.h = next.w / ratio;
-      } else {
-        next.w = next.h * ratio;
-      }
-
-      if (handle.includes("w")) {
-        next.x = right - next.w;
-      }
-      if (handle.includes("n")) {
-        next.y = bottom - next.h;
-      }
-    }
-  }
-
-  return next;
-}
-
-function CropCanvasEditor({
-  image,
-  crop,
-  onCropChange,
-  aspectRatio,
-}: {
-  image: UploadedImage;
-  crop: CropRect;
-  onCropChange: (next: CropRect) => void;
-  aspectRatio: number | null;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
-  const [scale, setScale] = useState(1);
-  const pointerStateRef = useRef<PointerState>({
-    active: false,
-    pointerId: null,
-    handle: "move",
-    startPoint: { x: 0, y: 0 },
-    startRect: crop,
-  });
-
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    const source = imageRef.current;
-    if (!canvas || !source) {
-      return;
-    }
-
-    const context = canvas.getContext("2d");
-    if (!context) {
-      return;
-    }
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(source, 0, 0, canvas.width, canvas.height);
-
-    const scaledCrop = {
-      x: crop.x * scale,
-      y: crop.y * scale,
-      w: crop.w * scale,
-      h: crop.h * scale,
-    };
-
-    context.fillStyle = "rgba(0, 0, 0, 0.48)";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.clearRect(scaledCrop.x, scaledCrop.y, scaledCrop.w, scaledCrop.h);
-
-    context.strokeStyle = "#4ade80";
-    context.lineWidth = 2;
-    context.strokeRect(scaledCrop.x, scaledCrop.y, scaledCrop.w, scaledCrop.h);
-
-    const handleRadius = 4;
-    const handlePoints = [
-      [scaledCrop.x, scaledCrop.y],
-      [scaledCrop.x + scaledCrop.w / 2, scaledCrop.y],
-      [scaledCrop.x + scaledCrop.w, scaledCrop.y],
-      [scaledCrop.x + scaledCrop.w, scaledCrop.y + scaledCrop.h / 2],
-      [scaledCrop.x + scaledCrop.w, scaledCrop.y + scaledCrop.h],
-      [scaledCrop.x + scaledCrop.w / 2, scaledCrop.y + scaledCrop.h],
-      [scaledCrop.x, scaledCrop.y + scaledCrop.h],
-      [scaledCrop.x, scaledCrop.y + scaledCrop.h / 2],
-    ];
-
-    context.fillStyle = "#4ade80";
-    handlePoints.forEach(([x, y]) => {
-      context.beginPath();
-      context.arc(x, y, handleRadius, 0, Math.PI * 2);
-      context.fill();
-    });
-  }, [crop, scale]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const setup = async () => {
-      const source = await loadImage(image.srcUrl);
-      if (!mounted) {
-        return;
-      }
-
-      imageRef.current = source;
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        return;
-      }
-
-      const maxWidth = 840;
-      const maxHeight = 460;
-      const computedScale = Math.min(
-        maxWidth / image.width,
-        maxHeight / image.height,
-        1,
-      );
-      const canvasWidth = Math.max(1, Math.round(image.width * computedScale));
-      const canvasHeight = Math.max(
-        1,
-        Math.round(image.height * computedScale),
-      );
-
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-      setScale(computedScale);
-    };
-
-    void setup();
-
-    return () => {
-      mounted = false;
-      imageRef.current = null;
-    };
-  }, [image.height, image.srcUrl, image.width]);
-
-  useEffect(() => {
-    draw();
-  }, [draw]);
-
-  const handlePointerDown = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas || scale <= 0) {
-        return;
-      }
-
-      const point = pointToCanvasSpace(canvas, event.clientX, event.clientY);
-      const pointInImage = { x: point.x / scale, y: point.y / scale };
-      const handle = getHandleAtPoint(pointInImage, crop, 10 / scale);
-      if (!handle) {
-        return;
-      }
-
-      pointerStateRef.current = {
-        active: true,
-        pointerId: event.pointerId,
-        handle,
-        startPoint: pointInImage,
-        startRect: crop,
-      };
-
-      canvas.setPointerCapture(event.pointerId);
-    },
-    [crop, scale],
-  );
-
-  const handlePointerMove = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas || !pointerStateRef.current.active || scale <= 0) {
-        return;
-      }
-
-      const state = pointerStateRef.current;
-      if (state.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const point = pointToCanvasSpace(canvas, event.clientX, event.clientY);
-      const pointInImage = { x: point.x / scale, y: point.y / scale };
-
-      const dx = pointInImage.x - state.startPoint.x;
-      const dy = pointInImage.y - state.startPoint.y;
-
-      const resized = resizeRect(
-        state.startRect,
-        dx,
-        dy,
-        state.handle,
-        aspectRatio,
-      );
-      const clamped = clampRect(resized, image.width, image.height);
-      onCropChange(clamped);
-    },
-    [aspectRatio, image.height, image.width, onCropChange, scale],
-  );
-
-  const handlePointerUp = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        return;
-      }
-
-      if (pointerStateRef.current.pointerId === event.pointerId) {
-        pointerStateRef.current.active = false;
-        pointerStateRef.current.pointerId = null;
-        canvas.releasePointerCapture(event.pointerId);
-      }
-    },
-    [],
-  );
-
-  return (
-    <div className="space-y-2">
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-black/35 p-2">
-        <canvas
-          ref={canvasRef}
-          className="h-auto w-full touch-none rounded-md"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Crop: {Math.round(crop.w)} x {Math.round(crop.h)} px at (
-        {Math.round(crop.x)}, {Math.round(crop.y)})
-      </p>
-    </div>
-  );
-}
+import { CropCanvasEditor } from "./CropCanvasEditor";
+import {
+  ACCEPTED_IMAGES,
+  ASPECT_PRESETS,
+  type AspectValue,
+} from "./imageCropperConstants";
+import type { CropMode, CropRect, UploadedImage } from "./imageCropperTypes";
+import {
+  clampBatchCropToImage,
+  createDefaultCrop,
+  cropToBlob,
+  getAspectRatio,
+  loadImage,
+} from "./imageCropperUtils";
 
 export default function ImageCropperTool() {
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -478,9 +39,7 @@ export default function ImageCropperTool() {
     return () => {
       images.forEach((image) => {
         URL.revokeObjectURL(image.srcUrl);
-        if (image.outputUrl) {
-          URL.revokeObjectURL(image.outputUrl);
-        }
+        if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
       });
     };
   }, [images]);
@@ -490,9 +49,7 @@ export default function ImageCropperTool() {
       const loaded: UploadedImage[] = [];
 
       for (const file of incoming) {
-        if (!file.type.startsWith("image/")) {
-          continue;
-        }
+        if (!file.type.startsWith("image/")) continue;
 
         const srcUrl = URL.createObjectURL(file);
 
@@ -515,13 +72,11 @@ export default function ImageCropperTool() {
         }
       }
 
-      if (loaded.length > 0) {
-        setImages((prev) => [...prev, ...loaded]);
-        if (!batchCrop) {
-          setBatchCrop(loaded[0].crop);
-        }
-        setErrorMessage(null);
-      }
+      if (loaded.length === 0) return;
+
+      setImages((prev) => [...prev, ...loaded]);
+      if (!batchCrop) setBatchCrop(loaded[0].crop);
+      setErrorMessage(null);
     },
     [batchCrop],
   );
@@ -540,9 +95,7 @@ export default function ImageCropperTool() {
       const target = prev.find((image) => image.id === id);
       if (target) {
         URL.revokeObjectURL(target.srcUrl);
-        if (target.outputUrl) {
-          URL.revokeObjectURL(target.outputUrl);
-        }
+        if (target.outputUrl) URL.revokeObjectURL(target.outputUrl);
       }
       return prev.filter((image) => image.id !== id);
     });
@@ -551,9 +104,7 @@ export default function ImageCropperTool() {
   const clearAll = useCallback(() => {
     images.forEach((image) => {
       URL.revokeObjectURL(image.srcUrl);
-      if (image.outputUrl) {
-        URL.revokeObjectURL(image.outputUrl);
-      }
+      if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
     });
 
     setImages([]);
@@ -570,14 +121,9 @@ export default function ImageCropperTool() {
       const blob = await cropToBlob(image, crop);
       const outputUrl = URL.createObjectURL(blob);
 
-      if (image.outputUrl) {
-        URL.revokeObjectURL(image.outputUrl);
-      }
+      if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
 
-      updateImage(image.id, {
-        outputBlob: blob,
-        outputUrl,
-      });
+      updateImage(image.id, { outputBlob: blob, outputUrl });
     },
     [batchCrop, mode, updateImage],
   );
@@ -589,9 +135,7 @@ export default function ImageCropperTool() {
   }, [generatePreviewForImage, images]);
 
   const downloadOne = useCallback((image: UploadedImage) => {
-    if (!image.outputUrl) {
-      return;
-    }
+    if (!image.outputUrl) return;
 
     const link = document.createElement("a");
     link.href = image.outputUrl;
@@ -636,13 +180,8 @@ export default function ImageCropperTool() {
   const setImageCrop = useCallback((id: string, next: CropRect) => {
     setImages((prev) =>
       prev.map((image) => {
-        if (image.id !== id) {
-          return image;
-        }
-
-        if (image.outputUrl) {
-          URL.revokeObjectURL(image.outputUrl);
-        }
+        if (image.id !== id) return image;
+        if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
 
         return {
           ...image,
@@ -738,7 +277,7 @@ export default function ImageCropperTool() {
             </div>
           </div>
 
-          <FileDropzoneCard
+          <FileDropZoneCard
             fileTypeLabel="image files"
             supportedFormats="JPG, PNG, and WEBP"
             accept={ACCEPTED_IMAGES}
@@ -774,9 +313,7 @@ export default function ImageCropperTool() {
                 setBatchCrop(next);
                 setImages((prev) =>
                   prev.map((image) => {
-                    if (image.outputUrl) {
-                      URL.revokeObjectURL(image.outputUrl);
-                    }
+                    if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
                     return {
                       ...image,
                       outputBlob: undefined,
@@ -814,7 +351,7 @@ export default function ImageCropperTool() {
                       <div>
                         <p className="font-medium">{image.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {image.width} x {image.height} px •{" "}
+                          {image.width} x {image.height} px â€¢{" "}
                           {formatFileSize(image.size)}
                         </p>
                       </div>

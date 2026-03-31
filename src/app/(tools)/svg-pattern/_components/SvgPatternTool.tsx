@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Download,
-  SlidersHorizontal,
   Check,
   Copy as CopyIcon,
+  Download,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   Card,
@@ -17,32 +17,74 @@ import { Button } from "@/components/ui/interaction/Button";
 import { Slider } from "@/components/ui/interaction/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
 
+const EXPORT_WIDTH = 1600;
+const EXPORT_HEIGHT = 900;
+
 const PATTERNS = {
   grid: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><path d="M ${size} 0 L 0 0 0 ${size}" fill="none" stroke="${fg}" stroke-width="${w}"/></svg>`,
+    `<path d="M ${size} 0 L 0 0 0 ${size}" fill="none" stroke="${fg}" stroke-width="${w}"/>`,
   dots: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${size / 2}" cy="${size / 2}" r="${(size / 8) * w}" fill="${fg}"/></svg>`,
+    `<circle cx="${size / 2}" cy="${size / 2}" r="${(size / 8) * w}" fill="${fg}"/>`,
   diagonal: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><path d="M0 ${size} L${size} 0" stroke="${fg}" stroke-width="${w}" fill="none"/></svg>`,
+    `<path d="M0 ${size} L${size} 0" stroke="${fg}" stroke-width="${w}" fill="none"/>`,
   cross: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><path d="M${size / 2} 0v${size}M0 ${size / 2}h${size}" stroke="${fg}" stroke-width="${w}" fill="none"/></svg>`,
+    `<path d="M${size / 2} 0v${size}M0 ${size / 2}h${size}" stroke="${fg}" stroke-width="${w}" fill="none"/>`,
   waves: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size / 2}" xmlns="http://www.w3.org/2000/svg"><path d="M0 ${size / 4} Q ${size / 4} 0 ${size / 2} ${size / 4} T ${size} ${size / 4}" stroke="${fg}" stroke-width="${w}" fill="none"/></svg>`,
+    `<path d="M0 ${size / 4} Q ${size / 4} 0 ${size / 2} ${size / 4} T ${size} ${size / 4}" stroke="${fg}" stroke-width="${w}" fill="none"/>`,
   zigzag: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><path d="M0 ${size / 2} L ${size / 4} 0 L ${size / 2} ${size / 2} L ${size * 0.75} 0 L ${size} ${size / 2}" stroke="${fg}" stroke-width="${w}" fill="none"/></svg>`,
+    `<path d="M0 ${size / 2} L ${size / 4} 0 L ${size / 2} ${size / 2} L ${size * 0.75} 0 L ${size} ${size / 2}" stroke="${fg}" stroke-width="${w}" fill="none"/>`,
   rings: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 3}" stroke="${fg}" stroke-width="${w}" fill="none"/></svg>`,
+    `<circle cx="${size / 2}" cy="${size / 2}" r="${size / 3}" stroke="${fg}" stroke-width="${w}" fill="none"/>`,
   checker: (fg: string, size: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><rect width="${size / 2}" height="${size / 2}" fill="${fg}"/><rect x="${size / 2}" y="${size / 2}" width="${size / 2}" height="${size / 2}" fill="${fg}"/></svg>`,
+    `<rect width="${size / 2}" height="${size / 2}" fill="${fg}"/><rect x="${size / 2}" y="${size / 2}" width="${size / 2}" height="${size / 2}" fill="${fg}"/>`,
   verticalLines: (fg: string, size: number, w: number) =>
-    `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><path d="M${size / 2} 0 V${size}" stroke="${fg}" stroke-width="${w}"/></svg>`,
+    `<path d="M${size / 2} 0 V${size}" stroke="${fg}" stroke-width="${w}"/>`,
 };
 
 type PatternType = keyof typeof PATTERNS;
+type SliderChangeEvent = React.ChangeEvent<HTMLInputElement>;
+
+function getPatternHeight(pattern: PatternType, size: number) {
+  return pattern === "waves" ? size / 2 : size;
+}
+
+function buildPatternMarkup(
+  pattern: PatternType,
+  fg: string,
+  size: number,
+  width: number,
+) {
+  const generator = PATTERNS[pattern];
+  return generator(fg, size, width);
+}
+
+function buildTileSvg(
+  pattern: PatternType,
+  bgColor: string,
+  fg: string,
+  size: number,
+  width: number,
+) {
+  const tileHeight = getPatternHeight(pattern, size);
+  const markup = buildPatternMarkup(pattern, fg, size, width);
+
+  return `<svg width="${size}" height="${tileHeight}" viewBox="0 0 ${size} ${tileHeight}" xmlns="http://www.w3.org/2000/svg"><rect width="${size}" height="${tileHeight}" fill="${bgColor}"/>${markup}</svg>`;
+}
+
+function buildExportSvg(
+  pattern: PatternType,
+  bgColor: string,
+  fg: string,
+  size: number,
+  width: number,
+) {
+  const tileHeight = getPatternHeight(pattern, size);
+  const markup = buildPatternMarkup(pattern, fg, size, width);
+
+  return `<svg width="${EXPORT_WIDTH}" height="${EXPORT_HEIGHT}" viewBox="0 0 ${EXPORT_WIDTH} ${EXPORT_HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="pattern" patternUnits="userSpaceOnUse" width="${size}" height="${tileHeight}">${markup}</pattern></defs><rect width="${EXPORT_WIDTH}" height="${EXPORT_HEIGHT}" fill="${bgColor}"/><rect width="${EXPORT_WIDTH}" height="${EXPORT_HEIGHT}" fill="url(#pattern)"/></svg>`;
+}
 
 export default function SvgPatternTool() {
-
-  // State
   const [activePattern, setActivePattern] = useState<PatternType>("dots");
   const [size, setSize] = useState(32);
   const [fgSize, setFgSize] = useState(1);
@@ -52,138 +94,127 @@ export default function SvgPatternTool() {
   const [copiedCSS, setCopiedCSS] = useState(false);
   const [copiedSVG, setCopiedSVG] = useState(false);
 
-  // Compose FG color with opacity
   const finalFgHex = useMemo(() => {
     let alpha = Math.round((fgOpacity / 100) * 255).toString(16);
-    if (alpha.length === 1) alpha = "0" + alpha;
-    return fgColor + alpha;
+    if (alpha.length === 1) alpha = `0${alpha}`;
+    return `${fgColor}${alpha}`;
   }, [fgColor, fgOpacity]);
 
-  // SVG string
-  const rawSvgBlob = useMemo(() => {
-    const generator = PATTERNS[activePattern];
-    // Checker pattern doesn't use width param
-    if (activePattern === "checker") {
-      return generator(finalFgHex, size, fgSize);
-    }
-    return generator(finalFgHex, size, fgSize);
-  }, [activePattern, finalFgHex, size, fgSize]);
-
-  // Data URL for preview
-  const encodedSvgUrl = useMemo(
-    () => `data:image/svg+xml;utf8,${encodeURIComponent(rawSvgBlob)}`,
-    [rawSvgBlob]
+  const rawSvgBlob = useMemo(
+    () => buildTileSvg(activePattern, bgColor, finalFgHex, size, fgSize),
+    [activePattern, bgColor, finalFgHex, size, fgSize],
   );
 
-  // CSS output
+  const exportSvg = useMemo(
+    () => buildExportSvg(activePattern, bgColor, finalFgHex, size, fgSize),
+    [activePattern, bgColor, finalFgHex, size, fgSize],
+  );
+
+  const encodedSvgUrl = useMemo(
+    () => `data:image/svg+xml;utf8,${encodeURIComponent(rawSvgBlob)}`,
+    [rawSvgBlob],
+  );
+
   const cssValue = useMemo(
     () =>
       `background-color: ${bgColor};\nbackground-image: url("${encodedSvgUrl}");`,
-    [bgColor, encodedSvgUrl]
+    [bgColor, encodedSvgUrl],
   );
 
-  // Copy to clipboard
   const copy = (text: string, type: "css" | "svg") => {
     navigator.clipboard.writeText(text);
     if (type === "css") {
       setCopiedCSS(true);
       setTimeout(() => setCopiedCSS(false), 1200);
-    } else {
-      setCopiedSVG(true);
-      setTimeout(() => setCopiedSVG(false), 1200);
+      return;
     }
+
+    setCopiedSVG(true);
+    setTimeout(() => setCopiedSVG(false), 1200);
   };
 
-  // Download SVG
   const downloadSvg = () => {
-    const blob = new Blob([rawSvgBlob], { type: "image/svg+xml" });
+    const blob = new Blob([exportSvg], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${activePattern}.svg`;
-    a.click();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${activePattern}.svg`;
+    anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 500);
   };
 
-  // --- UI ---
   return (
-    <div className="max-w-5xl mx-auto py-8 px-2 md:px-0 space-y-8">
-      {/* Title */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-2">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white/90">SVG Pattern Generator</h1>
-        <span className="text-xs text-white/40">Seamless SVG backgrounds for your UI</span>
+    <div className="w-full space-y-8 px-2 py-8 md:px-0">
+      <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-white/90 md:text-3xl">
+          SVG Pattern Generator
+        </h1>
+        <span className="text-xs text-white/40">
+          Seamless SVG backgrounds for your UI
+        </span>
       </div>
 
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
-        {/* Preview */}
-        <Card className="rounded-3xl overflow-hidden border border-white/10 shadow-xl">
+      <div className="flex w-full flex-col gap-8 xl:flex-row xl:items-stretch">
+        <Card className="overflow-hidden rounded-3xl border border-white/10 shadow-xl xl:min-w-0 xl:flex-[1.2]">
           <CardContent
-            className="h-[420px] md:h-[500px] transition-all relative flex items-center justify-center"
+            className="relative flex h-[420px] items-center justify-center transition-all md:h-[500px]"
             style={{
               backgroundColor: bgColor,
               backgroundImage: `url("${encodedSvgUrl}")`,
             }}
           >
-            <div className="absolute top-4 right-4 z-10">
-              <Button size="sm" onClick={downloadSvg} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow">
-                <Download className="size-4 mr-2" />
+            <div className="absolute right-4 top-4 z-10">
+              <Button
+                size="sm"
+                onClick={downloadSvg}
+                className="border border-white/20 bg-white/10 text-white shadow hover:bg-white/20"
+              >
+                <Download className="mr-2 size-4" />
                 Export SVG
               </Button>
             </div>
           </CardContent>
-          <div className="p-4 border-t border-white/10 flex justify-between items-center bg-gradient-to-r from-white/5 to-white/0">
-            <span className="text-sm opacity-70 capitalize font-medium tracking-wide">
+          <div className="flex items-center justify-between border-t border-white/10 bg-gradient-to-r from-white/5 to-white/0 p-4">
+            <span className="text-sm font-medium capitalize tracking-wide opacity-70">
               {activePattern}
             </span>
             <span className="text-xs text-white/40">{size}x{size}px</span>
           </div>
         </Card>
 
-        {/* Controls */}
-        <Card className="p-6 rounded-3xl border border-white/10 space-y-7 bg-gradient-to-br from-white/5 to-white/0">
-          <CardTitle className="flex items-center gap-2 text-base mb-2">
+        <Card className="space-y-7 rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-6 xl:min-w-0 xl:flex-[1]">
+          <CardTitle className="mb-2 flex items-center gap-2 text-base">
             <SlidersHorizontal className="size-4" />
             Controls
           </CardTitle>
 
-          {/* Pattern grid with previews */}
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            {(Object.keys(PATTERNS) as PatternType[]).map((p) => {
-              // Small preview SVG for each pattern
-              const preview = (() => {
-                const gen = PATTERNS[p];
-                if (p === "checker") return gen(finalFgHex, 24, 1);
-                return gen(finalFgHex, 24, 1);
-              })();
+          <div className="mb-2 grid grid-cols-3 gap-2">
+            {(Object.keys(PATTERNS) as PatternType[]).map((pattern) => {
+              const preview = buildTileSvg(pattern, "transparent", finalFgHex, 24, 1);
               return (
                 <Button
-                  variant={activePattern === p ? "default" : "outline"}
-                  key={p}
-                  onClick={() => setActivePattern(p)}
-                  className={`flex flex-col items-center gap-1 p-2 text-xs rounded-lg capitalize transition font-medium border-2 ${
-                    activePattern === p
+                  variant={activePattern === pattern ? "default" : "outline"}
+                  key={pattern}
+                  onClick={() => setActivePattern(pattern)}
+                  className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2 text-xs font-medium capitalize transition ${
+                    activePattern === pattern
                       ? "border-primary bg-primary/90 text-white shadow"
-                      : "border-white/10 bg-white/5 hover:bg-white/10 text-white/80"
+                      : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
                   }`}
                   style={{ minHeight: 54 }}
                 >
-                  <span className="block w-7 h-7 rounded bg-white/10 flex items-center justify-center mb-1">
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: preview,
-                      }}
-                    />
+                  <span className="mb-1 flex h-7 w-7 items-center justify-center rounded bg-white/10">
+                    <span dangerouslySetInnerHTML={{ __html: preview }} />
                   </span>
-                  {p}
+                  {pattern}
                 </Button>
               );
             })}
           </div>
 
-          {/* Sliders */}
           <div className="space-y-4 text-sm">
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="mb-1 flex justify-between">
                 <span>Scale</span>
                 <span className="font-mono">{size}px</span>
               </div>
@@ -192,13 +223,13 @@ export default function SvgPatternTool() {
                 max={128}
                 step={2}
                 value={size}
-                onChange={(e: any) => setSize(Number(e.target.value))}
+                onChange={(e: SliderChangeEvent) => setSize(Number(e.target.value))}
               />
             </div>
 
             {activePattern !== "checker" && (
               <div>
-                <div className="flex justify-between mb-1">
+                <div className="mb-1 flex justify-between">
                   <span>Width</span>
                   <span className="font-mono">{fgSize}x</span>
                 </div>
@@ -207,13 +238,13 @@ export default function SvgPatternTool() {
                   max={3}
                   step={0.1}
                   value={fgSize}
-                  onChange={(e: any) => setFgSize(Number(e.target.value))}
+                  onChange={(e: SliderChangeEvent) => setFgSize(Number(e.target.value))}
                 />
               </div>
             )}
 
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="mb-1 flex justify-between">
                 <span>Opacity</span>
                 <span className="font-mono">{fgOpacity}%</span>
               </div>
@@ -221,80 +252,82 @@ export default function SvgPatternTool() {
                 min={0}
                 max={100}
                 value={fgOpacity}
-                onChange={(e: any) => setFgOpacity(Number(e.target.value))}
+                onChange={(e: SliderChangeEvent) => setFgOpacity(Number(e.target.value))}
               />
             </div>
           </div>
 
-          {/* Colors */}
-          <div className="flex gap-6 mt-2">
-            <div className="flex flex-col text-xs gap-1 items-center">
+          <div className="mt-2 flex gap-6">
+            <div className="flex flex-col items-center gap-1 text-xs">
               <span className="mb-1 font-semibold text-white/70">BG</span>
               <input
                 type="color"
                 value={bgColor}
                 onChange={(e) => setBgColor(e.target.value)}
-                className="w-10 h-10 rounded-full border-2 border-white/20 shadow cursor-pointer appearance-none"
-                style={{ borderRadius: '50%' }}
+                className="h-10 w-10 cursor-pointer appearance-none overflow-hidden rounded-full border-2 border-white/20 bg-transparent p-0 shadow [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-full"
+                style={{ borderRadius: "50%" }}
                 aria-label="Background color"
               />
             </div>
-            <div className="flex flex-col text-xs gap-1 items-center">
+            <div className="flex flex-col items-center gap-1 text-xs">
               <span className="mb-1 font-semibold text-white/70">FG</span>
               <input
                 type="color"
                 value={fgColor}
                 onChange={(e) => setFgColor(e.target.value)}
-                className="w-10 h-10 rounded-full border-2 border-white/20 shadow cursor-pointer appearance-none"
-                style={{ borderRadius: '50%' }}
+                className="h-10 w-10 cursor-pointer appearance-none overflow-hidden rounded-full border-2 border-white/20 bg-transparent p-0 shadow [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-full"
+                style={{ borderRadius: "50%" }}
                 aria-label="Foreground color"
               />
             </div>
           </div>
         </Card>
-      </div>
 
-      {/* Output */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Card className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 shadow-lg">
-          <CardHeader className="flex justify-between items-center pb-2">
-            <CardTitle className="text-base">CSS</CardTitle>
-            <Button size="sm" onClick={() => copy(cssValue, "css")}
-              className={copiedCSS ? "bg-green-600/80 text-white" : "bg-white/10 text-white hover:bg-white/20"}
-            >
-              {copiedCSS ? (
-                <Check className="size-4" />
-              ) : (
-                <CopyIcon className="size-4" />
-              )}
-            </Button>
-          </CardHeader>
-          <Textarea
-            readOnly
-            value={cssValue}
-            className="bg-[#05070f] text-rose-400 font-mono text-xs rounded-xl min-h-[80px]"
-          />
-        </Card>
+        <div className="flex min-w-0 flex-col gap-4 xl:flex-[1]">
+          <Card className="border border-white/10 bg-gradient-to-br from-white/5 to-white/0 shadow-lg">
+            <CardHeader className="flex items-center justify-between pb-2">
+              <CardTitle className="text-base">CSS</CardTitle>
+              <Button
+                size="sm"
+                onClick={() => copy(cssValue, "css")}
+                className={copiedCSS ? "bg-green-600/80 text-white" : "bg-white/10 text-white hover:bg-white/20"}
+              >
+                {copiedCSS ? (
+                  <Check className="size-4" />
+                ) : (
+                  <CopyIcon className="size-4" />
+                )}
+              </Button>
+            </CardHeader>
+            <Textarea
+              readOnly
+              value={cssValue}
+              className="min-h-[140px] rounded-xl bg-[#05070f] font-mono text-xs text-rose-400"
+            />
+          </Card>
 
-        <Card className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 shadow-lg">
-          <CardHeader className="flex justify-between items-center pb-2">
-            <CardTitle className="text-base">SVG</CardTitle>
-            <Button size="sm" onClick={() => copy(rawSvgBlob, "svg")}
-              className={copiedSVG ? "bg-green-600/80 text-white" : "bg-white/10 text-white hover:bg-white/20"}
-            >
-              {copiedSVG ? (
-                <Check className="size-4" />
-              ) : (
-                <CopyIcon className="size-4" />
-              )}
-            </Button>
-          </CardHeader>
-          <Textarea
-            readOnly
-            value={rawSvgBlob}
-            className="bg-[#05070f] text-amber-400 font-mono text-xs rounded-xl min-h-[80px]"
-          />
-        </Card>
+          <Card className="border border-white/10 bg-gradient-to-br from-white/5 to-white/0 shadow-lg">
+            <CardHeader className="flex items-center justify-between pb-2">
+              <CardTitle className="text-base">SVG</CardTitle>
+              <Button
+                size="sm"
+                onClick={() => copy(exportSvg, "svg")}
+                className={copiedSVG ? "bg-green-600/80 text-white" : "bg-white/10 text-white hover:bg-white/20"}
+              >
+                {copiedSVG ? (
+                  <Check className="size-4" />
+                ) : (
+                  <CopyIcon className="size-4" />
+                )}
+              </Button>
+            </CardHeader>
+            <Textarea
+              readOnly
+              value={exportSvg}
+              className="min-h-[220px] rounded-xl bg-[#05070f] font-mono text-xs text-amber-400"
+            />
+          </Card>
+        </div>
       </div>
     </div>
   );

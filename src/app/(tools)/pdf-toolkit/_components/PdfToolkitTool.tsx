@@ -16,64 +16,22 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/interaction/Button";
 import { Input } from "@/components/ui/form/Input";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { FileDropzoneCard } from "@/components/ui/FileDropZone";
-import { Slider } from "@/components/ui/Slider";
+import { FileDropZoneCard as FileDropzoneCard } from "@/components/ui/interaction/FileDropZoneCard";
+import { Slider } from "@/components/ui/interaction/Slider";
 import { Progress } from "@/components/ui/feedback/Progress";
 import { PDFDocument } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
+import type { PdfFileItem, PdfPageThumbnail, TabType } from "./pdfToolkitTypes";
+import { formatFileSize, generateId, parseRanges } from "./pdfToolkitUtils";
 
 if (typeof window !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 }
 
-type TabType = "merge" | "split" | "compress" | "reorder";
-
-interface PdfFileItem {
-  id: string;
-  file: File;
-  name: string;
-  size: number;
-}
-
-interface PdfPageThumbnail {
-  id: string;
-  originalIndex: number; // 0-based
-  previewUrl: string;
-}
-
-function generateId() {
-  return Math.random().toString(36).substring(2, 9);
-}
-
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-}
-
-const parseRanges = (str: string, maxPages: number): number[] => {
-  const indices = new Set<number>();
-  if (!str.trim()) return [];
-  const parts = str.split(",");
-  for (const part of parts) {
-    const range = part.trim().split("-");
-    if (range.length === 1) {
-      const p = parseInt(range[0], 10);
-      if (p >= 1 && p <= maxPages) indices.add(p - 1);
-    } else if (range.length === 2) {
-      const start = parseInt(range[0], 10);
-      const end = parseInt(range[1], 10);
-      if (start >= 1 && end >= start && end <= maxPages) {
-        for (let i = start; i <= end; i++) indices.add(i - 1);
-      }
-    }
-  }
-  return Array.from(indices).sort((a, b) => a - b);
-};
 
 export default function PdfToolkitTool() {
   const [activeTab, setActiveTab] = useState<TabType>("merge");

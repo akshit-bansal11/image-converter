@@ -1,59 +1,350 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Dices, Copy, CheckCircle2, SlidersVertical } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { CheckCircle2, Copy, Dices, SlidersVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import { Button } from "@/components/ui/Button";
 import { Slider } from "@/components/ui/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
 
+type CornerKey = "tl" | "tr" | "br" | "bl";
+type Axis = "x" | "y";
+type PointMode = "four" | "eight";
+
+interface CornerRadius {
+  x: number;
+  y: number;
+}
+
+type CornerMap = Record<CornerKey, CornerRadius>;
+
+const INITIAL_CORNERS: CornerMap = {
+  tl: { x: 30, y: 30 },
+  tr: { x: 70, y: 30 },
+  br: { x: 70, y: 70 },
+  bl: { x: 30, y: 70 },
+};
+
+const CORNER_LABELS: Record<CornerKey, string> = {
+  tl: "Top-Left",
+  tr: "Top-Right",
+  br: "Bottom-Right",
+  bl: "Bottom-Left",
+};
+
+const DIAGONAL_PAIR: Record<CornerKey, CornerKey> = {
+  tl: "br",
+  tr: "bl",
+  br: "tl",
+  bl: "tr",
+};
+
+const OPPOSITE_BY_AXIS: Record<Axis, Record<CornerKey, CornerKey>> = {
+  x: { tl: "tr", tr: "tl", br: "bl", bl: "br" },
+  y: { tl: "bl", tr: "br", br: "tr", bl: "tl" },
+};
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function cloneCorners(input: CornerMap): CornerMap {
+  return {
+    tl: { ...input.tl },
+    tr: { ...input.tr },
+    br: { ...input.br },
+    bl: { ...input.bl },
+  };
+}
+
+function constrainPairByCorner(next: CornerMap, corner: CornerKey, axis: Axis) {
+  const opposite = OPPOSITE_BY_AXIS[axis][corner];
+  const maxOpposite = Math.max(0, 100 - next[corner][axis]);
+  if (next[opposite][axis] > maxOpposite) {
+    next[opposite][axis] = clampPercent(maxOpposite);
+  }
+}
+
+function constrainAllPairs(next: CornerMap) {
+  constrainPairByCorner(next, "tl", "x");
+  constrainPairByCorner(next, "bl", "x");
+  constrainPairByCorner(next, "tl", "y");
+  constrainPairByCorner(next, "tr", "y");
+  return next;
+}
+
+function sanitizeCorners(input: CornerMap): CornerMap {
+  const next = cloneCorners(input);
+  (Object.keys(next) as CornerKey[]).forEach((corner) => {
+    next[corner].x = clampPercent(next[corner].x);
+    next[corner].y = clampPercent(next[corner].y);
+  });
+  return constrainAllPairs(next);
+}
+
+function randomCorners() {
+  const rand = () => Math.floor(Math.random() * 81) + 10;
+  return sanitizeCorners({
+    tl: { x: rand(), y: rand() },
+    tr: { x: rand(), y: rand() },
+    br: { x: rand(), y: rand() },
+    bl: { x: rand(), y: rand() },
+  });
+}
+
+function cornersToRadius(corners: CornerMap) {
+  return `${corners.tl.x}% ${corners.tr.x}% ${corners.br.x}% ${corners.bl.x}% / ${corners.tl.y}% ${corners.tr.y}% ${corners.br.y}% ${corners.bl.y}%`;
+}
+
+interface CornerControlProps {
+  corner: CornerKey;
+  values: CornerRadius;
+  mode: PointMode;
+  onChange: (corner: CornerKey, axis: Axis, value: number) => void;
+  onChangeBoth: (corner: CornerKey, value: number) => void;
+}
+
+interface RadiusSliderProps {
+  value: number;
+  onChange: (value: number) => void;
+}
+
+function RadiusSlider({ value, onChange }: RadiusSliderProps) {
+  const marks = [25, 50, 75] as const;
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Slider
+          min={0}
+          max={100}
+          step={1}
+          value={value}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange(Number(e.target.value))
+          }
+        />
+        {marks.map((mark) => (
+          <button
+            key={mark}
+            type="button"
+            onClick={() => onChange(mark)}
+            className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-background/80 shadow-sm hover:bg-primary/30"
+            style={{ left: `calc(${mark}% - 6px)` }}
+            aria-label={`Set radius to ${mark}%`}
+            title={`${mark}%`}
+          />
+        ))}
+      </div>
+      <div className="flex items-center justify-around text-[10px] font-mono text-muted-foreground">
+        {marks.map((mark) => (
+          <button
+            key={mark}
+            type="button"
+            onClick={() => onChange(mark)}
+            className="rounded px-1 py-0.5 hover:bg-white/10"
+          >
+            {mark}%
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CornerControl({
+  corner,
+  values,
+  mode,
+  onChange,
+  onChangeBoth,
+}: CornerControlProps) {
+  return (
+    <div className="space-y-4 rounded-2xl border border-white/5 bg-background/30 p-4">
+      <h4 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {CORNER_LABELS[corner]} Corner
+      </h4>
+
+      {mode === "four" ? (
+        <div className="space-y-4">
+          <label className="flex items-center justify-between text-sm font-medium text-foreground">
+            Radius
+            <span className="rounded bg-background/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+              {values.x}%
+            </span>
+          </label>
+          <RadiusSlider value={values.x} onChange={(v) => onChangeBoth(corner, v)} />
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4">
+            <label className="flex items-center justify-between text-sm font-medium text-foreground">
+              X Radius
+              <span className="rounded bg-background/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                {values.x}%
+              </span>
+            </label>
+            <RadiusSlider
+              value={values.x}
+              onChange={(v) => onChange(corner, "x", v)}
+            />
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <label className="flex items-center justify-between text-sm font-medium text-foreground">
+              Y Radius
+              <span className="rounded bg-background/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                {values.y}%
+              </span>
+            </label>
+            <RadiusSlider
+              value={values.y}
+              onChange={(v) => onChange(corner, "y", v)}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function BlobGeneratorTool() {
-  const [tlX, setTlX] = useState<number>(30);
-  const [trX, setTrX] = useState<number>(70);
-  const [brX, setBrX] = useState<number>(70);
-  const [blX, setBlX] = useState<number>(30);
-
-  const [tlY, setTlY] = useState<number>(30);
-  const [trY, setTrY] = useState<number>(30);
-  const [brY, setBrY] = useState<number>(70);
-  const [blY, setBlY] = useState<number>(70);
-
-  const [blobColor, setBlobColor] = useState<string>("#8b5cf6");
-  const [blobGradient, setBlobGradient] = useState<boolean>(true);
-
+  const [corners, setCorners] = useState<CornerMap>(INITIAL_CORNERS);
+  const [pointMode, setPointMode] = useState<PointMode>("eight");
+  const [lockAxis, setLockAxis] = useState(false);
+  const [mirrorDiagonals, setMirrorDiagonals] = useState(false);
+  const [blobColor, setBlobColor] = useState("#8b5cf6");
+  const [blobGradient, setBlobGradient] = useState(true);
   const [copiedCSS, setCopiedCSS] = useState(false);
   const [copiedTW, setCopiedTW] = useState(false);
 
-  const borderRadiusValue = `${tlX}% ${trX}% ${brX}% ${blX}% / ${tlY}% ${trY}% ${brY}% ${blY}%`;
+  const borderRadiusValue = useMemo(() => cornersToRadius(corners), [corners]);
 
-  const cssValue = useMemo(() => {
-    return [
-      `border-radius: ${borderRadiusValue};`,
-      blobGradient
-        ? `background: linear-gradient(135deg, ${blobColor}, ${blobColor}80);`
-        : `background: ${blobColor};`,
-    ].join("\n");
-  }, [borderRadiusValue, blobColor, blobGradient]);
+  const cssValue = useMemo(
+    () =>
+      [
+        `border-radius: ${borderRadiusValue};`,
+        blobGradient
+          ? `background: linear-gradient(135deg, ${blobColor}, ${blobColor}80);`
+          : `background: ${blobColor};`,
+      ].join("\n"),
+    [borderRadiusValue, blobColor, blobGradient],
+  );
 
-  const tailwindValue = useMemo(() => {
-    // Tailwind strictly uses exact class equivalents for arbitrary border-radius strings via JIT
-    return `rounded-[${borderRadiusValue.replace(/ /g, "_")}] ${
-      blobGradient
-        ? "bg-gradient-to-br from-violet-500 to-violet-500/50"
-        : "bg-violet-500"
-    }`;
-  }, [borderRadiusValue, blobGradient]);
+  const tailwindValue = useMemo(
+    () =>
+      `rounded-[${borderRadiusValue.replace(/ /g, "_")}] ${
+        blobGradient
+          ? "bg-gradient-to-br from-violet-500 to-violet-500/50"
+          : "bg-violet-500"
+      }`,
+    [borderRadiusValue, blobGradient],
+  );
+
+  function updateCorner(corner: CornerKey, axis: Axis, rawValue: number) {
+    setCorners((prev) => {
+      const value = clampPercent(rawValue);
+      const lockBoth = lockAxis || pointMode === "four";
+      const next = cloneCorners(prev);
+
+      next[corner][axis] = value;
+      if (lockBoth) {
+        next[corner].x = value;
+        next[corner].y = value;
+      }
+
+      if (mirrorDiagonals) {
+        const pair = DIAGONAL_PAIR[corner];
+        if (lockBoth) {
+          next[pair].x = value;
+          next[pair].y = value;
+        } else {
+          next[pair][axis] = value;
+        }
+      }
+
+      if (lockBoth) {
+        constrainPairByCorner(next, corner, "x");
+        constrainPairByCorner(next, corner, "y");
+        if (mirrorDiagonals) {
+          const pair = DIAGONAL_PAIR[corner];
+          constrainPairByCorner(next, pair, "x");
+          constrainPairByCorner(next, pair, "y");
+        }
+      } else {
+        constrainPairByCorner(next, corner, axis);
+        if (mirrorDiagonals) {
+          constrainPairByCorner(next, DIAGONAL_PAIR[corner], axis);
+        }
+      }
+
+      return next;
+    });
+  }
+
+  function updateCornerBoth(corner: CornerKey, rawValue: number) {
+    const value = clampPercent(rawValue);
+    setCorners((prev) => {
+      const next = cloneCorners(prev);
+
+      next[corner].x = value;
+      next[corner].y = value;
+
+      if (mirrorDiagonals) {
+        const pair = DIAGONAL_PAIR[corner];
+        next[pair].x = value;
+        next[pair].y = value;
+      }
+
+      constrainPairByCorner(next, corner, "x");
+      constrainPairByCorner(next, corner, "y");
+      if (mirrorDiagonals) {
+        const pair = DIAGONAL_PAIR[corner];
+        constrainPairByCorner(next, pair, "x");
+        constrainPairByCorner(next, pair, "y");
+      }
+
+      return next;
+    });
+  }
+
+  function applyPreset(type: "smooth" | "organic" | "wild") {
+    if (type === "smooth") {
+      setCorners(
+        sanitizeCorners({
+          tl: { x: 42, y: 38 },
+          tr: { x: 58, y: 36 },
+          br: { x: 56, y: 62 },
+          bl: { x: 44, y: 64 },
+        }),
+      );
+      return;
+    }
+
+    if (type === "organic") {
+      setCorners(
+        sanitizeCorners({
+          tl: { x: 28, y: 48 },
+          tr: { x: 72, y: 22 },
+          br: { x: 60, y: 78 },
+          bl: { x: 40, y: 52 },
+        }),
+      );
+      return;
+    }
+
+    setCorners(
+      sanitizeCorners({
+        tl: { x: 12, y: 84 },
+        tr: { x: 88, y: 16 },
+        br: { x: 76, y: 92 },
+        bl: { x: 24, y: 8 },
+      }),
+    );
+  }
 
   function randomize() {
-    setTlX(Math.floor(Math.random() * 80) + 10);
-    setTrX(Math.floor(Math.random() * 80) + 10);
-    setBrX(Math.floor(Math.random() * 80) + 10);
-    setBlX(Math.floor(Math.random() * 80) + 10);
-
-    setTlY(Math.floor(Math.random() * 80) + 10);
-    setTrY(Math.floor(Math.random() * 80) + 10);
-    setBrY(Math.floor(Math.random() * 80) + 10);
-    setBlY(Math.floor(Math.random() * 80) + 10);
+    setCorners(randomCorners());
   }
 
   const setCssCopy = () => {
@@ -61,6 +352,7 @@ export default function BlobGeneratorTool() {
     setCopiedCSS(true);
     setTimeout(() => setCopiedCSS(false), 2000);
   };
+
   const setTwCopy = () => {
     navigator.clipboard.writeText(tailwindValue);
     setCopiedTW(true);
@@ -68,38 +360,62 @@ export default function BlobGeneratorTool() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div className="grid gap-6 lg:grid-cols-[2fr_1.5fr]">
-        {/* PREVIEW DOMAIN */}
-        <div className="space-y-6 flex flex-col">
-          <Card className="border-white/10 bg-card/70 overflow-hidden flex-1 shadow-sm flex flex-col rounded-3xl min-h-[500px]">
-            <CardHeader className="bg-background/20 border-b border-white/5 py-4 px-6 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+        <div className="flex flex-col space-y-6">
+          <Card className="flex min-h-[500px] flex-1 flex-col overflow-hidden rounded-3xl border-white/10 bg-card/70 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-background/20 px-6 py-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Live Shape Projection
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => applyPreset("smooth")}
+                  className="h-8 bg-background/50 text-xs leading-none"
+                >
+                  Smooth
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => applyPreset("organic")}
+                  className="h-8 bg-background/50 text-xs leading-none"
+                >
+                  Organic
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => applyPreset("wild")}
+                  className="h-8 bg-background/50 text-xs leading-none"
+                >
+                  Wild
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={randomize}
-                  className="h-8 gap-1.5 text-xs bg-background/50 leading-none"
+                  className="h-8 gap-1.5 bg-background/50 text-xs leading-none"
                 >
-                  <Dices className="size-3.5" /> Randomize
+                  <Dices className="size-3.5" />
+                  Randomize
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="flex-1 flex items-center justify-center p-8 sm:p-16 relative bg-[#1e293b]/50 dotted-bg">
+            <CardContent className="relative flex flex-1 items-center justify-center bg-[#1e293b]/50 p-8 sm:p-16 dotted-bg">
               <div
-                className="absolute inset-0 pointer-events-none"
+                className="pointer-events-none absolute inset-0"
                 style={{
                   backgroundImage:
                     "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)",
                   backgroundSize: "32px 32px",
                 }}
-              ></div>
+              />
 
               <div
-                className="relative z-10 w-full max-w-[280px] aspect-square transition-all duration-[400ms] shadow-2xl ease-out"
+                className="relative z-10 aspect-square w-full max-w-[280px] shadow-2xl transition-all duration-[320ms] ease-out"
                 style={{
                   borderRadius: borderRadiusValue,
                   background: blobGradient
@@ -110,253 +426,166 @@ export default function BlobGeneratorTool() {
             </CardContent>
           </Card>
 
-          {/* EXPORT CARDS */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Card className="border-white/10 bg-card/70 shadow-sm rounded-3xl overflow-hidden">
-              <CardHeader className="bg-background/20 border-b border-white/5 py-3 px-4 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2 border-l-2 border-blue-500 pl-2">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Card className="overflow-hidden rounded-3xl border-white/10 bg-card/70 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-background/20 px-4 py-3">
+                <CardTitle className="flex items-center gap-2 border-l-2 border-blue-500 pl-2 text-sm font-medium text-muted-foreground">
                   Native CSS
                 </CardTitle>
                 <Button
                   variant={copiedCSS ? "default" : "secondary"}
                   size="sm"
                   onClick={setCssCopy}
-                  className={`h-7 text-xs px-3 transition-colors ${copiedCSS ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
+                  className={`h-7 px-3 text-xs transition-colors ${copiedCSS ? "bg-emerald-600 text-white hover:bg-emerald-500" : ""}`}
                 >
                   {copiedCSS ? (
                     <>
-                      <CheckCircle2 className="size-3.5 mr-2" /> Copied
+                      <CheckCircle2 className="mr-2 size-3.5" />
+                      Copied
                     </>
                   ) : (
                     <>
-                      <Copy className="size-3.5 mr-2" /> Copy Native
+                      <Copy className="mr-2 size-3.5" />
+                      Copy Native
                     </>
                   )}
                 </Button>
               </CardHeader>
-              <div className="p-0">
-                <Textarea
-                  readOnly
-                  value={cssValue}
-                  className="h-[90px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-blue-400"
-                />
-              </div>
+              <Textarea
+                readOnly
+                value={cssValue}
+                className="h-[90px] resize-none border-0 bg-background/50 p-4 font-mono text-sm leading-relaxed text-blue-400 focus-visible:ring-0"
+              />
             </Card>
 
-            <Card className="border-white/10 bg-card/70 shadow-sm rounded-3xl overflow-hidden">
-              <CardHeader className="bg-background/20 border-b border-white/5 py-3 px-4 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2 border-l-2 border-emerald-500 pl-2">
+            <Card className="overflow-hidden rounded-3xl border-white/10 bg-card/70 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-background/20 px-4 py-3">
+                <CardTitle className="flex items-center gap-2 border-l-2 border-emerald-500 pl-2 text-sm font-medium text-muted-foreground">
                   Tailwind JIT
                 </CardTitle>
                 <Button
                   variant={copiedTW ? "default" : "secondary"}
                   size="sm"
                   onClick={setTwCopy}
-                  className={`h-7 text-xs px-3 transition-colors ${copiedTW ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
+                  className={`h-7 px-3 text-xs transition-colors ${copiedTW ? "bg-emerald-600 text-white hover:bg-emerald-500" : ""}`}
                 >
                   {copiedTW ? (
                     <>
-                      <CheckCircle2 className="size-3.5 mr-2" /> Copied
+                      <CheckCircle2 className="mr-2 size-3.5" />
+                      Copied
                     </>
                   ) : (
                     <>
-                      <Copy className="size-3.5 mr-2" /> Copy Arbitrary
+                      <Copy className="mr-2 size-3.5" />
+                      Copy Arbitrary
                     </>
                   )}
                 </Button>
               </CardHeader>
-              <div className="p-0">
-                <Textarea
-                  readOnly
-                  value={tailwindValue}
-                  className="h-[90px] font-mono text-[13px] leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-emerald-400"
-                />
-              </div>
+              <Textarea
+                readOnly
+                value={tailwindValue}
+                className="h-[90px] resize-none border-0 bg-background/50 p-4 font-mono text-[13px] leading-relaxed text-emerald-400 focus-visible:ring-0"
+              />
             </Card>
           </div>
         </div>
 
-        {/* 8-POINT CONTROL COORDINATES */}
-        <div className="space-y-6 flex flex-col h-full">
-          <Card className="border-white/10 bg-card/70 shadow-sm relative overflow-hidden rounded-3xl flex flex-col flex-1">
-            <CardHeader className="bg-background/20 border-b border-white/5 py-4 pb-0 z-10 sticky top-0">
-              <CardTitle className="flex items-center gap-2 text-base pb-4">
+        <div className="flex h-full flex-col space-y-6">
+          <Card className="relative flex flex-1 flex-col overflow-hidden rounded-3xl border-white/10 bg-card/70 shadow-sm">
+            <CardHeader className="sticky top-0 z-10 border-b border-white/5 bg-background/20 py-4 pb-0">
+              <CardTitle className="flex items-center gap-2 pb-4 text-base">
                 <SlidersVertical className="size-4 text-primary" />
-                8-Point Radii Settings
+                Blob Controls
               </CardTitle>
             </CardHeader>
-            <div className="p-6 space-y-8 overflow-y-auto custom-scrollbar flex-1">
-              <div className="grid gap-x-8 gap-y-8">
-                {/* Top Left Constraints */}
-                <div className="space-y-4 p-4 rounded-2xl bg-background/30 border border-white/5">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    Top-Left Quadrant
-                  </h4>
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      X Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {tlX}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={tlX}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setTlX(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-4 pt-2">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Y Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {tlY}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={tlY}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setTlY(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                </div>
 
-                {/* Top Right Constraints */}
-                <div className="space-y-4 p-4 rounded-2xl bg-background/30 border border-white/5">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    Top-Right Quadrant
-                  </h4>
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      X Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {trX}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={trX}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setTrX(Number(e.target.value))
-                      }
-                    />
+            <div className="flex-1 space-y-8 overflow-y-auto p-6 custom-scrollbar">
+              <div className="rounded-2xl border border-white/5 bg-background/30 p-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl border border-white/5 bg-background/40 p-2 sm:col-span-2">
+                    <div className="inline-flex rounded-lg border border-white/10 bg-background/40 p-1">
+                      <button
+                        onClick={() => setPointMode("four")}
+                        className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                          pointMode === "four"
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        4-Point
+                      </button>
+                      <button
+                        onClick={() => setPointMode("eight")}
+                        className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                          pointMode === "eight"
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        8-Point
+                      </button>
+                    </div>
                   </div>
-                  <div className="space-y-4 pt-2">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Y Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {trY}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={trY}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setTrY(Number(e.target.value))
-                      }
+                  <label className="flex items-center justify-between rounded-xl border border-white/5 bg-background/40 px-3 py-2 text-sm">
+                    <span>Lock X/Y per corner</span>
+                    <input
+                      type="checkbox"
+                      checked={lockAxis}
+                      onChange={(e) => setLockAxis(e.target.checked)}
+                      className="h-4 w-4 rounded border-muted bg-background"
                     />
-                  </div>
+                  </label>
+                  <label className="flex items-center justify-between rounded-xl border border-white/5 bg-background/40 px-3 py-2 text-sm">
+                    <span>Mirror diagonals</span>
+                    <input
+                      type="checkbox"
+                      checked={mirrorDiagonals}
+                      onChange={(e) => setMirrorDiagonals(e.target.checked)}
+                      className="h-4 w-4 rounded border-muted bg-background"
+                    />
+                  </label>
                 </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Corner values are automatically normalized to keep side sums valid, so x/y edits stay stable.
+                </p>
+              </div>
 
-                {/* Bottom Right Constraints */}
-                <div className="space-y-4 p-4 rounded-2xl bg-background/30 border border-white/5">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    Bottom-Right Quadrant
-                  </h4>
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      X Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {brX}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={brX}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setBrX(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-4 pt-2">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Y Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {brY}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={brY}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setBrY(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Left Constraints */}
-                <div className="space-y-4 p-4 rounded-2xl bg-background/30 border border-white/5">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    Bottom-Left Quadrant
-                  </h4>
-                  <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      X Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {blX}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={blX}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setBlX(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-4 pt-2">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Y Interpolation{" "}
-                      <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
-                        {blY}%
-                      </span>
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={blY}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setBlY(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                </div>
+              <div className="grid gap-x-8 gap-y-6">
+                <CornerControl
+                  corner="tl"
+                  values={corners.tl}
+                  mode={pointMode}
+                  onChange={updateCorner}
+                  onChangeBoth={updateCornerBoth}
+                />
+                <CornerControl
+                  corner="tr"
+                  values={corners.tr}
+                  mode={pointMode}
+                  onChange={updateCorner}
+                  onChangeBoth={updateCornerBoth}
+                />
+                <CornerControl
+                  corner="br"
+                  values={corners.br}
+                  mode={pointMode}
+                  onChange={updateCorner}
+                  onChangeBoth={updateCornerBoth}
+                />
+                <CornerControl
+                  corner="bl"
+                  values={corners.bl}
+                  mode={pointMode}
+                  onChange={updateCorner}
+                  onChangeBoth={updateCornerBoth}
+                />
               </div>
             </div>
 
-            {/* Base Aesthetics Controls Footer */}
-            <div className="p-6 border-t border-white/5 bg-background/20 z-10 sticky bottom-0 backdrop-blur-md">
+            <div className="sticky bottom-0 z-10 border-t border-white/5 bg-background/20 p-6 backdrop-blur-md">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground block">
+                <label className="block text-sm font-medium text-foreground">
                   Blob Context Fill
                 </label>
                 <div className="flex items-center gap-4">
@@ -365,9 +594,9 @@ export default function BlobGeneratorTool() {
                       type="checkbox"
                       checked={blobGradient}
                       onChange={(e) => setBlobGradient(e.target.checked)}
-                      className="h-4 w-4 rounded bg-background border-muted"
+                      className="h-4 w-4 rounded border-muted bg-background"
                     />
-                    <span className="text-xs text-muted-foreground select-none">
+                    <span className="select-none text-xs text-muted-foreground">
                       Gradient Depth
                     </span>
                   </div>
@@ -375,7 +604,7 @@ export default function BlobGeneratorTool() {
                     type="color"
                     value={blobColor}
                     onChange={(e) => setBlobColor(e.target.value)}
-                    className="w-6 h-6 rounded border-none p-0 cursor-pointer block"
+                    className="block h-6 w-6 cursor-pointer rounded border-none p-0"
                   />
                 </div>
               </div>
