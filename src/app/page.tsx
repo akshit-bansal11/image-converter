@@ -19,19 +19,19 @@ export default function Home() {
 
       <RepositoryCorner className="fixed right-0 top-0 z-20 p-2 sm:p-3" />
 
-      <main className="page-main">
-        <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#27272788] p-8 shadow-xl shadow-black/10 sm:p-10">
+      <main className="page-main flex gap-10 flex-col items-center">
+        <section className="flex flex-col items-center overflow-hidden rounded-2xl p-8 shadow-xl shadow-black/10 sm:p-10">
           <Badge
             variant="outline"
-            className="mb-5 gap-2 badge-emerald px-3 py-1"
+            className="flex mb-3 rounded-full gap-2 items-center badge-emerald px-4 py-2"
           >
             <Sparkles className="size-3.5" />
             Open-source browser utilities
           </Badge>
 
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-              open-tools
+          <div className="flex flex-col gap-5 items-center">
+            <h1 className="text-4xl font-semibold text-neutral-100 tracking-tight sm:text-8xl">
+              Open Tools
             </h1>
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
               A growing collection of focused, local-first utilities for image,

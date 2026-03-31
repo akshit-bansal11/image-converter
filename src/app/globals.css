@@ -80,6 +80,14 @@
     @apply border-border;
   }
 
+  html {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
@@ -149,7 +157,7 @@
 
   /* Emerald accent badge (used for status, "client-side" pills, etc.) */
   .badge-emerald {
-    @apply border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-300;
+    @apply flex border-emerald-500/50 bg-emerald-500/[0.2] text-emerald-300;
   }
 
   .category-card-scroll {
