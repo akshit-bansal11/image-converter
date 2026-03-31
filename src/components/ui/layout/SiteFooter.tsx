@@ -20,7 +20,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           asChild
           variant="outline"
           size="sm"
-          className="glass-button"
+          className="border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/15"
         >
           <a href={siteConfig.social.github} target="_blank" rel="noreferrer">
             <Github className="size-4" />
@@ -31,7 +31,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           asChild
           variant="outline"
           size="sm"
-          className="glass-button"
+          className="border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/15"
         >
           <a href={siteConfig.social.linkedin} target="_blank" rel="noreferrer">
             <Linkedin className="size-4" />
@@ -42,7 +42,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           asChild
           variant="outline"
           size="sm"
-          className="glass-button"
+          className="border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/15"
         >
           <a href={`mailto:${siteConfig.social.email}`}>
             <Mail className="size-4" />

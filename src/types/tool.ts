@@ -9,3 +9,8 @@ export interface ToolDefinition {
   highlights: string[];
   icon: LucideIcon;
 }
+
+export interface ToolCategoryDefinition {
+  name: string;
+  icon: LucideIcon;
+}

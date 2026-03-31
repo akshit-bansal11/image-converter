@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { RepositoryCorner } from "@/components/common/RepositoryCorner";
 import { SiteFooter } from "@/components/ui/layout/SiteFooter";
 
-import { tools } from "@/config/tools";
-import { GridCard } from "@/components/ui/layout/GridCard";
+import { CategoryCard } from "@/components/common/CategoryCard";
+import { toolsByCategory } from "@/config/tools";
 
 const inDevelopmentSlugs = new Set([
   "video-converter",
@@ -21,7 +20,7 @@ export default function Home() {
       <RepositoryCorner className="fixed right-0 top-0 z-20 p-2 sm:p-3" />
 
       <main className="page-main">
-        <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 shadow-xl shadow-black/10 backdrop-blur-sm sm:p-10">
+        <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#27272788] p-8 shadow-xl shadow-black/10 sm:p-10">
           <Badge
             variant="outline"
             className="mb-5 gap-2 badge-emerald px-3 py-1"
@@ -42,28 +41,15 @@ export default function Home() {
         </section>
 
         <section>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {tools.map((tool) => {
-              const isInDevelopment = inDevelopmentSlugs.has(tool.slug);
-
-              const card = (
-                <GridCard tool={tool} isInDevelopment={isInDevelopment} />
-              );
-
-              if (isInDevelopment) {
-                return (
-                  <div key={tool.slug} className="cursor-not-allowed">
-                    {card}
-                  </div>
-                );
-              }
-
-              return (
-                <Link key={tool.slug} href={tool.href} className="group">
-                  {card}
-                </Link>
-              );
-            })}
+          <div className="columns-1 gap-5 md:columns-2 2xl:columns-3">
+            {toolsByCategory.map((category) => (
+              <CategoryCard
+                key={category.name}
+                category={category}
+                tools={category.tools}
+                inDevelopmentSlugs={inDevelopmentSlugs}
+              />
+            ))}
           </div>
         </section>
 

@@ -14,7 +14,7 @@ export function RepositoryCorner({ className }: RepositoryCornerProps) {
         asChild
         variant="outline"
         size="icon"
-        className="glass-button size-11 rounded-full shadow-sm transition-transform hover:scale-110 active:scale-95 sm:size-12"
+        className="size-11 rounded-full border-white/10 bg-white/[0.03] shadow-sm transition-transform hover:scale-110 hover:bg-white/[0.06] hover:border-white/15 active:scale-95 sm:size-12"
       >
         <a href={siteConfig.repositoryUrl} target="_blank" rel="noreferrer">
           <Github className="size-5" />

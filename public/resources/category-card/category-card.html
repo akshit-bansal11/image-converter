@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NOCTURNAL | Audio Module</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#3f4041",
+                        "surface-variant": "#252626",
+                        "on-surface-variant": "#acabaa",
+                        "surface-container-highest": "#252626",
+                        "background": "#0e0e0e",
+                        "tertiary-fixed": "#f6f3f2",
+                        "secondary-fixed-dim": "#d6d4d3",
+                        "primary": "#c6c6c6",
+                        "on-background": "#e7e5e4",
+                        "tertiary-container": "#edeaea",
+                        "on-secondary-fixed-variant": "#5c5b5b",
+                        "outline-variant": "#484848",
+                        "on-tertiary-container": "#575756",
+                        "tertiary": "#fbf9f8",
+                        "primary-dim": "#b8b9b9",
+                        "surface-bright": "#2c2c2c",
+                        "outline": "#767575",
+                        "error-container": "#7f2927",
+                        "surface-dim": "#0e0e0e",
+                        "secondary-container": "#3b3b3b",
+                        "inverse-primary": "#5e5f5f",
+                        "inverse-on-surface": "#565554",
+                        "surface-container": "#191a1a",
+                        "error": "#ee7d77",
+                        "on-tertiary": "#5f5f5f",
+                        "on-tertiary-fixed": "#4a4949",
+                        "inverse-surface": "#fcf8f8",
+                        "secondary-fixed": "#e4e2e1",
+                        "surface-container-lowest": "#000000",
+                        "on-primary-container": "#d0d0d0",
+                        "on-primary-fixed": "#3e4040",
+                        "on-tertiary-fixed-variant": "#666666",
+                        "secondary": "#9f9d9d",
+                        "primary-fixed-dim": "#d4d4d4",
+                        "secondary-dim": "#9f9d9d",
+                        "on-secondary-container": "#c1bfbe",
+                        "surface-container-high": "#1f2020",
+                        "on-error": "#490106",
+                        "error-dim": "#bb5551",
+                        "surface-tint": "#c6c6c6",
+                        "primary-fixed": "#e2e2e2",
+                        "on-error-container": "#ff9993",
+                        "surface": "#0e0e0e",
+                        "on-secondary": "#202020",
+                        "tertiary-fixed-dim": "#e7e5e4",
+                        "primary-container": "#454747",
+                        "surface-container-low": "#131313",
+                        "on-secondary-fixed": "#3f3f3f",
+                        "on-surface": "#e7e5e4",
+                        "on-primary-fixed-variant": "#5a5c5c",
+                        "tertiary-dim": "#edeaea"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .etched-shadow {
+            box-shadow: inset 1px 1px 0px 0px rgba(72, 72, 72, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-[#0e0e0e] text-on-background font-body antialiased min-h-screen flex items-center justify-center p-8">
+<!-- Main Content Container -->
+<main class="flex flex-col items-center justify-center w-full max-w-xl">
+<!-- Premium Split Card Component -->
+<div class="w-full group relative">
+<!-- Ambient Shadow Layer -->
+<div class="absolute -inset-4 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+<div class="relative flex flex-col shadow-[0px_40px_80px_rgba(0,0,0,0.6)]">
+<!-- Top Panel (Header) -->
+<div class="bg-gradient-to-br from-surface-container-highest to-surface-container-low p-12 rounded-t-lg etched-shadow overflow-hidden relative">
+<div class="absolute top-0 right-0 p-8 opacity-10">
+<span class="material-symbols-outlined text-8xl">graphic_eq</span>
+</div>
+<h1 class="text-7xl font-extrabold font-headline tracking-tighter text-on-surface mb-2 relative z-10">
+                        Audio
+                    </h1>
+</div>
+<!-- Bottom Panel (Content) -->
+<div class="bg-surface-container p-12 rounded-b-lg flex flex-wrap gap-4 items-center justify-start etched-shadow">
+<!-- Pills -->
+<button class="px-8 py-3 rounded-full bg-surface-container-highest text-on-surface font-medium font-label border border-outline-variant/30 transition-all duration-300 hover:scale-105 hover:bg-primary/10 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(198,198,198,0.1)] flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">sync</span>
+<span>Converter</span>
+</button>
+<button class="px-8 py-3 rounded-full bg-surface-container-highest text-on-surface font-medium font-label border border-outline-variant/30 transition-all duration-300 hover:scale-105 hover:bg-primary/10 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(198,198,198,0.1)] flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">content_cut</span>
+<span>Extractor</span>
+</button>
+<button class="px-8 py-3 rounded-full bg-primary text-on-primary font-bold font-label transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(198,198,198,0.3)] flex items-center gap-2 bg-surface-container-highest text-on-surface font-medium border border-outline-variant/30">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span>
+<span>Editor</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Contextual Info (Editorial Style) -->
+</main>
+</body></html>

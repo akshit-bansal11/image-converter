@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   AudioLines,
+  Blocks,
   Binary,
   Blend,
   Box,
@@ -20,12 +21,24 @@ import {
   Music,
   PenTool,
   Pipette,
+  ScanSearch,
   Shapes,
   SwatchBook,
   Type,
   Video,
 } from "lucide-react";
-import type { ToolDefinition } from "@/types/tool";
+import type { ToolCategoryDefinition, ToolDefinition } from "@/types/tool";
+
+export const toolCategories: ToolCategoryDefinition[] = [
+  { name: "Audio", icon: AudioLines },
+  { name: "Video", icon: Video },
+  { name: "Dev", icon: Blocks },
+  { name: "Images", icon: ImageIcon },
+  { name: "Design", icon: PenTool },
+  { name: "Documents", icon: FileText },
+  { name: "Text", icon: Type },
+  { name: "Encoding", icon: ScanSearch },
+];
 
 export const tools: ToolDefinition[] = [
   {
@@ -298,3 +311,8 @@ export const tools: ToolDefinition[] = [
 export function getToolBySlug(slug: string) {
   return tools.find((tool) => tool.slug === slug);
 }
+
+export const toolsByCategory = toolCategories.map((category) => ({
+  ...category,
+  tools: tools.filter((tool) => tool.category === category.name),
+}));

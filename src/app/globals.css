@@ -79,6 +79,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
@@ -93,39 +94,21 @@
    ─────────────────────────────────────────────── */
 
 @layer components {
+
   /* Full-page shell: gradient background */
   .page-shell {
     @apply relative min-h-screen;
-    background: linear-gradient(
-      135deg,
-      hsl(0 0% 5.5%) 0%,
-      hsl(0 0% 5.5%) 50%,
-      hsl(210 6% 8%) 100%
-    );
+    background-color: #080808;
+    background-image: url("/resources/grid-background.svg");
+    background-attachment: fixed;
+    background-position: center top;
+    background-repeat: repeat;
+    background-size: 1600px 900px;
   }
 
   /* Subtle grid + radial glow overlay */
   .page-grid-overlay {
     @apply fixed inset-0 pointer-events-none;
-    background:
-      radial-gradient(
-        ellipse at 50% 0%,
-        rgba(255, 255, 255, 0.06) 0%,
-        transparent 50%
-      ),
-      linear-gradient(
-        rgba(255, 255, 255, 0.015) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.015) 1px,
-        transparent 1px
-      );
-    background-size:
-      auto,
-      64px 64px,
-      64px 64px;
   }
 
   /* Main content area — always full-width with consistent padding */
@@ -153,6 +136,7 @@
   .drop-zone {
     @apply rounded-[1.75rem] border-2 border-dashed border-white/[0.12] bg-white/[0.02] p-8 text-center transition-all duration-300;
   }
+
   .drop-zone:hover,
   .drop-zone-active {
     @apply border-emerald-500/55 bg-emerald-500/[0.05];
@@ -166,5 +150,29 @@
   /* Emerald accent badge (used for status, "client-side" pills, etc.) */
   .badge-emerald {
     @apply border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-300;
+  }
+
+  .category-card-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(72, 72, 72, 0.85) transparent;
+  }
+
+  .category-card-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .category-card-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .category-card-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgba(72, 72, 72, 0.85);
+  }
+
+  .category-card-scroll::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
   }
 }
