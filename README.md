@@ -1,114 +1,281 @@
 # open-tools
 
-<p align="center">
-  Open-source browser tools for image, text, and design workflows.
-</p>
+A growing collection of fast, local-first browser utilities for developers and designers — no logins, no uploads to servers, no fluff.
 
-<p align="center">
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black" />
-  <img alt="React" src="https://img.shields.io/badge/React-19-149eca" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6" />
-  <img alt="Local-first" src="https://img.shields.io/badge/Platform-Local--first-22c55e" />
-</p>
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org)
+[![React](https://img.shields.io/badge/React-19-149eca)](https://react.dev)
+[![Local-first](https://img.shields.io/badge/Platform-Local--first-22c55e)](https://github.com/akshit-bansal11/open-tools)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Hero
+> Built with Next.js 16, TypeScript, Tailwind CSS, and shadcn/ui. Each tool lives at its own route under `app/(tools)/`. Adding a new tool is as simple as dropping a route and registering it in the central tool registry.
 
-`open-tools` turns the project into a small multi-tool platform instead of a single utility.
-Each tool gets its own route under `app/(tools)/`, while shared UI, config, and conversion logic stay in `src/`.
+---
 
-Current tools:
+## Tools
 
-- `Image Converter`
-- `JSON Formatter`
-- `Base64`
+### ✅ Currently Available
 
-## Introduction
+| Tool | Category | Description |
+|------|----------|-------------|
+| Audio Converter | AUDIO | Convert audio files between formats and codecs locally using ffmpeg.wasm |
+| Audio Extractor | AUDIO | Extract the audio track from any video file in your chosen format and codec |
+| Git Scaffold | DEV | Paste a public GitHub repo URL and instantly visualize its full directory structure |
+| SVG Border Animator | DESIGN | Upload any SVG and animate each path border with stroke-dashoffset controls |
+| SVG Pattern Generator | DESIGN | Create beautiful, scalable vector patterns — export as CSS backgrounds or SVG data URIs |
+| CSS Blob Generator | DESIGN | Create intricate organic shapes by independently customizing 8 anchor points |
+| Glassmorphism Generator | DESIGN | Design frosted-glass UI elements with real-time backdrop filtering |
+| Box Shadow Generator | DESIGN | Create layered CSS shadows natively and export the exact styling string |
+| PDF Toolkit | DOCUMENTS | Merge, split by page, reorder, or compress PDFs directly in the browser |
+| Lorem Generator | TEXT | Generate customized placeholder text using classic Latin or random English prose |
+| Diff Checker | TEXT | Find inline character-level or line-level text differences with robust ignoring options |
+| SVG Optimizer | DESIGN | Clean up messy SVGs, strip metadata, dial in decimal precision, and convert to JSX |
+| PDF ↔ Image | DOCUMENTS | Merge images into a PDF, batch convert them, or extract pages as images |
+| Image Converter | IMAGES | Convert popular image formats locally with batch downloads and quality controls |
+| JSON Formatter | TEXT | Pretty-print, minify, validate, and copy JSON without leaving the browser |
+| Gradient Maker | DESIGN | Build multi-stop gradients with live previews, PNG exports, and Tailwind arbitrary values |
+| Gradient Library | DESIGN | Browse curated named gradients and copy them as CSS or Tailwind-ready arbitrary values |
+| Palette Library | DESIGN | Explore curated color palettes, copy swatches, or export full palettes as JSON |
+| Palette Extractor | DESIGN | Upload an image and use Gemini vision to extract dominant colors into a copyable palette |
+| Gradient Converter | DESIGN | Convert CSS gradients into Tailwind arbitrary values or switch between linear/radial/conic |
+| Color Converter | DESIGN | Convert HEX, RGB, HSL, HSV, OKLCH, and named colors into every other format at once |
+| Base64 | ENCODING | Encode and decode text with a clean local workflow that stays entirely in the browser |
 
-The platform is built for small, focused tasks that should feel fast in the browser and easy to extend in the codebase.
-The homepage is driven by a central tool registry, so new tools can be added without scattering route metadata across the app.
+---
 
-The original image-converter logic has been migrated into the new structure rather than rewritten. Its existing format support, upload limits, ICO resizing behavior, and HEIF output limitation are preserved.
+### 🚧 In Development
 
-## Usage
+| Tool | Category | Description |
+|------|----------|-------------|
+| Video Converter | VIDEO | Convert videos between formats and codecs directly in the browser using ffmpeg.wasm |
+| Frame Extractor | VIDEO | Upload a GIF or video and extract every frame as individual PNG images, then download as a ZIP |
+| Image Cropper | IMAGES | Crop and apply individual crops per image or a single crop to all at once in the browser |
 
-### Web
+---
 
-1. Open the deployed app or a local running instance.
-2. Pick a tool from the homepage directory.
-3. Use the tool directly in the browser.
+### 🗓 Planned
 
-Available flows right now:
+| Tool | Category | Description |
+|------|----------|-------------|
+| PDF Background Remover & Changer | DOCUMENTS | Remove or swap backgrounds from PDFs directly in the browser |
+| OCR | DOCUMENTS | Extract text from images and PDFs using optical character recognition |
+| Subtitle Generator & Burner | VIDEO | Generate subtitles and burn them into video — powered by Trupeer |
 
-- `Image Converter`: convert supported image formats locally
-- `JSON Formatter`: pretty-print or minify JSON safely
-- `Base64`: encode and decode text in the browser
+---
 
-### Local
-
-Install dependencies and start the app:
+## Getting Started
 
 ```bash
+# Install dependencies
 npm install
+
+# Start dev server
 npm run dev
 ```
 
-Then open:
-
-```text
-http://localhost:3000
-```
-
-For a production build:
+Open [http://localhost:3000](http://localhost:3000).
 
 ```bash
+# Production build
 npm run build
 npm start
 ```
 
-## Image Converter Notes
-
-- Inputs: `png`, `jpg`, `jpeg`, `webp`, `avif`, `tiff`, `heif`, `ico`
-- Outputs: `png`, `jpg`, `jpeg`, `webp`, `avif`, `tiff`, `ico`
-- `HEIF` / `HEIC` input is supported, but `HEIF` output is disabled in this build
-- `ICO` output is automatically resized to fit the encoder limit above `512px`
-- Upload guardrails: `10MB`, `4096px` max side, `20MP` max total
+---
 
 ## Project Structure
 
-```text
-src/
-  app/
-    (tools)/
-      image-converter/
-      json-formatter/
-      base64/
-    api/magick-wasm/
-    layout.tsx
-    page.tsx
-  components/
-    ui/
-    repository-corner.tsx
-    site-footer.tsx
-    tool-page-shell.tsx
-  config/
-    site.ts
-    tools.ts
-  lib/
-    converters/
-      image-converter/
 ```
+src/
+├── app/
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── (tools)/
+│   │   ├── audio-converter/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── AudioConverterTool.tsx
+│   │   ├── audio-extractor/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── AudioExtractorTool.tsx
+│   │   ├── base64/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── Base64Tool.tsx
+│   │   ├── blob-generator/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── BlobGeneratorTool.tsx
+│   │   ├── box-shadow/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── BoxShadowTool.tsx
+│   │   ├── color-converter/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── ColorConverterTool.tsx
+│   │   ├── diff-checker/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── DiffCheckerTool.tsx
+│   │   ├── frames-extractor/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── FramesExtractorTool.tsx
+│   │   ├── git-scaffold/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── GitScaffoldTool.tsx
+│   │   ├── glassmorphism/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── GlassmorphismTool.tsx
+│   │   ├── gradient-converter/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── GradientConverterTool.tsx
+│   │   ├── gradient-library/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── GradientLibraryTool.tsx
+│   │   ├── gradient-maker/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── GradientMakerTool.tsx
+│   │   ├── image-converter/
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── ImageConverter.tsx
+│   │   ├── image-cropper/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── ImageCropperTool.tsx
+│   │   ├── json-formatter/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── JsonFormatter.tsx
+│   │   ├── lorem-generator/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── LoremGeneratorTool.tsx
+│   │   ├── palette-extractor/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── PaletteExtractorTool.tsx
+│   │   ├── palette-library/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── PaletteLibraryTool.tsx
+│   │   ├── pdf-converter/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── PdfConverterTool.tsx
+│   │   ├── pdf-toolkit/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── PdfToolkitTool.tsx
+│   │   ├── svg-animator/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── SvgAnimatorTool.tsx
+│   │   ├── svg-optimizer/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── SvgOptimizerTool.tsx
+│   │   ├── svg-pattern/
+│   │   │   ├── page.tsx
+│   │   │   └── _components/
+│   │   │       └── SvgPatternTool.tsx
+│   │   └── video-converter/
+│   │       ├── page.tsx
+│   │       └── _components/
+│   │           └── VideoConverterTool.tsx
+│   └── api/
+│       └── magick-wasm/
+│           └── route.ts
+├── components/
+│   ├── repository-corner.tsx
+│   ├── site-footer.tsx
+│   ├── tool-page-shell.tsx
+│   ├── design-tools/
+│   │   ├── copy-button.tsx
+│   │   ├── field.tsx
+│   │   ├── gemini-api-key-dialog.tsx
+│   │   └── output-field.tsx
+│   └── ui/
+│       ├── badge.tsx
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── input.tsx
+│       ├── label.tsx
+│       ├── progress.tsx
+│       ├── select.tsx
+│       ├── separator.tsx
+│       ├── slider.tsx
+│       ├── textarea.tsx
+│       └── tooltip.tsx
+├── config/
+│   ├── site.ts
+│   └── tools.ts
+├── lib/
+│   ├── utils.ts
+│   ├── converters/
+│   │   └── image-converter/
+│   │       ├── converter.ts
+│   │       └── engine.ts
+│   ├── design-tools/
+│   │   ├── colors.ts
+│   │   ├── constants.ts
+│   │   ├── gradients.ts
+│   │   ├── palette-extractor.ts
+│   │   └── data/
+│   │       ├── gradient-presets.ts
+│   │       └── palette-presets.ts
+│   └── ffmpeg/
+│       └── client.ts
+└── types/
+    └── tool.ts
+
+```
+
+The homepage is fully driven by `config/tools.ts`. New tools auto-appear on the landing page once registered — no scattered metadata.
+
+---
 
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
+npm run dev      # start dev server
+npm run build    # production build
+npm run start    # start production server
+npm run lint     # run ESLint
 ```
 
-## Repository
+---
 
-- Repo: `https://github.com/akshit-bansal11/image-converter`
-- GitHub: `https://github.com/akshit-bansal11`
-- LinkedIn: `https://www.linkedin.com/in/akshit-bansal11/`
+## Contributing
+ 
+Contributions are welcome — PRs and issues both.
+ 
+**To add a tool:**
+ 
+1. Create a route under `src/app/(tools)/your-tool/`
+2. Register it in `src/config/tools.ts`
+3. Use `ToolPageShell` as the layout wrapper for consistency
+ 
+Keep tools self-contained and client-side where possible.
+ 
+**To report a bug or request a feature:**
+ 
+Open an issue with a clear title and description. For bugs, include steps to reproduce and your browser/OS. For feature requests, describe the use case — not just the solution.
+ 
+---
+
+## Links
+
+- **Live:** [use-open-tools.vercel.app](https://use-open-tools.vercel.app)
+- **GitHub:** [github.com/akshit-bansal11](https://github.com/akshit-bansal11)
+- **LinkedIn:** [linkedin.com/in/akshit-bansal11](https://linkedin.com/in/akshit-bansal11)
