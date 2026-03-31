@@ -366,7 +366,7 @@ export default function ImageConverter() {
               {doneCount > 0 && (
                 <Badge
                   variant="outline"
-                  className="border-emerald-500/30 px-3 py-1 text-sm text-emerald-600 dark:text-emerald-400"
+                  className="border-white/15 px-3 py-1 text-sm text-white/75"
                 >
                   <CheckCircle2 className="mr-1 size-3.5" />
                   {doneCount} converted

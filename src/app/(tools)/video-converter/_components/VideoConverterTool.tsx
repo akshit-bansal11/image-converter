@@ -296,7 +296,7 @@ export default function VideoConverterTool() {
               <div className="flex flex-wrap gap-2">
                 <Badge
                   variant="outline"
-                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  className="border-white/15 bg-white/[0.06] text-white/75"
                 >
                   {doneCount} done
                 </Badge>

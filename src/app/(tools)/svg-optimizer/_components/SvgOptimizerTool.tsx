@@ -393,7 +393,7 @@ export default function SvgOptimizerTool() {
                 <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
                   Optimized Size
                 </p>
-                <p className="font-mono text-sm mt-0.5 text-emerald-400">
+                <p className="mt-0.5 font-mono text-sm text-white/80">
                   {formatFileSize(optimizedData.optiSize)}
                 </p>
               </div>
@@ -401,7 +401,7 @@ export default function SvgOptimizerTool() {
             {optimizedData.origSize > 0 && (
               <Badge
                 variant="outline"
-                className={`font-mono text-sm border-emerald-500/30 bg-emerald-500/10 text-emerald-300 px-3 py-1 ${savingsPct < 0 ? "border-red-500/30 bg-red-500/10 text-red-300" : ""}`}
+                className={`px-3 py-1 font-mono text-sm border-white/15 bg-white/[0.06] text-white/75 ${savingsPct < 0 ? "border-red-500/30 bg-red-500/10 text-red-300" : ""}`}
               >
                 {savingsPct > 0
                   ? `-${savingsPct}% Saved`

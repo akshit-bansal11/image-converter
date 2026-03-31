@@ -436,7 +436,7 @@ export default function BlobGeneratorTool() {
                   variant={copiedCSS ? "default" : "secondary"}
                   size="sm"
                   onClick={setCssCopy}
-                  className={`h-7 px-3 text-xs transition-colors ${copiedCSS ? "bg-emerald-600 text-white hover:bg-emerald-500" : ""}`}
+                  className={`h-7 px-3 text-xs transition-colors ${copiedCSS ? "bg-white/20 text-white hover:bg-white/25" : ""}`}
                 >
                   {copiedCSS ? (
                     <>
@@ -460,14 +460,14 @@ export default function BlobGeneratorTool() {
 
             <Card className="overflow-hidden rounded-3xl border-white/10 bg-card/70 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-background/20 px-4 py-3">
-                <CardTitle className="flex items-center gap-2 border-l-2 border-emerald-500 pl-2 text-sm font-medium text-muted-foreground">
+                <CardTitle className="flex items-center gap-2 border-l-2 border-white/20 pl-2 text-sm font-medium text-muted-foreground">
                   Tailwind JIT
                 </CardTitle>
                 <Button
                   variant={copiedTW ? "default" : "secondary"}
                   size="sm"
                   onClick={setTwCopy}
-                  className={`h-7 px-3 text-xs transition-colors ${copiedTW ? "bg-emerald-600 text-white hover:bg-emerald-500" : ""}`}
+                  className={`h-7 px-3 text-xs transition-colors ${copiedTW ? "bg-white/20 text-white hover:bg-white/25" : ""}`}
                 >
                   {copiedTW ? (
                     <>
@@ -485,7 +485,7 @@ export default function BlobGeneratorTool() {
               <Textarea
                 readOnly
                 value={tailwindValue}
-                className="h-[90px] resize-none border-0 bg-background/50 p-4 font-mono text-[13px] leading-relaxed text-emerald-400 focus-visible:ring-0"
+                className="h-[90px] resize-none border-0 bg-background/50 p-4 font-mono text-[13px] leading-relaxed text-white/80 focus-visible:ring-0"
               />
             </Card>
           </div>

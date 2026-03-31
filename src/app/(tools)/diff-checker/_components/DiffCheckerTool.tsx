@@ -217,7 +217,7 @@ export default function DiffCheckerTool() {
             </Badge>
             <Badge
               variant="outline"
-              className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0.5"
+              className="border-white/15 bg-white/[0.06] px-2 py-0.5 text-white/80"
             >
               Added
             </Badge>
@@ -238,7 +238,7 @@ export default function DiffCheckerTool() {
                   return (
                     <span
                       key={index}
-                      className="bg-emerald-500/20 text-emerald-300 font-semibold px-0.5 rounded-sm"
+                      className="rounded-sm bg-white/[0.12] px-0.5 font-semibold text-white/85"
                     >
                       {part.value}
                     </span>

@@ -249,7 +249,7 @@ export default function AudioExtractorTool() {
           <div className="mt-4 space-y-2">
             <Progress value={progress} />
             {result ? (
-              <p className="text-xs text-emerald-300">
+              <p className="text-xs text-white/70">
                 Extracted size: {formatFileSize(result.size)}
               </p>
             ) : null}

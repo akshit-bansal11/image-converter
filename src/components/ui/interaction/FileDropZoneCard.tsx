@@ -144,16 +144,16 @@ export function FileDropZoneCard({
           className={cn(
             "rounded-full border border-white/[0.08] bg-white/[0.03] p-4 transition-colors duration-300",
             isDragging
-              ? "border-emerald-500/30 bg-emerald-500/[0.08]"
-              : "group-hover:border-emerald-500/30 group-hover:bg-emerald-500/[0.06]",
+              ? "border-white/20 bg-white/[0.09]"
+              : "group-hover:border-white/20 group-hover:bg-white/[0.07]",
           )}
         >
           <FileUp
             className={cn(
               "size-8 transition-colors duration-300",
               isDragging
-                ? "text-emerald-400"
-                : "text-muted-foreground group-hover:text-emerald-400",
+                ? "text-white/85"
+                : "text-muted-foreground group-hover:text-white/80",
             )}
           />
         </div>

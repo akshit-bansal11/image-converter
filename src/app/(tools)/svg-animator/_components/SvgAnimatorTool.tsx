@@ -320,7 +320,7 @@ export default function SvgAnimatorTool() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
+              <Badge className="border-white/15 bg-white/[0.06] text-white/75">
                 {parsedSvg.pathLengths.length} paths
               </Badge>
               <Badge className="border-blue-500/20 bg-blue-500/10 text-blue-300">

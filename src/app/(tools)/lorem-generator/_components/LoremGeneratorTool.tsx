@@ -456,7 +456,7 @@ export default function LoremGeneratorTool() {
               variant={copied ? "default" : "secondary"}
               size="sm"
               onClick={handleCopy}
-              className={`h-8 text-xs px-3 transition-colors ${copied ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
+              className={`h-8 text-xs px-3 transition-colors ${copied ? "bg-white/20 hover:bg-white/25 text-white" : ""}`}
             >
               {copied ? (
                 <>

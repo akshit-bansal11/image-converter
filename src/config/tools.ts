@@ -21,7 +21,6 @@ import {
   Music,
   PenTool,
   Pipette,
-  ScanSearch,
   Shapes,
   SwatchBook,
   Type,
@@ -34,17 +33,18 @@ export const toolCategories: ToolCategoryDefinition[] = [
   { name: "Video", icon: Video },
   { name: "Dev", icon: Blocks },
   { name: "Images", icon: ImageIcon },
-  { name: "Design", icon: PenTool },
+  { name: "SVG", icon: PenTool },
+  { name: "Colors", icon: SwatchBook },
+  { name: "CSS", icon: Box },
   { name: "Documents", icon: FileText },
   { name: "Text", icon: Type },
-  { name: "Encoding", icon: ScanSearch },
 ];
 
 export const tools: ToolDefinition[] = [
   {
     slug: "audio-converter",
     href: "/audio-converter",
-    name: "Audio Converter",
+    name: "Convert",
     description:
       "Convert audio files between formats and codecs entirely in the browser using ffmpeg.wasm.",
     category: "Audio",
@@ -57,7 +57,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "audio-extractor",
     href: "/audio-extractor",
-    name: "Audio Extractor",
+    name: "Extract",
     description:
       "Extract the audio track from any video file and download it in your chosen format and codec.",
     category: "Audio",
@@ -67,7 +67,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "video-converter",
     href: "/video-converter",
-    name: "Video Converter",
+    name: "Convert",
     description:
       "Convert videos between formats and codecs directly in the browser using ffmpeg.wasm.",
     category: "Video",
@@ -80,7 +80,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "frames-extractor",
     href: "/frames-extractor",
-    name: "Frames Extractor",
+    name: "Frames",
     description:
       "Upload a GIF or video and extract every frame as individual PNG images, then download them as a ZIP.",
     category: "Video",
@@ -100,7 +100,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "image-cropper",
     href: "/image-cropper",
-    name: "Image Cropper",
+    name: "Crop",
     description:
       "Crop one or many images in the browser - apply individual crops per image or a single crop to all at once.",
     category: "Images",
@@ -113,10 +113,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: "svg-animator",
     href: "/svg-animator",
-    name: "SVG Border Animator",
+    name: "Animate",
     description:
       "Upload any SVG and animate each path border locally with stroke-dashoffset controls and export-ready output.",
-    category: "Design",
+    category: "SVG",
     highlights: [
       "Sequential or simultaneous path animation",
       "Downloadable SVG with embedded keyframes",
@@ -126,10 +126,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: "svg-pattern",
     href: "/svg-pattern",
-    name: "SVG Pattern Generator",
+    name: "Pattern",
     description:
       "Create beautiful, scalable vector patterns directly in your browser. Export native CSS backgrounds or raw SVG data URIs instantly.",
-    category: "Design",
+    category: "SVG",
     highlights: [
       "Injected vector properties directly generated",
       "CSS backgrounds",
@@ -139,30 +139,30 @@ export const tools: ToolDefinition[] = [
   {
     slug: "blob-generator",
     href: "/blob-generator",
-    name: "CSS Blob Generator",
+    name: "Blob",
     description:
       "Create intricate, organic shapes natively by independently customizing the 8 anchor points of the border-radius property.",
-    category: "Design",
+    category: "CSS",
     highlights: ["8-Point interpolators natively computed"],
     icon: Shapes,
   },
   {
     slug: "glassmorphism",
     href: "/glassmorphism",
-    name: "Glassmorphism Generator",
+    name: "Glass",
     description:
       "Design stunning frosted-glass UI elements with real-time backdrop filtering and export the CSS directly.",
-    category: "Design",
+    category: "CSS",
     highlights: ["Interactive refractive blur previews", "Tailwind & CSS"],
     icon: Droplet,
   },
   {
     slug: "box-shadow",
     href: "/box-shadow",
-    name: "Box Shadow Generator",
+    name: "Shadow",
     description:
       "Create layered CSS shadows natively through visual controls and export the exact styling string for your projects.",
-    category: "Design",
+    category: "CSS",
     highlights: ["Detailed multi-layer controls natively"],
     icon: Box,
   },
@@ -199,10 +199,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: "svg-optimizer",
     href: "/svg-optimizer",
-    name: "SVG Optimizer",
+    name: "Optimize",
     description:
       "Clean up messy SVGs, strip metadata, dial in decimal precision, and convert to JSX directly in the browser.",
-    category: "Design",
+    category: "SVG",
     highlights: ["Live visual preview with JSX conversion"],
     icon: FileCode2,
   },
@@ -219,7 +219,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "image-converter",
     href: "/image-converter",
-    name: "Image Converter",
+    name: "Convert",
     description:
       "Convert popular image formats locally with batch downloads, quality controls, and upload guardrails.",
     category: "Images",
@@ -239,10 +239,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: "gradient-maker",
     href: "/gradient-maker",
-    name: "Gradient Maker",
+    name: "Gradients",
     description:
       "Build multi-stop gradients with live previews, PNG exports, CSS output, and Tailwind arbitrary values.",
-    category: "Design",
+    category: "Colors",
     highlights: ["Drag and reorder gradient stops"],
     icon: Blend,
   },
@@ -252,7 +252,7 @@ export const tools: ToolDefinition[] = [
     name: "Gradient Library",
     description:
       "Browse curated named gradients and copy them as CSS or Tailwind-ready arbitrary values.",
-    category: "Design",
+    category: "Colors",
     highlights: ["Curated presets with instant PNG downloads"],
     icon: LibraryBig,
   },
@@ -262,37 +262,37 @@ export const tools: ToolDefinition[] = [
     name: "Palette Library",
     description:
       "Explore curated color palettes, copy individual swatches, or export full palettes as JSON.",
-    category: "Design",
+    category: "Colors",
     highlights: ["Copy any swatch or full palette JSON"],
     icon: SwatchBook,
   },
   {
     slug: "palette-extractor",
     href: "/palette-extractor",
-    name: "Palette Extractor",
+    name: "Extract Palette",
     description:
       "Upload an image and use Gemini vision to extract dominant colors into a copyable palette.",
-    category: "Design",
+    category: "Colors",
     highlights: ["Gemini-powered image palette extraction"],
     icon: ImageUp,
   },
   {
     slug: "gradient-converter",
     href: "/gradient-converter",
-    name: "Gradient Converter",
+    name: "Convert Gradient",
     description:
       "Convert CSS gradients into Tailwind arbitrary values or switch between linear, radial, and conic syntax.",
-    category: "Design",
+    category: "Colors",
     highlights: ["Live preview while converting gradient syntax"],
     icon: ArrowLeftRight,
   },
   {
     slug: "color-converter",
     href: "/color-converter",
-    name: "Color Converter",
+    name: "Convert Color",
     description:
       "Convert HEX, RGB, HSL, HSV, OKLCH, and named colors into every other format at once.",
-    category: "Design",
+    category: "Colors",
     highlights: ["All major color models at the same time"],
     icon: Pipette,
   },
@@ -302,7 +302,7 @@ export const tools: ToolDefinition[] = [
     name: "Base64",
     description:
       "Encode and decode text with a clean local workflow that stays entirely in the browser.",
-    category: "Encoding",
+    category: "Text",
     highlights: ["Unicode-safe encode and decode"],
     icon: Binary,
   },

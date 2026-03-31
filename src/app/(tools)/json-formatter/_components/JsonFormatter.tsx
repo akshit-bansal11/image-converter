@@ -147,7 +147,7 @@ export default function JsonFormatter() {
           </Button>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col">
-          <pre className="flex-1 overflow-auto rounded-2xl border bg-background/70 p-4 font-mono text-sm leading-relaxed text-emerald-200 min-h-[400px] w-full">
+          <pre className="flex-1 min-h-[400px] w-full overflow-auto rounded-2xl border bg-background/70 p-4 font-mono text-sm leading-relaxed text-white/80">
             {output || (
               <span className="text-muted-foreground">
                 Formatted JSON will appear here.

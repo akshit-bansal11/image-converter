@@ -30,7 +30,7 @@ export function OutputField({
       </div>
       <pre
         className={cn(
-          "surface-inset mt-4 overflow-x-auto p-4 font-mono text-sm whitespace-pre-wrap break-all text-emerald-200",
+          "surface-inset mt-4 overflow-x-auto p-4 font-mono text-sm whitespace-pre-wrap break-all text-white/80",
           valueClassName,
         )}
       >

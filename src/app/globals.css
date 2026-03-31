@@ -147,7 +147,7 @@
 
   .drop-zone:hover,
   .drop-zone-active {
-    @apply border-emerald-500/55 bg-emerald-500/[0.05];
+    @apply border-white/25 bg-white/[0.04];
   }
 
   /* Error banner */
@@ -157,7 +157,7 @@
 
   /* Emerald accent badge (used for status, "client-side" pills, etc.) */
   .badge-emerald {
-    @apply flex border-emerald-500/50 bg-emerald-500/[0.2] text-emerald-300;
+    @apply flex border-white/15 bg-white/[0.06] text-white/80;
   }
 
   .category-card-scroll {

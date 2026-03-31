@@ -26,7 +26,7 @@ export function ImageConverterStatusBadge({
       );
     case "done":
       return (
-        <Badge className="border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0 text-[10px] text-emerald-600 dark:text-emerald-400">
+        <Badge className="border-white/15 bg-white/[0.06] px-1.5 py-0 text-[10px] text-white/75">
           Done
         </Badge>
       );

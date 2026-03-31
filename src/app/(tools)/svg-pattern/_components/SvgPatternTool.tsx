@@ -290,7 +290,7 @@ export default function SvgPatternTool() {
               <Button
                 size="sm"
                 onClick={() => copy(cssValue, "css")}
-                className={copiedCSS ? "bg-green-600/80 text-white" : "bg-white/10 text-white hover:bg-white/20"}
+                className={copiedCSS ? "bg-white/20 text-white" : "bg-white/10 text-white hover:bg-white/20"}
               >
                 {copiedCSS ? (
                   <Check className="size-4" />
@@ -312,7 +312,7 @@ export default function SvgPatternTool() {
               <Button
                 size="sm"
                 onClick={() => copy(exportSvg, "svg")}
-                className={copiedSVG ? "bg-green-600/80 text-white" : "bg-white/10 text-white hover:bg-white/20"}
+                className={copiedSVG ? "bg-white/20 text-white" : "bg-white/10 text-white hover:bg-white/20"}
               >
                 {copiedSVG ? (
                   <Check className="size-4" />

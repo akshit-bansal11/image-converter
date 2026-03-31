@@ -194,7 +194,7 @@ export default function GitScaffoldTool() {
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <Badge
                 variant="outline"
-                className="border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                className="border-white/15 bg-white/[0.06] text-white/75"
               >
                 {nodeCounts.folders} folders
               </Badge>

@@ -208,7 +208,7 @@ export default function PaletteExtractorTool() {
                           </p>
                         </div>
                         {copiedColor === color ? (
-                          <Badge className="gap-1.5 bg-emerald-500/10 text-emerald-300">
+                          <Badge className="gap-1.5 bg-white/[0.06] text-white/75">
                             <CheckCircle2 className="size-3.5" />
                             Copied
                           </Badge>
@@ -225,7 +225,7 @@ export default function PaletteExtractorTool() {
 
                 <div className="rounded-2xl border bg-background/60 p-4">
                   <p className="text-sm font-medium">Palette JSON</p>
-                  <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all rounded-xl border bg-background/80 p-4 font-mono text-sm text-emerald-200">
+                  <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all rounded-xl border bg-background/80 p-4 font-mono text-sm text-white/80">
                     {paletteJson}
                   </pre>
                 </div>

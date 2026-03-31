@@ -65,7 +65,7 @@ export function ImageConverterFileCard({
       <div
         className={`absolute left-0 top-0 h-full w-1 rounded-l-xl transition-colors ${
           item.status === "done"
-            ? "bg-emerald-500"
+            ? "bg-white/80"
             : item.status === "error"
               ? "bg-red-500"
               : item.status === "converting"
@@ -192,7 +192,7 @@ export function ImageConverterFileCard({
                   onClick={onDownload}
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 border-emerald-500/30 text-xs text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+                  className="h-8 gap-1.5 border-white/15 text-xs text-white/75 hover:bg-white/[0.06]"
                 >
                   <Download className="size-3" />
                   Download

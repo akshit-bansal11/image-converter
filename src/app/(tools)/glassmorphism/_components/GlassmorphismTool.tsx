@@ -188,7 +188,7 @@ export default function GlassmorphismTool() {
                   variant={copiedCSS ? "default" : "secondary"}
                   size="sm"
                   onClick={setCssCopy}
-                  className={`h-7 text-xs px-3 transition-colors ${copiedCSS ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
+                  className={`h-7 text-xs px-3 transition-colors ${copiedCSS ? "bg-white/20 hover:bg-white/25 text-white" : ""}`}
                 >
                   {copiedCSS ? (
                     <>
@@ -219,7 +219,7 @@ export default function GlassmorphismTool() {
                   variant={copiedTW ? "default" : "secondary"}
                   size="sm"
                   onClick={setTwCopy}
-                  className={`h-7 text-xs px-3 transition-colors ${copiedTW ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
+                  className={`h-7 text-xs px-3 transition-colors ${copiedTW ? "bg-white/20 hover:bg-white/25 text-white" : ""}`}
                 >
                   {copiedTW ? (
                     <>
@@ -236,7 +236,7 @@ export default function GlassmorphismTool() {
                 <Textarea
                   readOnly
                   value={tailwindValue}
-                  className="h-[120px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-emerald-400"
+                  className="h-[120px] font-mono text-sm leading-relaxed p-4 bg-background/50 border-0 focus-visible:ring-0 resize-none text-white/80"
                 />
               </div>
             </Card>

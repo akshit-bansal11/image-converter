@@ -162,7 +162,7 @@ export default function Base64Tool() {
             value={output}
             readOnly
             spellCheck={false}
-            className="min-h-[320px] w-full rounded-2xl border bg-background/70 p-4 font-mono text-sm text-emerald-200 outline-none"
+            className="min-h-[320px] w-full rounded-2xl border bg-background/70 p-4 font-mono text-sm text-white/80 outline-none"
             placeholder="Base64 output will appear here."
           />
         </CardContent>

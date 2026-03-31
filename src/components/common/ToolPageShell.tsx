@@ -39,9 +39,9 @@ export function ToolPageShell({
         </div>
 
         <header className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 text-sm text-emerald-300/90 backdrop-blur-sm">
-            <Sparkles className="size-3.5 text-emerald-400" />
-            {siteConfig.name} — 100% client-side
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-sm text-white/75 backdrop-blur-sm">
+            <Sparkles className="size-3.5 text-white/70" />
+            {siteConfig.name} - 100% client-side
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
