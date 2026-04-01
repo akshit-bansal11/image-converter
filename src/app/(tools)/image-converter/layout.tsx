@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { getToolBySlug } from "@/config/tools";
+
+const tool = getToolBySlug("image-converter");
 
 export const metadata: Metadata = {
-  title: "Image Converter",
-  description:
-    "Convert PNG, JPG, JPEG, WebP, AVIF, TIFF, HEIF, and ICO images locally in your browser.",
+  title: tool?.name ?? "Image Converter",
+  description: tool?.description,
 };
 
-export default function ImageConverterLayout({
+export default function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;

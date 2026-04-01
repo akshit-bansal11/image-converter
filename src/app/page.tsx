@@ -1,6 +1,5 @@
 import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { RepositoryCorner } from "@/components/common/RepositoryCorner";
 import { SiteFooter } from "@/components/ui/layout/SiteFooter";
 import { CategoryCard } from "@/components/common/CategoryCard";
 import { toolsByCategory } from "@/config/tools";
