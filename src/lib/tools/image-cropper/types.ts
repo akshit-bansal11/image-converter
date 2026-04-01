@@ -1,4 +1,5 @@
 export type CropMode = "individual" | "batch";
+export type CropShape = "rectangular" | "circular" | "mesh";
 
 export type Handle = "move" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
 
@@ -19,6 +20,7 @@ export interface UploadedImage {
   width: number;
   height: number;
   crop: CropRect;
+  cropShape: CropShape;
   outputUrl?: string;
   outputBlob?: Blob;
 }

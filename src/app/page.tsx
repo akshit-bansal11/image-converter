@@ -7,7 +7,7 @@ import { toolsByCategory } from "@/config/tools";
 const inDevelopmentSlugs = new Set([
   "video-converter",
   "frames-extractor",
-  "image-cropper",
+  // "image-cropper",
 ]);
 
 export default function Home() {

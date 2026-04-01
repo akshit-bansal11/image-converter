@@ -13,16 +13,20 @@ import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Select } from "@/components/ui/form/Select";
 import { formatFileSize, uid } from "@/lib/ffmpeg/client";
 import { CropCanvasEditor } from "@/components/tools/image-cropper/CropCanvasEditor";
+import { CircularCropEditor } from "@/components/tools/image-cropper/CircularCropEditor";
+import { MeshCropEditor } from "@/components/tools/image-cropper/MeshCropEditor";
 import {
   ACCEPTED_IMAGES,
   ASPECT_PRESETS,
   type AspectValue,
 } from "@/lib/tools/image-cropper/constants";
-import type { CropMode, CropRect, UploadedImage } from "@/lib/tools/image-cropper/types";
+import type { CropMode, CropRect, CropShape, UploadedImage } from "@/lib/tools/image-cropper/types";
 import {
   clampBatchCropToImage,
   createDefaultCrop,
+  createDefaultCircularCrop,
   cropToBlob,
+  cropToCircularBlob,
   getAspectRatio,
   loadImage,
 } from "@/lib/tools/image-cropper/utils";
@@ -45,6 +49,7 @@ export default function ImageCropperPage() {
 function ImageCropperTool() {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [mode, setMode] = useState<CropMode>("individual");
+  const [cropShape, setCropShape] = useState<CropShape>("rectangular");
   const [aspect, setAspect] = useState<AspectValue>("free");
   const [batchCrop, setBatchCrop] = useState<CropRect | null>(null);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
@@ -72,6 +77,10 @@ function ImageCropperTool() {
 
         try {
           const source = await loadImage(srcUrl);
+          const crop = cropShape === "circular"
+            ? createDefaultCircularCrop(source.naturalWidth, source.naturalHeight)
+            : createDefaultCrop(source.naturalWidth, source.naturalHeight);
+
           loaded.push({
             id: uid("crop"),
             file,
@@ -81,7 +90,8 @@ function ImageCropperTool() {
             srcUrl,
             width: source.naturalWidth,
             height: source.naturalHeight,
-            crop: createDefaultCrop(source.naturalWidth, source.naturalHeight),
+            crop,
+            cropShape,
           });
         } catch {
           URL.revokeObjectURL(srcUrl);
@@ -95,7 +105,7 @@ function ImageCropperTool() {
       if (!batchCrop) setBatchCrop(loaded[0].crop);
       setErrorMessage(null);
     },
-    [batchCrop],
+    [batchCrop, cropShape],
   );
 
   const updateImage = useCallback(
@@ -129,13 +139,21 @@ function ImageCropperTool() {
     setErrorMessage(null);
   }, [images]);
 
+  const getPngFileName = (originalName: string) => {
+    return originalName.replace(/\.[^.]+$/, '.png');
+  };
+
   const generatePreviewForImage = useCallback(
     async (image: UploadedImage) => {
       const crop =
         mode === "batch" && batchCrop
           ? clampBatchCropToImage(batchCrop, image)
           : image.crop;
-      const blob = await cropToBlob(image, crop);
+
+      const blob = image.cropShape === "circular"
+        ? await cropToCircularBlob(image, crop)
+        : await cropToBlob(image, crop);
+
       const outputUrl = URL.createObjectURL(blob);
 
       if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
@@ -156,7 +174,7 @@ function ImageCropperTool() {
 
     const link = document.createElement("a");
     link.href = image.outputUrl;
-    link.download = image.name;
+    link.download = getPngFileName(image.name);
     link.click();
   }, []);
 
@@ -174,10 +192,13 @@ function ImageCropperTool() {
             mode === "batch" && batchCrop
               ? clampBatchCropToImage(batchCrop, image)
               : image.crop;
-          blob = await cropToBlob(image, crop);
+          blob = image.cropShape === "circular"
+            ? await cropToCircularBlob(image, crop)
+            : await cropToBlob(image, crop);
         }
 
-        zip.file(image.name, blob);
+        const pngName = getPngFileName(image.name);
+        zip.file(pngName, blob);
       }
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -210,6 +231,31 @@ function ImageCropperTool() {
     );
   }, []);
 
+  const changeCropShape = useCallback(
+    (newShape: CropShape) => {
+      setCropShape(newShape);
+      setImages((prev) =>
+        prev.map((image) => {
+          const crop = newShape === "circular"
+            ? createDefaultCircularCrop(image.width, image.height)
+            : createDefaultCrop(image.width, image.height);
+
+          if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
+
+          return {
+            ...image,
+            cropShape: newShape,
+            crop,
+            outputBlob: undefined,
+            outputUrl: undefined,
+          };
+        }),
+      );
+      setBatchCrop(null); // Reset batch crop on shape change
+    },
+    [],
+  );
+
   const referenceImage = images[0] ?? null;
 
   return (
@@ -222,45 +268,88 @@ function ImageCropperTool() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="inline-flex rounded-lg border border-white/10 bg-background/50 p-1">
-            <button
-              onClick={() => setMode("individual")}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                mode === "individual"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-white/10"
-              }`}
-            >
-              Individual Crop
-            </button>
-            <button
-              onClick={() => setMode("batch")}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                mode === "batch"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-white/10"
-              }`}
-            >
-              Batch Crop
-            </button>
+          <div className="space-y-3">
+            <div>
+              <p className="mb-2 text-xs text-muted-foreground">Processing mode</p>
+              <div className="inline-flex rounded-lg border border-white/10 bg-background/50 p-1">
+                <button
+                  onClick={() => setMode("individual")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    mode === "individual"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Individual Crop
+                </button>
+                <button
+                  onClick={() => setMode("batch")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    mode === "batch"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Batch Crop
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs text-muted-foreground">Crop mode</p>
+              <div className="inline-flex rounded-lg border border-white/10 bg-background/50 p-1">
+                <button
+                  onClick={() => changeCropShape("rectangular")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    cropShape === "rectangular"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Rectangular
+                </button>
+                <button
+                  onClick={() => changeCropShape("circular")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    cropShape === "circular"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Circular
+                </button>
+                <button
+                  onClick={() => changeCropShape("mesh")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    cropShape === "mesh"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Mesh
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">
-                Aspect ratio preset
-              </p>
-              <Select
-                options={ASPECT_PRESETS.map((preset) => ({
-                  label: preset.label,
-                  value: preset.value,
-                }))}
-                value={aspect}
-                onChange={(event) =>
-                  setAspect(event.target.value as AspectValue)
-                }
-              />
-            </div>
+            {cropShape === "rectangular" && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Aspect ratio preset
+                </p>
+                <Select
+                  options={ASPECT_PRESETS.map((preset) => ({
+                    label: preset.label,
+                    value: preset.value,
+                  }))}
+                  value={aspect}
+                  onChange={(event) =>
+                    setAspect(event.target.value as AspectValue)
+                  }
+                />
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
               <Button
@@ -322,24 +411,65 @@ function ImageCropperTool() {
               Batch crop is edited on the first uploaded image and clamped to
               each image during export.
             </p>
-            <CropCanvasEditor
-              image={referenceImage}
-              crop={batchCrop}
-              aspectRatio={aspectRatio}
-              onCropChange={(next) => {
-                setBatchCrop(next);
-                setImages((prev) =>
-                  prev.map((image) => {
-                    if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
-                    return {
-                      ...image,
-                      outputBlob: undefined,
-                      outputUrl: undefined,
-                    };
-                  }),
-                );
-              }}
-            />
+            {cropShape === "rectangular" && (
+              <CropCanvasEditor
+                image={referenceImage}
+                crop={batchCrop}
+                aspectRatio={aspectRatio}
+                onCropChange={(next) => {
+                  setBatchCrop(next);
+                  setImages((prev) =>
+                    prev.map((image) => {
+                      if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
+                      return {
+                        ...image,
+                        outputBlob: undefined,
+                        outputUrl: undefined,
+                      };
+                    }),
+                  );
+                }}
+              />
+            )}
+            {cropShape === "circular" && (
+              <CircularCropEditor
+                image={referenceImage}
+                crop={batchCrop}
+                onCropChange={(next) => {
+                  setBatchCrop(next);
+                  setImages((prev) =>
+                    prev.map((image) => {
+                      if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
+                      return {
+                        ...image,
+                        outputBlob: undefined,
+                        outputUrl: undefined,
+                      };
+                    }),
+                  );
+                }}
+              />
+            )}
+            {cropShape === "mesh" && (
+              <MeshCropEditor
+                image={referenceImage}
+                crop={batchCrop}
+                aspectRatio={aspectRatio}
+                onCropChange={(next) => {
+                  setBatchCrop(next);
+                  setImages((prev) =>
+                    prev.map((image) => {
+                      if (image.outputUrl) URL.revokeObjectURL(image.outputUrl);
+                      return {
+                        ...image,
+                        outputBlob: undefined,
+                        outputUrl: undefined,
+                      };
+                    }),
+                  );
+                }}
+              />
+            )}
           </CardContent>
         </Card>
       ) : null}
@@ -368,7 +498,7 @@ function ImageCropperTool() {
                       <div>
                         <p className="font-medium">{image.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {image.width} x {image.height} px â€¢{" "}
+                          {image.width} x {image.height} px •{" "}
                           {formatFileSize(image.size)}
                         </p>
                       </div>
@@ -391,12 +521,31 @@ function ImageCropperTool() {
                     </div>
 
                     {mode === "individual" ? (
-                      <CropCanvasEditor
-                        image={image}
-                        crop={image.crop}
-                        aspectRatio={aspectRatio}
-                        onCropChange={(next) => setImageCrop(image.id, next)}
-                      />
+                      <>
+                        {cropShape === "rectangular" && (
+                          <CropCanvasEditor
+                            image={image}
+                            crop={image.crop}
+                            aspectRatio={aspectRatio}
+                            onCropChange={(next) => setImageCrop(image.id, next)}
+                          />
+                        )}
+                        {cropShape === "circular" && (
+                          <CircularCropEditor
+                            image={image}
+                            crop={image.crop}
+                            onCropChange={(next) => setImageCrop(image.id, next)}
+                          />
+                        )}
+                        {cropShape === "mesh" && (
+                          <MeshCropEditor
+                            image={image}
+                            crop={image.crop}
+                            aspectRatio={aspectRatio}
+                            onCropChange={(next) => setImageCrop(image.id, next)}
+                          />
+                        )}
+                      </>
                     ) : (
                       <div className="grid gap-3 sm:grid-cols-[220px_1fr] sm:items-center">
                         <NextImage
@@ -455,4 +604,3 @@ function ImageCropperTool() {
     </div>
   );
 }
-

@@ -52,7 +52,7 @@ export async function cropToBlob(image: UploadedImage, crop: CropRect): Promise<
   );
 
   const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, image.type || "image/png", 0.95);
+    canvas.toBlob(resolve, "image/png", 0.95);
   });
 
   if (!blob) throw new Error("Failed to export cropped image.");
@@ -65,6 +65,19 @@ export function clampBatchCropToImage(batchCrop: CropRect, image: UploadedImage)
 
 export function getAspectRatio(value: AspectValue): number | null {
   return ASPECT_PRESETS.find((preset) => preset.value === value)?.ratio ?? null;
+}
+
+export function createDefaultCircularCrop(width: number, height: number): CropRect {
+  const minDim = Math.min(width, height);
+  const radius = Math.round(minDim * 0.3);
+  const centerX = Math.round(width / 2);
+  const centerY = Math.round(height / 2);
+  return {
+    x: Math.round(centerX - radius),
+    y: Math.round(centerY - radius),
+    w: radius * 2,
+    h: radius * 2,
+  };
 }
 
 export function pointToCanvasSpace(
@@ -164,6 +177,50 @@ export function resizeRect(
   if (handle.includes("w")) next.x = right - next.w;
   if (handle.includes("n")) next.y = bottom - next.h;
   return next;
+}
+
+export function getCenterAndRadiusFromBounds(bounds: CropRect): { cx: number; cy: number; r: number } {
+  const cx = bounds.x + bounds.w / 2;
+  const cy = bounds.y + bounds.h / 2;
+  const r = bounds.w / 2;
+  return { cx, cy, r };
+}
+
+export async function cropToCircularBlob(image: UploadedImage, crop: CropRect): Promise<Blob> {
+  const source = await loadImage(image.srcUrl);
+  const { r } = getCenterAndRadiusFromBounds(crop);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(crop.w));
+  canvas.height = Math.max(1, Math.round(crop.h));
+
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Unable to initialize image canvas context.");
+
+  // Create circular clipping region
+  context.beginPath();
+  context.arc(r, r, r, 0, Math.PI * 2);
+  context.clip();
+
+  // Draw the cropped region
+  context.drawImage(
+    source,
+    crop.x,
+    crop.y,
+    crop.w,
+    crop.h,
+    0,
+    0,
+    crop.w,
+    crop.h,
+  );
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/png", 0.95);
+  });
+
+  if (!blob) throw new Error("Failed to export cropped image.");
+  return blob;
 }
 
 
