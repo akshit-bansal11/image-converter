@@ -2,7 +2,6 @@ import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { RepositoryCorner } from "@/components/common/RepositoryCorner";
 import { SiteFooter } from "@/components/ui/layout/SiteFooter";
-
 import { CategoryCard } from "@/components/common/CategoryCard";
 import { toolsByCategory } from "@/config/tools";
 
@@ -16,9 +15,6 @@ export default function Home() {
   return (
     <div className="page-shell">
       <div className="page-grid-overlay" />
-
-      <RepositoryCorner className="fixed right-0 top-0 z-20 p-2 sm:p-3" />
-
       <main className="page-main flex gap-10 flex-col items-center">
         <section className="relative flex flex-col items-center overflow-visible rounded-2xl p-8 sm:p-10">
           <Badge

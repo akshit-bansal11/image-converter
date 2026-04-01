@@ -13,6 +13,7 @@ export function ToolPill({
   isInDevelopment = false,
 }: ToolPillProps) {
   const Icon = tool.icon;
+  const label = tool.shortName ?? tool.name;
   const className = cn(
     "inline-flex min-h-11 items-center gap-2.5 rounded-full border border-white/[0.08] bg-[#252626] px-5 py-2.5 text-sm font-medium text-[#e7e5e4] shadow-[inset_1px_1px_0px_rgba(72,72,72,0.15)] transition-all duration-300",
     isInDevelopment
@@ -27,7 +28,7 @@ export function ToolPill({
       ) : (
         <Icon className="size-4 shrink-0 text-[#acabaa]" />
       )}
-      <span>{tool.name}</span>
+      <span>{label}</span>
     </>
   );
 

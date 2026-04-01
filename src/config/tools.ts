@@ -1,41 +1,43 @@
 import {
   ArrowLeftRight,
   AudioLines,
-  Blocks,
   Binary,
   Blend,
   Box,
-  Braces,
   Crop,
   Droplet,
-  Film,
-  FileBox,
   FileCode2,
   FileDiff,
+  FileJson,
   FileText,
   FolderTree,
   Grid3X3,
   ImageIcon,
   ImageUp,
+  Layers,
   LibraryBig,
-  Music,
-  PenTool,
+  Palette,
   Pipette,
+  Scissors,
   Shapes,
+  Sparkles,
   SwatchBook,
   Type,
+  VectorSquare,
   Video,
+  Wand2,
+  Code2,
 } from "lucide-react";
 import type { ToolCategoryDefinition, ToolDefinition } from "@/types/tool";
 
 export const toolCategories: ToolCategoryDefinition[] = [
   { name: "Audio", icon: AudioLines },
   { name: "Video", icon: Video },
-  { name: "Dev", icon: Blocks },
+  { name: "Dev", icon: Code2 },
   { name: "Images", icon: ImageIcon },
-  { name: "SVG", icon: PenTool },
+  { name: "SVG", icon: VectorSquare },
   { name: "Colors", icon: SwatchBook },
-  { name: "CSS", icon: Box },
+  { name: "CSS", icon: FileCode2 },
   { name: "Documents", icon: FileText },
   { name: "Text", icon: Type },
 ];
@@ -44,7 +46,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "audio-converter",
     href: "/audio-converter",
-    name: "Convert",
+    name: "Audio Converter",
+    shortName: "Convert",
     description:
       "Convert audio files between formats and codecs entirely in the browser using ffmpeg.wasm.",
     category: "Audio",
@@ -52,22 +55,24 @@ export const tools: ToolDefinition[] = [
       "Per-file format + codec controls",
       "Batch conversion with ZIP downloads",
     ],
-    icon: Music,
+    icon: ArrowLeftRight,
   },
   {
     slug: "audio-extractor",
     href: "/audio-extractor",
-    name: "Extract",
+    name: "Audio Extractor",
+    shortName: "Extract",
     description:
       "Extract the audio track from any video file and download it in your chosen format and codec.",
     category: "Audio",
     highlights: ["Video to audio extraction", "Codec-aware output selection"],
-    icon: AudioLines,
+    icon: Scissors,
   },
   {
     slug: "video-converter",
     href: "/video-converter",
-    name: "Convert",
+    name: "Video Converter",
+    shortName: "Convert",
     description:
       "Convert videos between formats and codecs directly in the browser using ffmpeg.wasm.",
     category: "Video",
@@ -75,22 +80,24 @@ export const tools: ToolDefinition[] = [
       "Per-file video and audio codec mapping",
       "Batch conversion and ZIP export",
     ],
-    icon: Video,
+    icon: ArrowLeftRight,
   },
   {
     slug: "frames-extractor",
     href: "/frames-extractor",
-    name: "Frames",
+    name: "Frames Extractor",
+    shortName: "Frames",
     description:
       "Upload a GIF or video and extract every frame as individual PNG images, then download them as a ZIP.",
     category: "Video",
     highlights: ["Frame thumbnail grid", "FPS and frame-count metadata"],
-    icon: Film,
+    icon: Layers,
   },
   {
     slug: "git-scaffold",
     href: "/git-scaffold",
     name: "Git Scaffold",
+    shortName: "Scaffold",
     description:
       "Paste a public GitHub repository URL and instantly visualize its full directory structure including all filenames.",
     category: "Dev",
@@ -100,7 +107,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "image-cropper",
     href: "/image-cropper",
-    name: "Crop",
+    name: "Image Cropper",
+    shortName: "Crop",
     description:
       "Crop one or many images in the browser - apply individual crops per image or a single crop to all at once.",
     category: "Images",
@@ -113,7 +121,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "svg-animator",
     href: "/svg-animator",
-    name: "Animate",
+    name: "SVG Border Animator",
+    shortName: "Animate",
     description:
       "Upload any SVG and animate each path border locally with stroke-dashoffset controls and export-ready output.",
     category: "SVG",
@@ -121,12 +130,13 @@ export const tools: ToolDefinition[] = [
       "Sequential or simultaneous path animation",
       "Downloadable SVG with embedded keyframes",
     ],
-    icon: PenTool,
+    icon: Wand2,
   },
   {
     slug: "svg-pattern",
     href: "/svg-pattern",
-    name: "Pattern",
+    name: "SVG Pattern Generator",
+    shortName: "Pattern",
     description:
       "Create beautiful, scalable vector patterns directly in your browser. Export native CSS backgrounds or raw SVG data URIs instantly.",
     category: "SVG",
@@ -139,7 +149,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "blob-generator",
     href: "/blob-generator",
-    name: "Blob",
+    name: "CSS Blob Generator",
+    shortName: "Blob",
     description:
       "Create intricate, organic shapes natively by independently customizing the 8 anchor points of the border-radius property.",
     category: "CSS",
@@ -149,7 +160,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "glassmorphism",
     href: "/glassmorphism",
-    name: "Glass",
+    name: "Glassmorphism Generator",
+    shortName: "Glass",
     description:
       "Design stunning frosted-glass UI elements with real-time backdrop filtering and export the CSS directly.",
     category: "CSS",
@@ -159,7 +171,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "box-shadow",
     href: "/box-shadow",
-    name: "Shadow",
+    name: "Box Shadow Generator",
+    shortName: "Shadow",
     description:
       "Create layered CSS shadows natively through visual controls and export the exact styling string for your projects.",
     category: "CSS",
@@ -170,6 +183,7 @@ export const tools: ToolDefinition[] = [
     slug: "pdf-toolkit",
     href: "/pdf-toolkit",
     name: "PDF Toolkit",
+    shortName: "Toolkit",
     description:
       "Merge multiple files, break PDFs apart by page, reorder structure, or compress files directly in your browser.",
     category: "Documents",
@@ -180,6 +194,7 @@ export const tools: ToolDefinition[] = [
     slug: "lorem-generator",
     href: "/lorem-generator",
     name: "Lorem Generator",
+    shortName: "Lorem",
     description:
       "Generate customized placeholder text instantly for your mockups, using either classic Latin or random English prose.",
     category: "Text",
@@ -190,6 +205,7 @@ export const tools: ToolDefinition[] = [
     slug: "diff-checker",
     href: "/diff-checker",
     name: "Diff Checker",
+    shortName: "Diff",
     description:
       "Find inline character-level or line-level text differences with robust ignoring whitespace and case sensitivity.",
     category: "Text",
@@ -199,47 +215,52 @@ export const tools: ToolDefinition[] = [
   {
     slug: "svg-optimizer",
     href: "/svg-optimizer",
-    name: "Optimize",
+    name: "SVG Optimizer",
+    shortName: "Optimize",
     description:
       "Clean up messy SVGs, strip metadata, dial in decimal precision, and convert to JSX directly in the browser.",
     category: "SVG",
     highlights: ["Live visual preview with JSX conversion"],
-    icon: FileCode2,
+    icon: Sparkles,
   },
   {
     slug: "pdf-converter",
     href: "/pdf-converter",
-    name: "PDF ↔ Image",
+    name: "PDF ↔ Image Converter",
+    shortName: "Convert",
     description:
       "Merge images into a single PDF, batch convert them, or extract pages from existing PDFs as images.",
     category: "Documents",
     highlights: ["Drag-to-reorder combined page layout"],
-    icon: FileBox,
+    icon: ArrowLeftRight,
   },
   {
     slug: "image-converter",
     href: "/image-converter",
-    name: "Convert",
+    name: "Image Converter",
+    shortName: "Convert",
     description:
       "Convert popular image formats locally with batch downloads, quality controls, and upload guardrails.",
     category: "Images",
     highlights: ["Batch conversion with ZIP downloads"],
-    icon: ImageIcon,
+    icon: ArrowLeftRight,
   },
   {
     slug: "json-formatter",
     href: "/json-formatter",
     name: "JSON Formatter",
+    shortName: "Format",
     description:
       "Pretty-print, minify, validate, and copy JSON without leaving the browser.",
     category: "Text",
     highlights: ["Pretty print or minify in one click"],
-    icon: Braces,
+    icon: FileJson,
   },
   {
     slug: "gradient-maker",
     href: "/gradient-maker",
-    name: "Gradients",
+    name: "Gradient Maker",
+    shortName: "Gradients",
     description:
       "Build multi-stop gradients with live previews, PNG exports, CSS output, and Tailwind arbitrary values.",
     category: "Colors",
@@ -250,6 +271,7 @@ export const tools: ToolDefinition[] = [
     slug: "gradient-library",
     href: "/gradient-library",
     name: "Gradient Library",
+    shortName: "Library",
     description:
       "Browse curated named gradients and copy them as CSS or Tailwind-ready arbitrary values.",
     category: "Colors",
@@ -260,16 +282,18 @@ export const tools: ToolDefinition[] = [
     slug: "palette-library",
     href: "/palette-library",
     name: "Palette Library",
+    shortName: "Library",
     description:
       "Explore curated color palettes, copy individual swatches, or export full palettes as JSON.",
     category: "Colors",
     highlights: ["Copy any swatch or full palette JSON"],
-    icon: SwatchBook,
+    icon: Palette,
   },
   {
     slug: "palette-extractor",
     href: "/palette-extractor",
-    name: "Extract Palette",
+    name: "Palette Extractor",
+    shortName: "Extract",
     description:
       "Upload an image and use Gemini vision to extract dominant colors into a copyable palette.",
     category: "Colors",
@@ -279,7 +303,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "gradient-converter",
     href: "/gradient-converter",
-    name: "Convert Gradient",
+    name: "Gradient Converter",
+    shortName: "Convert",
     description:
       "Convert CSS gradients into Tailwind arbitrary values or switch between linear, radial, and conic syntax.",
     category: "Colors",
@@ -289,7 +314,8 @@ export const tools: ToolDefinition[] = [
   {
     slug: "color-converter",
     href: "/color-converter",
-    name: "Convert Color",
+    name: "Color Converter",
+    shortName: "Convert",
     description:
       "Convert HEX, RGB, HSL, HSV, OKLCH, and named colors into every other format at once.",
     category: "Colors",
@@ -300,6 +326,7 @@ export const tools: ToolDefinition[] = [
     slug: "base64",
     href: "/base64",
     name: "Base64",
+    shortName: "Base64",
     description:
       "Encode and decode text with a clean local workflow that stays entirely in the browser.",
     category: "Text",

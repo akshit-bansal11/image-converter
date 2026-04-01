@@ -4,6 +4,7 @@ export interface ToolDefinition {
   slug: string;
   href: `/${string}`;
   name: string;
+  shortName?: string;
   description: string;
   category: string;
   highlights: string[];
