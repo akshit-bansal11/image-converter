@@ -18,12 +18,14 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/form/Input";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
-import { Slider } from "@/components/ui/interaction/Slider";
+import { Slider } from "@/components/ui/Slider";
 import { Progress } from "@/components/ui/feedback/Progress";
+import { Label } from "@/components/ui/form/Label";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { PDFDocument } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
@@ -328,48 +330,47 @@ function PdfToolkitTool() {
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
       {/* Tabs / Mode Selector */}
       <div className="flex w-full items-center justify-center">
-        <div className="inline-flex items-center rounded-full border bg-card/60 p-1.5 shadow-sm backdrop-blur-md overflow-x-auto max-w-full">
-          <button
-            onClick={() => setActiveTab("merge")}
-            className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "merge"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <Merge className="size-4" /> Merge
-          </button>
-          <button
-            onClick={() => setActiveTab("split")}
-            className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "split"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <SplitSquareHorizontal className="size-4" /> Split
-          </button>
-          <button
-            onClick={() => setActiveTab("compress")}
-            className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "compress"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <Minimize2 className="size-4" /> Compress
-          </button>
-          <button
-            onClick={() => setActiveTab("reorder")}
-            className={`flex whitespace-nowrap items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "reorder"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <ArrowUpDown className="size-4" /> Reorder
-          </button>
-        </div>
+        <SegmentedControl
+          variant="dark"
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as TabType)}
+          className="max-w-full rounded-full border bg-card/60 p-1.5 shadow-sm backdrop-blur-md"
+          optionClassName="rounded-full whitespace-nowrap px-5 py-2.5 text-sm"
+          options={[
+            {
+              label: (
+                <span className="flex items-center gap-2">
+                  <Merge className="size-4" /> Merge
+                </span>
+              ),
+              value: "merge",
+            },
+            {
+              label: (
+                <span className="flex items-center gap-2">
+                  <SplitSquareHorizontal className="size-4" /> Split
+                </span>
+              ),
+              value: "split",
+            },
+            {
+              label: (
+                <span className="flex items-center gap-2">
+                  <Minimize2 className="size-4" /> Compress
+                </span>
+              ),
+              value: "compress",
+            },
+            {
+              label: (
+                <span className="flex items-center gap-2">
+                  <ArrowUpDown className="size-4" /> Reorder
+                </span>
+              ),
+              value: "reorder",
+            },
+          ]}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_360px]">
@@ -453,17 +454,20 @@ function PdfToolkitTool() {
                         {formatFileSize(item.size)}
                       </p>
                     </div>
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
                         setMergeFiles((prev) =>
                           prev.filter((i) => i.id !== item.id),
                         );
                       }}
-                      className="p-3 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-red-400"
+                      className="h-8 w-8 p-0 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100 hover:text-red-400"
                     >
                       <X className="size-4" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -611,38 +615,30 @@ function PdfToolkitTool() {
               {activeTab === "split" && (
                 <>
                   <div className="space-y-3">
-                    <label className="text-sm font-medium leading-none">
+                    <Label>
                       Extraction Mode
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setSplitMode("every")}
-                        className={`px-3 py-2 text-xs font-medium rounded-xl border transition-colors ${
-                          splitMode === "every"
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "bg-background/50 hover:bg-muted"
-                        }`}
-                      >
-                        Every Page (Zip)
-                      </button>
-                      <button
-                        onClick={() => setSplitMode("range")}
-                        className={`px-3 py-2 text-xs font-medium rounded-xl border transition-colors ${
-                          splitMode === "range"
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "bg-background/50 hover:bg-muted"
-                        }`}
-                      >
-                        Custom Range
-                      </button>
-                    </div>
+                    </Label>
+                    <SegmentedControl
+                      fullWidth
+                      variant="dark"
+                      value={splitMode}
+                      onValueChange={(value) =>
+                        setSplitMode(value as "every" | "range")
+                      }
+                      className="grid grid-cols-2 gap-2 border-none bg-transparent p-0"
+                      optionClassName="rounded-xl border px-3 py-2 text-xs"
+                      options={[
+                        { label: "Every Page (Zip)", value: "every" },
+                        { label: "Custom Range", value: "range" },
+                      ]}
+                    />
                   </div>
 
                   {splitMode === "range" && (
                     <div className="space-y-3">
-                      <label className="text-sm font-medium leading-none text-muted-foreground">
+                      <Label className="text-muted-foreground">
                         Pages Extract Pattern
-                      </label>
+                      </Label>
                       <Input
                         value={splitRange}
                         onChange={(e) => setSplitRange(e.target.value)}
@@ -687,12 +683,14 @@ function PdfToolkitTool() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium leading-none flex items-center justify-between">
-                      Rendering Scale
+                    <div className="flex items-center justify-between">
+                      <Label>
+                        Rendering Scale
+                      </Label>
                       <Badge variant="outline" className="font-mono">
                         {compressResolution.toFixed(1)}x
                       </Badge>
-                    </label>
+                    </div>
                     <Slider
                       min={0.5}
                       max={3.0}
@@ -705,12 +703,14 @@ function PdfToolkitTool() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium leading-none flex items-center justify-between">
-                      JPEG Image Quality
+                    <div className="flex items-center justify-between">
+                      <Label>
+                        JPEG Image Quality
+                      </Label>
                       <Badge variant="outline" className="font-mono">
                         {compressQuality}%
                       </Badge>
-                    </label>
+                    </div>
                     <Slider
                       min={10}
                       max={100}

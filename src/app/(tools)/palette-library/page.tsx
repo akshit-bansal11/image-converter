@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CheckCircle2, Copy, Search } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Button } from "@/components/ui/Button";
 import { palettePresets } from "@/lib/design-tools/data/palette-presets";
 
 const tool = getToolBySlug("palette-library");
@@ -96,11 +97,12 @@ function PaletteLibraryTool() {
                     {/* Color Bars */}
                     <div className="flex h-32 w-full">
                       {palette.colors.map((color) => (
-                        <button
+                        <Button
                           key={color}
                           type="button"
+                          variant="ghost"
                           onClick={() => handleCopyColor(color)}
-                          className="group/color relative h-full flex-1 cursor-pointer transition-all duration-300 hover:flex-[1.15]"
+                          className="group/color relative h-full flex-1 rounded-none p-0 transition-all duration-300 hover:flex-[1.15] hover:bg-transparent"
                           style={{ backgroundColor: color }}
                         >
                           <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 transition-opacity duration-300 group-hover/color:opacity-100">
@@ -110,7 +112,7 @@ function PaletteLibraryTool() {
                               <Copy className="size-8 text-white/60 drop-shadow-md" />
                             )}
                           </div>
-                        </button>
+                        </Button>
                       ))}
                     </div>
 
@@ -121,14 +123,16 @@ function PaletteLibraryTool() {
                       </h3>
                       <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-2">
                         {palette.colors.map((color) => (
-                          <button
+                          <Button
                             key={`${palette.name}-${color}`}
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleCopyColor(color)}
-                            className="font-mono text-xs font-medium tracking-wider text-muted-foreground transition-colors hover:text-primary sm:text-[10px] xl:text-xs"
+                            className="h-auto px-0 py-0 font-mono text-xs font-medium tracking-wider text-muted-foreground transition-colors hover:bg-transparent hover:text-primary sm:text-[10px] xl:text-xs"
                           >
                             {color.toUpperCase()}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>

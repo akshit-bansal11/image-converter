@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/interaction/Button";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { RepositoryCorner } from "@/components/common/RepositoryCorner";
 import { SiteFooter } from "@/components/ui/layout/SiteFooter";
-import { siteConfig } from "@/config/site";
 
 interface ToolPageShellProps {
   title: string;
@@ -39,10 +38,6 @@ export function ToolPageShell({
         </div>
 
         <header className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-sm text-white/75 backdrop-blur-sm">
-            <Sparkles className="size-3.5 text-white/70" />
-            {siteConfig.name} - 100% client-side
-          </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
               {title}

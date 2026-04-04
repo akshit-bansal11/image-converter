@@ -5,9 +5,11 @@ import { ToolPageShell } from "@/components/common/ToolPageShell";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Copy, Download, Loader2, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
+import { ToggleSwitch } from "@/components/ui/interaction/ToggleSwitch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import { Input } from "@/components/ui/form/Input";
+import { Label } from "@/components/ui/form/Label";
 import { GitTreeNodeItem } from "@/components/tools/git-scaffold/GitTreeNodeItem";
 import type { GitTreeResponse, TreeNode } from "@/lib/tools/git-scaffold/types";
 import {
@@ -37,6 +39,7 @@ const TOKEN_STORAGE_KEY = "git_scaffold_token";
 function GitScaffoldTool() {
   const [repoInput, setRepoInput] = useState("");
   const [tokenInput, setTokenInput] = useState("");
+  const [isPrivateRepo, setIsPrivateRepo] = useState(false);
   const [treeRoot, setTreeRoot] = useState<TreeNode | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +48,10 @@ function GitScaffoldTool() {
 
   useEffect(() => {
     const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (token) setTokenInput(token);
+    if (token) {
+      setTokenInput(token);
+      setIsPrivateRepo(true);
+    }
   }, []);
 
   const togglePath = useCallback((path: string) => {
@@ -71,7 +77,7 @@ function GitScaffoldTool() {
     setCopied(false);
 
     try {
-      if (tokenInput.trim()) {
+      if (isPrivateRepo && tokenInput.trim()) {
         window.localStorage.setItem(TOKEN_STORAGE_KEY, tokenInput.trim());
       } else {
         window.localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -81,7 +87,7 @@ function GitScaffoldTool() {
         Accept: "application/vnd.github+json",
       };
 
-      if (tokenInput.trim()) {
+      if (isPrivateRepo && tokenInput.trim()) {
         headers.Authorization = `Bearer ${tokenInput.trim()}`;
       }
 
@@ -122,7 +128,7 @@ function GitScaffoldTool() {
     } finally {
       setIsLoading(false);
     }
-  }, [repoInput, tokenInput]);
+  }, [isPrivateRepo, repoInput, tokenInput]);
 
   const nodeCounts = useMemo(
     () => (treeRoot ? countNodes(treeRoot) : { files: 0, folders: 0 }),
@@ -161,9 +167,9 @@ function GitScaffoldTool() {
       <Card>
         <CardContent className="space-y-5">
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Repository URL or owner/repo
-            </label>
+            <Label className="text-xs text-muted-foreground">
+              URL or owner/repo
+            </Label>
             <Input
               value={repoInput}
               onChange={(event) => setRepoInput(event.target.value)}
@@ -175,20 +181,40 @@ function GitScaffoldTool() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Personal access token (optional)
-            </label>
-            <Input
-              value={tokenInput}
-              onChange={(event) => setTokenInput(event.target.value)}
-              placeholder="ghp_xxx"
-              type="password"
+          <div className="flex items-center gap-3">
+            <ToggleSwitch
+              checked={isPrivateRepo}
+              onCheckedChange={setIsPrivateRepo}
+              size="sm"
               disabled={isLoading}
+              id="private-repo"
             />
+            <Label
+              htmlFor="private-repo"
+              className="text-sm font-medium text-foreground"
+            >
+              Private repo?
+            </Label>
           </div>
 
+          {isPrivateRepo ? (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">
+                Personal access token
+              </Label>
+              <Input
+                value={tokenInput}
+                onChange={(event) => setTokenInput(event.target.value)}
+                placeholder="ghp_xxx"
+                type="password"
+                disabled={isLoading}
+              />
+            </div>
+          ) : null}
+
           <Button
+            variant={"default"}
+            size={"default"}
             onClick={() => void loadTree()}
             disabled={isLoading || !repoInput.trim()}
             className="w-full"
@@ -262,4 +288,3 @@ function GitScaffoldTool() {
     </div>
   );
 }
-

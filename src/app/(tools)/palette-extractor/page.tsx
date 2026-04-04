@@ -207,11 +207,12 @@ function PaletteExtractorTool() {
               <>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {colors.map((color) => (
-                    <button
+                    <Button
                       key={color}
                       type="button"
+                      variant="ghost"
                       onClick={() => handleCopyColor(color)}
-                      className="group rounded-[1.5rem] border bg-background/50 p-4 text-left transition hover:border-primary/40"
+                      className="group h-auto justify-start rounded-[1.5rem] border bg-background/50 p-4 text-left font-normal transition hover:border-primary/40 hover:bg-background/50"
                     >
                       <div
                         className="h-28 rounded-2xl border"
@@ -236,7 +237,7 @@ function PaletteExtractorTool() {
                           </Badge>
                         )}
                       </div>
-                    </button>
+                    </Button>
                   ))}
                 </div>
 

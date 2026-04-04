@@ -1,4 +1,5 @@
 import { File, Folder, FolderOpen } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import type { TreeNode } from "@/lib/tools/git-scaffold/types";
 
 interface GitTreeNodeItemProps {
@@ -17,9 +18,10 @@ export function GitTreeNodeItem({
 
   return (
     <li className="text-sm">
-      <button
+      <Button
         type="button"
-        className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-colors ${
+        variant="ghost"
+        className={`h-auto w-full justify-start gap-2 rounded-md px-2 py-1 text-left font-normal transition-colors ${
           isFolder ? "hover:bg-white/5" : ""
         }`}
         onClick={() => {
@@ -36,7 +38,7 @@ export function GitTreeNodeItem({
           <File className="size-4 text-sky-300" />
         )}
         <span className="truncate">{node.name}</span>
-      </button>
+      </Button>
 
       {isFolder && !isCollapsed && node.children.length > 0 ? (
         <ul className="ml-4 border-l border-white/10 pl-2">

@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/feedback/Badge";
 import { Progress } from "@/components/ui/feedback/Progress";
 import { Input } from "@/components/ui/form/Input";
 import { Select } from "@/components/ui/form/Select";
-import { Button } from "@/components/ui/interaction/Button";
-import { Slider } from "@/components/ui/interaction/Slider";
+import { Button } from "@/components/ui/Button";
+import { Slider } from "@/components/ui/Slider";
 import { Card } from "@/components/ui/layout/Card";
 import { cn } from "@/lib/utils";
 

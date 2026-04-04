@@ -15,9 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/layout/Card";
-import { Button } from "@/components/ui/interaction/Button";
-import { Slider } from "@/components/ui/interaction/Slider";
+import { Button } from "@/components/ui/Button";
+import { Slider } from "@/components/ui/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
+import { ColorInput } from "@/components/ui/form/ColorInput";
 
 const tool = getToolBySlug("svg-pattern");
 
@@ -280,22 +281,20 @@ function SvgPatternTool() {
           <div className="mt-2 flex gap-6">
             <div className="flex flex-col items-center gap-1 text-xs">
               <span className="mb-1 font-semibold text-white/70">BG</span>
-              <input
-                type="color"
+              <ColorInput
                 value={bgColor}
                 onChange={(e) => setBgColor(e.target.value)}
-                className="h-10 w-10 cursor-pointer appearance-none overflow-hidden rounded-full border-2 border-white/20 bg-transparent p-0 shadow [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-full"
+                className="h-10 w-10 appearance-none overflow-hidden rounded-full border-2 border-white/20 bg-transparent p-0 shadow"
                 style={{ borderRadius: "50%" }}
                 aria-label="Background color"
               />
             </div>
             <div className="flex flex-col items-center gap-1 text-xs">
               <span className="mb-1 font-semibold text-white/70">FG</span>
-              <input
-                type="color"
+              <ColorInput
                 value={fgColor}
                 onChange={(e) => setFgColor(e.target.value)}
-                className="h-10 w-10 cursor-pointer appearance-none overflow-hidden rounded-full border-2 border-white/20 bg-transparent p-0 shadow [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-full"
+                className="h-10 w-10 appearance-none overflow-hidden rounded-full border-2 border-white/20 bg-transparent p-0 shadow"
                 style={{ borderRadius: "50%" }}
                 aria-label="Foreground color"
               />

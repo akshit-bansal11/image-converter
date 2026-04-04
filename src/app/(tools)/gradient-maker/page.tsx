@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import { Select } from "@/components/ui/form/Select";
 import { Slider } from "@/components/ui/Slider";
+import { ColorInput } from "@/components/ui/form/ColorInput";
 import {
   addStop,
   buildGradientCss,
@@ -98,6 +99,7 @@ function GradientMakerTool() {
                   { label: "Conic", value: "conic" },
                 ]}
                 value={type}
+                variant="dark"
                 onChange={(event) =>
                   setType(event.target.value as GradientKind)
                 }
@@ -114,6 +116,7 @@ function GradientMakerTool() {
                     value: String(preset.value),
                   }))}
                   value={String(linearAngle)}
+                  variant="dark"
                   onChange={(event) =>
                     setLinearAngle(Number(event.target.value))
                   }
@@ -128,6 +131,7 @@ function GradientMakerTool() {
                   id="radial-shape"
                   options={RADIAL_SHAPES}
                   value={radialShape}
+                  variant="dark"
                   onChange={(event) => setRadialShape(event.target.value)}
                 />
               </div>
@@ -212,9 +216,8 @@ function GradientMakerTool() {
                   e.stopPropagation();
                 }}
               >
-                <input
+                <ColorInput
                   aria-label={`Stop ${index + 1} color`}
-                  type="color"
                   value={stop.color}
                   onChange={(event) =>
                     setStops((currentStops) =>
@@ -228,7 +231,8 @@ function GradientMakerTool() {
                       ),
                     )
                   }
-                  className="h-12 w-16 cursor-pointer rounded-xl border bg-background/80 p-1"
+                  variant="dark"
+                  className="h-12 w-16"
                 />
 
                 <div className="space-y-3">
@@ -247,6 +251,7 @@ function GradientMakerTool() {
                         )
                       }
                       spellCheck={false}
+                      variant="dark"
                     />
                   </div>
 

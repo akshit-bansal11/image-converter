@@ -16,6 +16,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/layout
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/Textarea";
+import { Label } from "@/components/ui/form/Label";
+import { Checkbox } from "@/components/ui/form/Checkbox";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 const tool = getToolBySlug("lorem-generator");
 
@@ -344,49 +347,54 @@ function LoremGeneratorTool() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
             {/* Unit Toggle */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground block">
+              <Label className="block text-muted-foreground">
                 Length Unit
-              </label>
-              <div className="inline-flex w-full rounded-lg border bg-background/50 p-1">
-                <button
-                  onClick={() => setUnit("words")}
-                  className={`flex items-center justify-center gap-2 flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                    unit === "words"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <Type className="size-3.5" /> Words
-                </button>
-                <button
-                  onClick={() => setUnit("sentences")}
-                  className={`flex items-center justify-center gap-2 flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                    unit === "sentences"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <AlignLeft className="size-3.5" /> Sentences
-                </button>
-                <button
-                  onClick={() => setUnit("paragraphs")}
-                  className={`flex items-center justify-center gap-2 flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                    unit === "paragraphs"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <AlignJustify className="size-3.5" /> Paragraphs
-                </button>
-              </div>
+              </Label>
+              <SegmentedControl
+                fullWidth
+                size="sm"
+                value={unit}
+                onValueChange={(value) =>
+                  setUnit(value as "words" | "sentences" | "paragraphs")
+                }
+                options={[
+                  {
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <Type className="size-3.5" />
+                        Words
+                      </span>
+                    ),
+                    value: "words",
+                  },
+                  {
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <AlignLeft className="size-3.5" />
+                        Sentences
+                      </span>
+                    ),
+                    value: "sentences",
+                  },
+                  {
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <AlignJustify className="size-3.5" />
+                        Paragraphs
+                      </span>
+                    ),
+                    value: "paragraphs",
+                  },
+                ]}
+              />
             </div>
 
             {/* Input Count & Style */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground block">
+                <Label className="block text-muted-foreground">
                   Count
-                </label>
+                </Label>
                 <Input
                   type="number"
                   min={1}
@@ -401,56 +409,44 @@ function LoremGeneratorTool() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground block">
+                <Label className="block text-muted-foreground">
                   Style
-                </label>
-                <div className="inline-flex w-full rounded-lg border bg-background/50 p-1">
-                  <button
-                    onClick={() => setStyle("classic")}
-                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      style === "classic"
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    Classic
-                  </button>
-                  <button
-                    onClick={() => setStyle("english")}
-                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      style === "english"
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    English
-                  </button>
-                </div>
+                </Label>
+                <SegmentedControl
+                  fullWidth
+                  size="sm"
+                  value={style}
+                  onValueChange={(value) =>
+                    setStyle(value as "classic" | "english")
+                  }
+                  options={[
+                    { label: "Classic", value: "classic" },
+                    { label: "English", value: "english" },
+                  ]}
+                />
               </div>
             </div>
 
             {/* Options Checkboxes */}
             <div className="space-y-3 flex flex-col justify-center border-t border-white/5 pt-4 md:border-none md:pt-0">
-              <label className="text-sm font-medium text-muted-foreground block invisible hidden lg:block">
+              <Label className="invisible hidden block text-muted-foreground lg:block">
                 Toggles
-              </label>
-              <label
+              </Label>
+              <Label
                 className={`flex items-center gap-3 text-sm transition-opacity hover:cursor-pointer select-none ${
                   style !== "classic" ? "opacity-30 pointer-events-none" : ""
                 }`}
               >
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={startWithLorem}
                   disabled={style !== "classic"}
-                  onChange={(e) => setStartWithLorem(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 bg-background"
+                  onCheckedChange={setStartWithLorem}
                 />
                 Start with{" "}
                 <span className="italic opacity-80">
                   &quot;Lorem ipsum...&quot;
                 </span>
-              </label>
+              </Label>
             </div>
           </div>
         </CardContent>

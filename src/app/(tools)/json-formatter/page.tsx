@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/feedback/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Textarea } from "@/components/ui/form/Textarea";
 
 const tool = getToolBySlug("json-formatter");
 
@@ -90,11 +91,11 @@ function JsonFormatter() {
           </Badge>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col">
-          <textarea
+          <Textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
             spellCheck={false}
-            className="flex-1 resize-none overflow-auto rounded-2xl border bg-background/70 p-4 font-mono text-sm outline-none transition focus:border-primary min-h-[400px] w-full"
+            className="flex-1 min-h-[400px] w-full resize-none overflow-auto rounded-2xl bg-background/70 p-4 font-mono text-sm transition focus:border-primary"
             placeholder='{"hello":"world"}'
           />
 

@@ -15,8 +15,11 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
+import { ToggleSwitch } from "@/components/ui/interaction/ToggleSwitch";
 import { Slider } from "@/components/ui/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
+import { Label } from "@/components/ui/form/Label";
+import { Checkbox } from "@/components/ui/form/Checkbox";
 import { optimize } from "svgo/browser";
 
 const tool = getToolBySlug("svg-optimizer");
@@ -42,6 +45,15 @@ function formatFileSize(bytes: number) {
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+function getLineSummary(value: string) {
+  if (!value.trim()) {
+    return "Empty";
+  }
+
+  const lines = value.split("\n").length;
+  return `Line 1, Col 1 · ${lines} lines`;
 }
 
 const KEBAB_TO_CAMEL = [
@@ -228,7 +240,7 @@ function SvgOptimizerTool() {
   }, [optimizedData.preview]);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto xl:max-w-screen-2xl">
+    <div className="w-full space-y-6">
       <div className="grid gap-6 xl:grid-cols-[300px_1fr]">
         {/* Settings Sidebar */}
         <div className="space-y-6">
@@ -241,12 +253,12 @@ function SvgOptimizerTool() {
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
               <div className="space-y-4">
-                <label className="text-sm font-medium leading-none flex items-center justify-between">
+                <Label className="flex items-center justify-between">
                   Decimal Precision
                   <Badge variant="outline" className="font-mono">
                     {precision}
                   </Badge>
-                </label>
+                </Label>
                 <Slider
                   min={0}
                   max={5}
@@ -263,69 +275,57 @@ function SvgOptimizerTool() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-medium leading-none">
+                <Label>
                   Strip Toggles
-                </label>
+                </Label>
 
-                <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-3 p-1 text-sm text-foreground hover:cursor-pointer">
+                  <Checkbox
                     checked={removeComments}
-                    onChange={(e) => setRemoveComments(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setRemoveComments}
                   />
                   Remove Comments
-                </label>
+                </Label>
 
-                <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-3 p-1 text-sm text-foreground hover:cursor-pointer">
+                  <Checkbox
                     checked={removeMetadata}
-                    onChange={(e) => setRemoveMetadata(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setRemoveMetadata}
                   />
                   Remove Metadata & Title
-                </label>
+                </Label>
 
-                <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-3 p-1 text-sm text-foreground hover:cursor-pointer">
+                  <Checkbox
                     checked={removeEmptyAttrs}
-                    onChange={(e) => setRemoveEmptyAttrs(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setRemoveEmptyAttrs}
                   />
                   Remove Empty Groups & Attrs
-                </label>
+                </Label>
 
-                <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-3 p-1 text-sm text-foreground hover:cursor-pointer">
+                  <Checkbox
                     checked={collapseGroups}
-                    onChange={(e) => setCollapseGroups(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setCollapseGroups}
                   />
                   Collapse Useless Groups
-                </label>
+                </Label>
 
-                <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-3 p-1 text-sm text-foreground hover:cursor-pointer">
+                  <Checkbox
                     checked={stripNamespaces}
-                    onChange={(e) => setStripNamespaces(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setStripNamespaces}
                   />
                   Strip Editor Namespaces
-                </label>
+                </Label>
 
-                <label className="flex items-center gap-3 text-sm text-foreground hover:cursor-pointer p-1">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-3 p-1 text-sm text-foreground hover:cursor-pointer">
+                  <Checkbox
                     checked={convertStyles}
-                    onChange={(e) => setConvertStyles(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setConvertStyles}
                   />
                   Convert Inline Styles to Attrs
-                </label>
+                </Label>
               </div>
             </CardContent>
           </Card>
@@ -336,7 +336,7 @@ function SvgOptimizerTool() {
           <div className="grid gap-6 lg:grid-cols-[1fr_200px] xl:grid-cols-[1fr_300px]">
             {/* Input Header & Dragzone */}
             <div className="space-y-4">
-              <label className="text-sm font-medium">Original SVG Input</label>
+              <Label>Original SVG Input</Label>
               <FileDropZoneCard
                 fileTypeLabel="an SVG file"
                 supportedFormats="SVG"
@@ -370,7 +370,8 @@ function SvgOptimizerTool() {
                     onChange={(e) => setInputSvg(e.target.value)}
                     spellCheck={false}
                     placeholder="Paste raw <svg> markup here, or drop a file anywhere on this box..."
-                    className="min-h-[260px] w-full resize-none border border-white/10 bg-background/30 p-4 pt-12 font-mono text-xs leading-relaxed focus-visible:ring-0"
+                    variant="dark"
+                    className="min-h-[260px] w-full resize-none border-white/10 p-4 pt-12 font-mono text-xs leading-relaxed focus-visible:ring-0"
                   />
                 </div>
               </FileDropZoneCard>
@@ -378,7 +379,7 @@ function SvgOptimizerTool() {
 
             {/* Live Visual Preview */}
             <div className="space-y-4">
-              <label className="text-sm font-medium">Live Render Output</label>
+              <Label>Live Render Output</Label>
               <div className="flex h-[260px] items-center justify-center overflow-hidden rounded-[1.5rem] bg-black/10 border border-white/5 shadow-inner">
                 {previewDataUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -432,95 +433,143 @@ function SvgOptimizerTool() {
             )}
           </div>
 
-          {/* Optimized Output Area */}
-          <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Optimized Markup</label>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      handleCopy(optimizedData.output, "optimized")
-                    }
-                  >
-                    {copiedId === "optimized" ? (
-                      <CheckCircle2 className="size-3.5 mr-2 text-primary" />
-                    ) : (
-                      <Copy className="size-3.5 mr-2" />
-                    )}
-                    Copy
-                  </Button>
-                  <Button
+          <div className="rounded-2xl border border-white/5 bg-card/90 p-3 shadow-sm">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-background/40 px-3 py-2">
+                  <Label>Convert to JSX</Label>
+                  <ToggleSwitch
+                    checked={enableJsx}
+                    onCheckedChange={setEnableJsx}
                     size="sm"
                     variant="default"
-                    onClick={handleDownload}
-                    className="bg-blue-600 hover:bg-blue-500"
+                  />
+                </div>
+
+                <div className="hidden h-8 w-px bg-white/5 lg:block" />
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    Output
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="border-white/10 bg-background/40 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-foreground"
                   >
-                    <Download className="size-3.5 mr-2" />
-                    Download SVG
-                  </Button>
+                    SVG
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={enableJsx
+                      ? "border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-primary"
+                      : "border-white/10 bg-background/40 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground"}
+                  >
+                    JSX
+                  </Badge>
                 </div>
               </div>
-              <Textarea
-                readOnly
-                value={optimizedData.output}
-                spellCheck={false}
-                className="min-h-[300px] resize-none font-mono text-xs bg-black/20 focus-visible:ring-0 leading-relaxed"
-                placeholder="Optimized code will appear here..."
-              />
-            </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium">Convert to JSX</label>
-                  <div
-                    className={`h-5 w-9 cursor-pointer rounded-full border border-white/20 transition-colors flex items-center p-0.5 ${enableJsx ? "bg-primary" : "bg-black/30"}`}
-                    onClick={() => setEnableJsx(!enableJsx)}
-                  >
-                    <div
-                      className={`h-3.5 w-3.5 rounded-full bg-white transition-transform ${enableJsx ? "translate-x-4" : "translate-x-0"}`}
-                    />
-                  </div>
-                </div>
-                {enableJsx && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleCopy(optimizedData.output, "optimized")}
+                  disabled={!optimizedData.output}
+                >
+                  {copiedId === "optimized" ? (
+                    <CheckCircle2 className="mr-2 size-3.5 text-primary" />
+                  ) : (
+                    <Copy className="mr-2 size-3.5" />
+                  )}
+                  Copy Optimized
+                </Button>
+
+                {enableJsx ? (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleCopy(optimizedData.jsxOutput, "jsx")}
+                    disabled={!optimizedData.jsxOutput}
                   >
                     {copiedId === "jsx" ? (
-                      <CheckCircle2 className="size-3.5 mr-2 text-primary" />
+                      <CheckCircle2 className="mr-2 size-3.5 text-primary" />
                     ) : (
-                      <Copy className="size-3.5 mr-2" />
+                      <Copy className="mr-2 size-3.5" />
                     )}
                     Copy JSX
                   </Button>
-                )}
-              </div>
+                ) : null}
 
-              <div className="relative">
-                {!enableJsx && (
-                  <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-[1rem] border border-white/5">
-                    <Button
-                      variant="secondary"
-                      onClick={() => setEnableJsx(true)}
-                    >
-                      Enable JSX Conversion
-                    </Button>
-                  </div>
-                )}
-                <Textarea
-                  readOnly
-                  value={optimizedData.jsxOutput || ""}
-                  spellCheck={false}
-                  className="min-h-[300px] resize-none font-mono text-xs bg-black/20 focus-visible:ring-0 leading-relaxed"
-                  placeholder="import React from 'react';..."
-                />
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleDownload}
+                  className="bg-blue-600 hover:bg-blue-500"
+                  disabled={!optimizedData.output}
+                >
+                  <Download className="mr-2 size-3.5" />
+                  Download SVG
+                </Button>
               </div>
             </div>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card className="overflow-hidden border-white/10 bg-card/70 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-background/20 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-amber-400/70" />
+                  <CardTitle className="text-sm uppercase tracking-[0.18em] text-foreground/90">
+                    Optimized SVG
+                  </CardTitle>
+                </div>
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  {getLineSummary(optimizedData.output)}
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Textarea
+                  value={optimizedData.output}
+                  readOnly
+                  spellCheck={false}
+                  placeholder="Optimized SVG will appear here."
+                  variant="dark"
+                  className="min-h-[340px] resize-none border-0 p-4 font-mono text-xs leading-relaxed text-white/85 focus-visible:ring-0"
+                />
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden border-white/10 bg-card/70 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-background/20 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-sky-400/70" />
+                  <CardTitle className="text-sm uppercase tracking-[0.18em] text-foreground/90">
+                    JSX Output
+                  </CardTitle>
+                </div>
+                <Badge
+                  variant="outline"
+                  className={enableJsx
+                    ? "border-primary/25 bg-primary/10 text-primary"
+                    : "border-white/10 bg-background/40 text-muted-foreground"}
+                >
+                  {enableJsx ? "Generated" : "Disabled"}
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Textarea
+                  value={
+                    enableJsx
+                      ? optimizedData.jsxOutput
+                      : "Enable Convert to JSX to generate React-friendly output."
+                  }
+                  readOnly
+                  spellCheck={false}
+                  variant="dark"
+                  className="min-h-[340px] resize-none border-0 p-4 font-mono text-xs leading-relaxed text-white/85 focus-visible:ring-0"
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

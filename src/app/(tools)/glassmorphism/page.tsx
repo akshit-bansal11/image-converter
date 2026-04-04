@@ -14,6 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout
 import { Button } from "@/components/ui/Button";
 import { Slider } from "@/components/ui/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
+import { Label } from "@/components/ui/form/Label";
+import { ColorInput } from "@/components/ui/form/ColorInput";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 const tool = getToolBySlug("glassmorphism");
 
@@ -122,38 +125,18 @@ function GlassmorphismTool() {
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <ImageIcon className="size-4" /> Live Environment
               </CardTitle>
-              <div className="inline-flex rounded-lg border bg-background/50 p-1">
-                <button
-                  onClick={() => setBgType("abstract")}
-                  className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    bgType === "abstract"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  Abstract
-                </button>
-                <button
-                  onClick={() => setBgType("gradient")}
-                  className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    bgType === "gradient"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  Gradient
-                </button>
-                <button
-                  onClick={() => setBgType("solid")}
-                  className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    bgType === "solid"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  Solid
-                </button>
-              </div>
+              <SegmentedControl
+                size="sm"
+                value={bgType}
+                onValueChange={(value) =>
+                  setBgType(value as "abstract" | "gradient" | "solid")
+                }
+                options={[
+                  { label: "Abstract", value: "abstract" },
+                  { label: "Gradient", value: "gradient" },
+                  { label: "Solid", value: "solid" },
+                ]}
+              />
             </CardHeader>
             <CardContent
               className="flex-1 flex items-center justify-center p-8 sm:p-16 min-h-[500px] relative transition-all duration-[3000ms] overflow-hidden"
@@ -274,12 +257,14 @@ function GlassmorphismTool() {
             </CardHeader>
             <div className="p-6 space-y-8 layer-editor">
               <div className="space-y-4">
-                <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Blur Radius{" "}
+                <div className="flex items-center justify-between">
+                  <Label className="text-foreground">
+                    Blur Radius
+                  </Label>
                   <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                     {blur}px
                   </span>
-                </label>
+                </div>
                 <Slider
                   min={0}
                   max={40}
@@ -292,12 +277,14 @@ function GlassmorphismTool() {
               </div>
 
               <div className="space-y-4">
-                <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Tint Opacity{" "}
+                <div className="flex items-center justify-between">
+                  <Label className="text-foreground">
+                    Tint Opacity
+                  </Label>
                   <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                     {opacity}%
                   </span>
-                </label>
+                </div>
                 <Slider
                   min={0}
                   max={100}
@@ -310,12 +297,14 @@ function GlassmorphismTool() {
               </div>
 
               <div className="space-y-4">
-                <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Saturation{" "}
+                <div className="flex items-center justify-between">
+                  <Label className="text-foreground">
+                    Saturation
+                  </Label>
                   <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                     {saturation}%
                   </span>
-                </label>
+                </div>
                 <Slider
                   min={0}
                   max={200}
@@ -328,12 +317,14 @@ function GlassmorphismTool() {
               </div>
 
               <div className="space-y-4">
-                <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                  Border Edge Opacity{" "}
+                <div className="flex items-center justify-between">
+                  <Label className="text-foreground">
+                    Border Edge Opacity
+                  </Label>
                   <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                     {borderOpacity}%
                   </span>
-                </label>
+                </div>
                 <Slider
                   min={0}
                   max={100}
@@ -346,18 +337,17 @@ function GlassmorphismTool() {
               </div>
 
               <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground block">
+                <Label className="block text-foreground">
                   Tint Color
-                </label>
+                </Label>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-xs text-muted-foreground uppercase">
                     {color}
                   </span>
-                  <input
-                    type="color"
+                  <ColorInput
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
-                    className="w-8 h-8 rounded-lg cursor-pointer border-none p-0 bg-transparent block"
+                    className="block h-8 w-8 rounded-lg border-0 bg-transparent p-0"
                   />
                 </div>
               </div>

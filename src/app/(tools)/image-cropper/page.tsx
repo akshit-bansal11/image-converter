@@ -7,10 +7,11 @@ import NextImage from "next/image";
 import JSZip from "jszip";
 import { Crop, Download, Loader2, Scissors, X } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Select } from "@/components/ui/form/Select";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { formatFileSize, uid } from "@/lib/ffmpeg/client";
 import { CropCanvasEditor } from "@/components/tools/image-cropper/CropCanvasEditor";
 import { CircularCropEditor } from "@/components/tools/image-cropper/CircularCropEditor";
@@ -271,64 +272,35 @@ function ImageCropperTool() {
           <div className="space-y-3">
             <div>
               <p className="mb-2 text-xs text-muted-foreground">Processing mode</p>
-              <div className="inline-flex rounded-lg border border-white/10 bg-background/50 p-1">
-                <button
-                  onClick={() => setMode("individual")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    mode === "individual"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-white/10"
-                  }`}
-                >
-                  Individual Crop
-                </button>
-                <button
-                  onClick={() => setMode("batch")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    mode === "batch"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-white/10"
-                  }`}
-                >
-                  Batch Crop
-                </button>
-              </div>
+              <SegmentedControl
+                variant="dark"
+                size="sm"
+                value={mode}
+                onValueChange={(value) =>
+                  setMode(value as CropMode)
+                }
+                options={[
+                  { label: "Individual Crop", value: "individual" },
+                  { label: "Batch Crop", value: "batch" },
+                ]}
+              />
             </div>
 
             <div>
               <p className="mb-2 text-xs text-muted-foreground">Crop mode</p>
-              <div className="inline-flex rounded-lg border border-white/10 bg-background/50 p-1">
-                <button
-                  onClick={() => changeCropShape("rectangular")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    cropShape === "rectangular"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-white/10"
-                  }`}
-                >
-                  Rectangular
-                </button>
-                <button
-                  onClick={() => changeCropShape("circular")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    cropShape === "circular"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-white/10"
-                  }`}
-                >
-                  Circular
-                </button>
-                <button
-                  onClick={() => changeCropShape("mesh")}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    cropShape === "mesh"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-white/10"
-                  }`}
-                >
-                  Mesh
-                </button>
-              </div>
+              <SegmentedControl
+                variant="dark"
+                size="sm"
+                value={cropShape}
+                onValueChange={(value) =>
+                  changeCropShape(value as CropShape)
+                }
+                options={[
+                  { label: "Rectangular", value: "rectangular" },
+                  { label: "Circular", value: "circular" },
+                  { label: "Mesh", value: "mesh" },
+                ]}
+              />
             </div>
           </div>
 

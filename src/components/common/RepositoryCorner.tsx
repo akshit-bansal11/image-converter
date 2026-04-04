@@ -1,7 +1,7 @@
 import { Github } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
 
 interface RepositoryCornerProps {
   className?: string;

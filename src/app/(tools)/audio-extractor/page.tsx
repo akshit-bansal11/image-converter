@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Progress } from "@/components/ui/feedback/Progress";
 import { Select } from "@/components/ui/form/Select";

@@ -8,6 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout
 import { Button } from "@/components/ui/Button";
 import { Slider } from "@/components/ui/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
+import { Label } from "@/components/ui/form/Label";
+import { Checkbox } from "@/components/ui/form/Checkbox";
+import { ColorInput } from "@/components/ui/form/ColorInput";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 const tool = getToolBySlug("blob-generator");
 
@@ -145,11 +149,13 @@ function RadiusSlider({ value, onChange }: RadiusSliderProps) {
           }
         />
         {marks.map((mark) => (
-          <button
+          <Button
             key={mark}
             type="button"
             onClick={() => onChange(mark)}
-            className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-background/80 shadow-sm hover:bg-primary/30"
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-background/80 p-0 shadow-sm hover:bg-primary/30"
             style={{ left: `calc(${mark}% - 6px)` }}
             aria-label={`Set radius to ${mark}%`}
             title={`${mark}%`}
@@ -158,14 +164,16 @@ function RadiusSlider({ value, onChange }: RadiusSliderProps) {
       </div>
       <div className="flex items-center justify-around text-[10px] font-mono text-muted-foreground">
         {marks.map((mark) => (
-          <button
+          <Button
             key={mark}
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => onChange(mark)}
-            className="rounded px-1 py-0.5 hover:bg-white/10"
+            className="h-auto rounded px-1 py-0.5 text-[10px] font-normal text-muted-foreground hover:bg-white/10"
           >
             {mark}%
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -187,23 +195,23 @@ function CornerControl({
 
       {mode === "four" ? (
         <div className="space-y-4">
-          <label className="flex items-center justify-between text-sm font-medium text-foreground">
+          <div className="flex items-center justify-between text-sm font-medium text-foreground">
             Radius
             <span className="rounded bg-background/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
               {values.x}%
             </span>
-          </label>
+          </div>
           <RadiusSlider value={values.x} onChange={(v) => onChangeBoth(corner, v)} />
         </div>
       ) : (
         <>
           <div className="space-y-4">
-            <label className="flex items-center justify-between text-sm font-medium text-foreground">
+            <div className="flex items-center justify-between text-sm font-medium text-foreground">
               X Radius
               <span className="rounded bg-background/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
                 {values.x}%
               </span>
-            </label>
+            </div>
             <RadiusSlider
               value={values.x}
               onChange={(v) => onChange(corner, "x", v)}
@@ -211,12 +219,12 @@ function CornerControl({
           </div>
 
           <div className="space-y-4 pt-2">
-            <label className="flex items-center justify-between text-sm font-medium text-foreground">
+            <div className="flex items-center justify-between text-sm font-medium text-foreground">
               Y Radius
               <span className="rounded bg-background/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
                 {values.y}%
               </span>
-            </label>
+            </div>
             <RadiusSlider
               value={values.y}
               onChange={(v) => onChange(corner, "y", v)}
@@ -524,47 +532,33 @@ function BlobGeneratorTool() {
               <div className="rounded-2xl border border-white/5 bg-background/30 p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-xl border border-white/5 bg-background/40 p-2 sm:col-span-2">
-                    <div className="inline-flex rounded-lg border border-white/10 bg-background/40 p-1">
-                      <button
-                        onClick={() => setPointMode("four")}
-                        className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                          pointMode === "four"
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-white/10"
-                        }`}
-                      >
-                        4-Point
-                      </button>
-                      <button
-                        onClick={() => setPointMode("eight")}
-                        className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                          pointMode === "eight"
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-white/10"
-                        }`}
-                      >
-                        8-Point
-                      </button>
-                    </div>
+                    <SegmentedControl
+                      variant="dark"
+                      size="sm"
+                      value={pointMode}
+                      onValueChange={(value) =>
+                        setPointMode(value as PointMode)
+                      }
+                      options={[
+                        { label: "4-Point", value: "four" },
+                        { label: "8-Point", value: "eight" },
+                      ]}
+                    />
                   </div>
-                  <label className="flex items-center justify-between rounded-xl border border-white/5 bg-background/40 px-3 py-2 text-sm">
+                  <Label className="flex items-center justify-between rounded-xl border border-white/5 bg-background/40 px-3 py-2 text-sm font-normal">
                     <span>Lock X/Y per corner</span>
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={lockAxis}
-                      onChange={(e) => setLockAxis(e.target.checked)}
-                      className="h-4 w-4 rounded border-muted bg-background"
+                      onCheckedChange={setLockAxis}
                     />
-                  </label>
-                  <label className="flex items-center justify-between rounded-xl border border-white/5 bg-background/40 px-3 py-2 text-sm">
+                  </Label>
+                  <Label className="flex items-center justify-between rounded-xl border border-white/5 bg-background/40 px-3 py-2 text-sm font-normal">
                     <span>Mirror diagonals</span>
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={mirrorDiagonals}
-                      onChange={(e) => setMirrorDiagonals(e.target.checked)}
-                      className="h-4 w-4 rounded border-muted bg-background"
+                      onCheckedChange={setMirrorDiagonals}
                     />
-                  </label>
+                  </Label>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
                   Corner values are automatically normalized to keep side sums valid, so x/y edits stay stable.
@@ -605,26 +599,23 @@ function BlobGeneratorTool() {
 
             <div className="sticky bottom-0 z-10 border-t border-white/5 bg-background/20 p-6 backdrop-blur-md">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-foreground">
+                <Label className="block text-foreground">
                   Blob Context Fill
-                </label>
+                </Label>
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                  <Label className="flex items-center gap-2 font-normal">
+                    <Checkbox
                       checked={blobGradient}
-                      onChange={(e) => setBlobGradient(e.target.checked)}
-                      className="h-4 w-4 rounded border-muted bg-background"
+                      onCheckedChange={setBlobGradient}
                     />
                     <span className="select-none text-xs text-muted-foreground">
                       Gradient Depth
                     </span>
-                  </div>
-                  <input
-                    type="color"
+                  </Label>
+                  <ColorInput
                     value={blobColor}
                     onChange={(e) => setBlobColor(e.target.value)}
-                    className="block h-6 w-6 cursor-pointer rounded border-none p-0"
+                    className="block h-6 w-6 rounded border-0 bg-transparent p-0"
                   />
                 </div>
               </div>

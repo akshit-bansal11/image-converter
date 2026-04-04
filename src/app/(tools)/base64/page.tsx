@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout/Card";
+import { Textarea } from "@/components/ui/form/Textarea";
 
 const tool = getToolBySlug("base64");
 
@@ -99,11 +100,11 @@ function Base64Tool() {
           </div>
         </CardHeader>
         <CardContent>
-          <textarea
+          <Textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
             spellCheck={false}
-            className="min-h-[320px] w-full rounded-2xl border bg-background/70 p-4 font-mono text-sm outline-none transition focus:border-primary"
+            className="min-h-[320px] w-full rounded-2xl bg-background/70 p-4 font-mono text-sm transition focus:border-primary"
             placeholder={
               mode === "encode"
                 ? "Type text to encode"
@@ -175,11 +176,11 @@ function Base64Tool() {
           </Button>
         </CardHeader>
         <CardContent>
-          <textarea
+          <Textarea
             value={output}
             readOnly
             spellCheck={false}
-            className="min-h-[320px] w-full rounded-2xl border bg-background/70 p-4 font-mono text-sm text-white/80 outline-none"
+            className="min-h-[320px] w-full rounded-2xl bg-background/70 p-4 font-mono text-sm text-white/80"
             placeholder="Base64 output will appear here."
           />
         </CardContent>

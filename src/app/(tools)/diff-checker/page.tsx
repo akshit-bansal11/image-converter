@@ -16,6 +16,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/layout
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/form/Textarea";
 import { Badge } from "@/components/ui/feedback/Badge";
+import { Checkbox } from "@/components/ui/form/Checkbox";
+import { Label } from "@/components/ui/form/Label";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import * as diff from "diff";
 
 const tool = getToolBySlug("diff-checker");
@@ -118,7 +121,7 @@ function DiffCheckerTool() {
             <Textarea
               value={original}
               onChange={(e) => setOriginal(e.target.value)}
-              placeholder="Paste the original base text here..."
+              placeholder="Paste the original text here."
               className="min-h-[240px] w-full resize-none border-0 bg-transparent p-4 font-mono text-sm focus-visible:ring-0 leading-relaxed rounded-none"
               spellCheck={false}
             />
@@ -131,50 +134,33 @@ function DiffCheckerTool() {
                 Diff Rules
               </p>
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm hover:cursor-pointer select-none">
-                  <input
-                    type="checkbox"
+                <Label className="flex items-center gap-2 text-sm hover:cursor-pointer select-none">
+                  <Checkbox
                     checked={ignoreWhitespace}
-                    onChange={(e) => setIgnoreWhitespace(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setIgnoreWhitespace}
                   />
                   Ignore Whitespace
-                </label>
-                <label className="flex items-center gap-2 text-sm hover:cursor-pointer select-none">
-                  <input
-                    type="checkbox"
+                </Label>
+                <Label className="flex items-center gap-2 text-sm hover:cursor-pointer select-none">
+                  <Checkbox
                     checked={ignoreCase}
-                    onChange={(e) => setIgnoreCase(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 bg-background"
+                    onCheckedChange={setIgnoreCase}
                   />
                   Ignore Case
-                </label>
+                </Label>
               </div>
             </div>
             <div className="mt-4 flex items-center gap-6">
               <p className="text-sm font-medium text-muted-foreground">Mode</p>
-              <div className="inline-flex rounded-lg border bg-background/50 p-1">
-                <button
-                  onClick={() => setDiffMode("chars")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    diffMode === "chars"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  Character Level
-                </button>
-                <button
-                  onClick={() => setDiffMode("words")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    diffMode === "words"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  Word Level
-                </button>
-              </div>
+              <SegmentedControl
+                size="sm"
+                value={diffMode}
+                onValueChange={(value) => setDiffMode(value as "chars" | "words")}
+                options={[
+                  { label: "Character Level", value: "chars" },
+                  { label: "Word Level", value: "words" },
+                ]}
+              />
             </div>
           </Card>
         </div>
@@ -213,7 +199,7 @@ function DiffCheckerTool() {
             <Textarea
               value={modified}
               onChange={(e) => setModified(e.target.value)}
-              placeholder="Paste the newer, modified text here to compare..."
+              placeholder="Paste the modified text here."
               className="h-[calc(100%-48px)] w-full resize-none border-0 bg-transparent p-4 font-mono text-sm focus-visible:ring-0 leading-relaxed rounded-none"
               spellCheck={false}
             />
@@ -289,7 +275,7 @@ function DiffCheckerTool() {
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Unified Patch Format</label>
+            <Label>Unified Patch Format</Label>
             <Button
               size="sm"
               variant="outline"
@@ -306,14 +292,15 @@ function DiffCheckerTool() {
           <Textarea
             readOnly
             value={unifiedPatch}
-            className="min-h-[200px] font-mono text-xs bg-black/20 focus-visible:ring-0 leading-relaxed border-white/5"
+            variant="dark"
+            className="min-h-[200px] border-white/5 bg-black/20 font-mono text-xs leading-relaxed focus-visible:ring-0"
             placeholder="Diff patch format will appear here..."
           />
         </div>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Plain Text (Markup)</label>
+            <Label>Plain Text (Markup)</Label>
             <Button
               size="sm"
               variant="outline"
@@ -330,7 +317,8 @@ function DiffCheckerTool() {
           <Textarea
             readOnly
             value={plainTextDiff}
-            className="min-h-[200px] font-mono text-xs bg-black/20 focus-visible:ring-0 leading-relaxed border-white/5"
+            variant="dark"
+            className="min-h-[200px] border-white/5 bg-black/20 font-mono text-xs leading-relaxed focus-visible:ring-0"
             placeholder="[-removed-] {+added+}..."
           />
         </div>

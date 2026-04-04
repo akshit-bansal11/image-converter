@@ -16,6 +16,9 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { Slider } from "@/components/ui/Slider";
 import { Textarea } from "@/components/ui/form/Textarea";
+import { Label } from "@/components/ui/form/Label";
+import { ColorInput } from "@/components/ui/form/ColorInput";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 const tool = getToolBySlug("box-shadow");
 
@@ -150,24 +153,22 @@ function BoxShadowTool() {
                 Live Preview
                 <div className="flex gap-2 items-center">
                   <div className="h-4 w-px bg-white/10 mx-2" />
-                  <label className="text-xs group flex items-center gap-1.5 cursor-pointer">
+                  <Label className="group flex items-center gap-1.5 text-xs">
                     <span className="text-muted-foreground">Box:</span>
-                    <input
-                      type="color"
+                    <ColorInput
                       value={boxColor}
                       onChange={(e) => setBoxColor(e.target.value)}
-                      className="w-5 h-5 rounded-md cursor-pointer border-none p-0 bg-transparent block"
+                      className="block h-5 w-5 rounded-md border-0 bg-transparent p-0"
                     />
-                  </label>
-                  <label className="text-xs group flex items-center gap-1.5 cursor-pointer ml-3">
+                  </Label>
+                  <Label className="group ml-3 flex items-center gap-1.5 text-xs">
                     <span className="text-muted-foreground">Bg:</span>
-                    <input
-                      type="color"
+                    <ColorInput
                       value={bgColor}
                       onChange={(e) => setBgColor(e.target.value)}
-                      className="w-5 h-5 rounded-md cursor-pointer border-none p-0 bg-transparent block"
+                      className="block h-5 w-5 rounded-md border-0 bg-transparent p-0"
                     />
-                  </label>
+                  </Label>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -254,18 +255,21 @@ function BoxShadowTool() {
               {/* Layer Selection List */}
               <div className="space-y-2">
                 {layers.map((layer, index) => (
-                  <button
+                  <div
                     key={layer.id}
-                    onClick={() => setActiveLayerId(layer.id)}
-                    className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
+                    className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 transition-all ${
                       activeLayerId === layer.id
                         ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20"
                         : "bg-background/40 border-border hover:bg-background/80"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-md border flex items-center justify-center shrink-0 bg-background overflow-hidden relative">
-                        {/* Swatch mini preview */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setActiveLayerId(layer.id)}
+                      className="h-auto flex-1 justify-start gap-3 p-0 text-left font-normal hover:bg-transparent"
+                    >
+                      <div className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-background">
                         <div
                           className="absolute inset-0"
                           style={{
@@ -281,23 +285,25 @@ function BoxShadowTool() {
                         {layer.inset && (
                           <Badge
                             variant="secondary"
-                            className="ml-2 text-[10px] h-4 leading-none px-1 py-0 select-none"
+                            className="ml-2 h-4 select-none px-1 py-0 text-[10px] leading-none"
                           >
                             Inset
                           </Badge>
                         )}
                       </span>
-                    </div>
+                    </Button>
                     {layers.length > 1 && (
-                      <div
-                        role="button"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={(e) => removeLayer(layer.id, e)}
-                        className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                        className="h-8 w-8 rounded-md p-0 text-muted-foreground transition-colors hover:bg-red-400/10 hover:text-red-400"
                       >
                         <Trash2 className="size-3.5" />
-                      </div>
+                      </Button>
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
 
@@ -310,12 +316,14 @@ function BoxShadowTool() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      X Offset{" "}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-foreground">
+                        X Offset
+                      </Label>
                       <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                         {activeLayer.xOffset}px
                       </span>
-                    </label>
+                    </div>
                     <Slider
                       min={-100}
                       max={100}
@@ -328,12 +336,14 @@ function BoxShadowTool() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Y Offset{" "}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-foreground">
+                        Y Offset
+                      </Label>
                       <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                         {activeLayer.yOffset}px
                       </span>
-                    </label>
+                    </div>
                     <Slider
                       min={-100}
                       max={100}
@@ -346,12 +356,14 @@ function BoxShadowTool() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Blur Content{" "}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-foreground">
+                        Blur Content
+                      </Label>
                       <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                         {activeLayer.blur}px
                       </span>
-                    </label>
+                    </div>
                     <Slider
                       min={0}
                       max={150}
@@ -364,12 +376,14 @@ function BoxShadowTool() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Spread Radius{" "}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-foreground">
+                        Spread Radius
+                      </Label>
                       <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                         {activeLayer.spread}px
                       </span>
-                    </label>
+                    </div>
                     <Slider
                       min={-50}
                       max={100}
@@ -382,12 +396,14 @@ function BoxShadowTool() {
                   </div>
 
                   <div className="space-y-4 pt-2">
-                    <label className="text-sm font-medium text-foreground flex items-center justify-between">
-                      Opacity{" "}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-foreground">
+                        Opacity
+                      </Label>
                       <span className="font-mono text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded">
                         {activeLayer.opacity}%
                       </span>
-                    </label>
+                    </div>
                     <Slider
                       min={0}
                       max={100}
@@ -401,17 +417,16 @@ function BoxShadowTool() {
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/5">
                     <div className="space-y-1">
-                      <label className="text-sm font-medium text-foreground block">
+                      <Label className="block text-foreground">
                         Shadow Color
-                      </label>
+                      </Label>
                       <div className="flex items-center gap-2">
-                        <input
-                          type="color"
+                        <ColorInput
                           value={activeLayer.color}
                           onChange={(e) =>
                             updateActiveLayer({ color: e.target.value })
                           }
-                          className="w-8 h-8 rounded-lg cursor-pointer border-none p-0 bg-transparent block"
+                          className="block h-8 w-8 rounded-lg border-0 bg-transparent p-0"
                         />
                         <span className="font-mono text-xs text-muted-foreground uppercase">
                           {activeLayer.color}
@@ -420,21 +435,20 @@ function BoxShadowTool() {
                     </div>
 
                     <div className="space-y-1 text-right">
-                      <label className="text-sm font-medium text-foreground block">
+                      <Label className="block text-foreground">
                         Position
-                      </label>
-                      <button
-                        onClick={() =>
-                          updateActiveLayer({ inset: !activeLayer.inset })
+                      </Label>
+                      <SegmentedControl
+                        size="sm"
+                        value={activeLayer.inset ? "inset" : "outset"}
+                        onValueChange={(value) =>
+                          updateActiveLayer({ inset: value === "inset" })
                         }
-                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors border ${
-                          activeLayer.inset
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background/50 text-muted-foreground border-border hover:bg-muted"
-                        }`}
-                      >
-                        {activeLayer.inset ? "Inset Mode" : "Outset Mode"}
-                      </button>
+                        options={[
+                          { label: "Outset", value: "outset" },
+                          { label: "Inset", value: "inset" },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

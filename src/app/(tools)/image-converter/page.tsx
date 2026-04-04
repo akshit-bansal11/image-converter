@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/feedback/Badge";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Separator } from "@/components/ui/layout/Separator";
@@ -352,12 +352,14 @@ function ImageConverter() {
                 {uploadWarning}
               </p>
             </div>
-            <button
+            <Button
               onClick={() => setUploadWarning(null)}
-              className="text-red-500 hover:text-red-600 dark:hover:text-red-400"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-red-500 hover:text-red-600 dark:hover:text-red-400"
             >
               <X className="size-4" />
-            </button>
+            </Button>
           </div>
         </div>
       )}

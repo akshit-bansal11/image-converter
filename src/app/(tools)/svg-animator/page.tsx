@@ -4,9 +4,9 @@ import { getToolBySlug } from "@/config/tools";
 import { ToolPageShell } from "@/components/common/ToolPageShell";
 import { useCallback, useMemo, useState } from "react";
 import { Download, Play } from "lucide-react";
-import { OutputField } from "@/components/ui/design/OutputField";
+import { OutputField } from "@/components/design-tools/OutputField";
 import { Badge } from "@/components/ui/feedback/Badge";
-import { Button } from "@/components/ui/interaction/Button";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -15,7 +15,10 @@ import {
 } from "@/components/ui/layout/Card";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Label } from "@/components/ui/form/Label";
-import { Slider } from "@/components/ui/interaction/Slider";
+import { Slider } from "@/components/ui/Slider";
+import { ColorInput } from "@/components/ui/form/ColorInput";
+import { Input } from "@/components/ui/form/Input";
+import { Checkbox } from "@/components/ui/form/Checkbox";
 
 const tool = getToolBySlug("svg-animator");
 
@@ -404,20 +407,18 @@ function SvgAnimatorTool() {
               <div className="space-y-2">
                 <Label className="text-xs">Stroke Color</Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
+                  <ColorInput
                     value={strokeColor}
                     onChange={(event) => setStrokeColor(event.target.value)}
                     disabled={!parsedSvg}
-                    className="h-8 w-12 cursor-pointer rounded border border-white/20 bg-background disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-8 w-12 rounded border border-white/20 bg-background"
                   />
-                  <input
-                    type="text"
+                  <Input
                     value={strokeColor}
                     onChange={(event) => setStrokeColor(event.target.value)}
                     disabled={!parsedSvg}
                     placeholder="#000000"
-                    className="flex h-8 flex-1 rounded text-xs border border-white/20 bg-background px-2 py-1 text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-8 flex-1 text-xs"
                   />
                 </div>
               </div>
@@ -453,13 +454,12 @@ function SvgAnimatorTool() {
               </div>
 
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id="fill"
                   checked={hasFill}
-                  onChange={(e) => setHasFill(e.target.checked)}
+                  onCheckedChange={setHasFill}
                   disabled={!parsedSvg}
-                  className="h-3 w-3 rounded border-white/20 bg-background accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-3 w-3"
                 />
                 <Label htmlFor="fill" className="cursor-pointer text-xs">
                   Fill?

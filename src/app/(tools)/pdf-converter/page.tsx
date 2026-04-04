@@ -24,6 +24,8 @@ import { Badge } from "@/components/ui/feedback/Badge";
 import { FileDropZoneCard } from "@/components/ui/interaction/FileDropZoneCard";
 import { Progress } from "@/components/ui/feedback/Progress";
 import { Select } from "@/components/ui/form/Select";
+import { Label } from "@/components/ui/form/Label";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { PDFDocument } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import JSZip from "jszip";
@@ -366,30 +368,33 @@ function PdfConverterTool() {
     <div className="space-y-6 max-w-5xl mx-auto xl:max-w-7xl">
       {/* Tabs / Mode Selector */}
       <div className="flex w-full items-center justify-center">
-        <div className="inline-flex items-center rounded-full border bg-card/60 p-1.5 shadow-sm backdrop-blur-md">
-          <button
-            onClick={() => setActiveTab("img-to-pdf")}
-            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "img-to-pdf"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <ImageIcon className="size-4" />
-            Images to PDF
-          </button>
-          <button
-            onClick={() => setActiveTab("pdf-to-img")}
-            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "pdf-to-img"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <FileBox className="size-4" />
-            PDF to Images
-          </button>
-        </div>
+        <SegmentedControl
+          variant="dark"
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as TabType)}
+          className="max-w-full rounded-full border bg-card/60 p-1.5 shadow-sm backdrop-blur-md"
+          optionClassName="rounded-full whitespace-nowrap px-5 py-2.5 text-sm"
+          options={[
+            {
+              label: (
+                <span className="flex items-center gap-2">
+                  <ImageIcon className="size-4" />
+                  Images to PDF
+                </span>
+              ),
+              value: "img-to-pdf",
+            },
+            {
+              label: (
+                <span className="flex items-center gap-2">
+                  <FileBox className="size-4" />
+                  PDF to Images
+                </span>
+              ),
+              value: "pdf-to-img",
+            },
+          ]}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_360px]">
@@ -471,15 +476,18 @@ function PdfConverterTool() {
                         {formatFileSize(item.file.size)}
                       </p>
                     </div>
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeImgFile(item.id);
                       }}
-                      className="p-2 ml-1 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-red-400"
+                      className="ml-1 h-8 w-8 p-0 opacity-0 text-muted-foreground transition-opacity group-hover:opacity-100 hover:text-red-400"
                     >
                       <X className="size-4" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -584,33 +592,39 @@ function PdfConverterTool() {
               {activeTab === "img-to-pdf" && (
                 <>
                   <div className="space-y-3">
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <Label>
                       Export Mode
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setImgMode("combined")}
-                        className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm transition-all ${
-                          imgMode === "combined"
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-background/50 text-muted-foreground hover:bg-muted"
-                        }`}
-                      >
-                        <LayoutGrid className="size-5" />
-                        <span className="font-medium">Combined</span>
-                      </button>
-                      <button
-                        onClick={() => setImgMode("batch")}
-                        className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm transition-all ${
-                          imgMode === "batch"
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-background/50 text-muted-foreground hover:bg-muted"
-                        }`}
-                      >
-                        <FileImage className="size-5" />
-                        <span className="font-medium">Batch</span>
-                      </button>
-                    </div>
+                    </Label>
+                    <SegmentedControl
+                      variant="dark"
+                      fullWidth
+                      value={imgMode}
+                      onValueChange={(value) =>
+                        setImgMode(value as ImgToPdfMode)
+                      }
+                      className="grid grid-cols-2 gap-2 border-none bg-transparent p-0"
+                      optionClassName="h-auto min-h-[5rem] flex-col gap-2 rounded-xl border p-3 text-sm"
+                      options={[
+                        {
+                          label: (
+                            <>
+                              <LayoutGrid className="size-5" />
+                              <span className="font-medium">Combined</span>
+                            </>
+                          ),
+                          value: "combined",
+                        },
+                        {
+                          label: (
+                            <>
+                              <FileImage className="size-5" />
+                              <span className="font-medium">Batch</span>
+                            </>
+                          ),
+                          value: "batch",
+                        },
+                      ]}
+                    />
                     <p className="text-[11px] text-muted-foreground mt-1">
                       {imgMode === "combined"
                         ? "Merge all uploaded images sequentially into a single multi-page PDF document. Drag list items to reorder pages."
@@ -648,9 +662,9 @@ function PdfConverterTool() {
               {activeTab === "pdf-to-img" && (
                 <>
                   <div className="space-y-3">
-                    <label className="text-sm font-medium leading-none">
+                    <Label>
                       Extract Format
-                    </label>
+                    </Label>
                     <Select
                       options={[
                         { label: "PNG Sequence", value: "image/png" },
